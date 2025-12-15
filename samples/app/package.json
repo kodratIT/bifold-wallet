@@ -21,6 +21,7 @@
   "dependencies": {
     "@bifold/core": "2.11.7",
     "@bifold/oca": "2.11.7",
+    "@bifold/trust-registry": "workspace:*",
     "@credo-ts/anoncreds": "0.5.17",
     "@credo-ts/askar": "0.5.17",
     "@credo-ts/core": "0.5.17",

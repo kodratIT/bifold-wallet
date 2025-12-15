@@ -251,6 +251,17 @@ export class MainContainer implements Container {
 
     this._container.registerInstance(TOKENS.UTIL_REFRESH_ORCHESTRATOR, orchestrator)
 
+    // Register Trust Registry default config (disabled by default)
+    this._container.registerInstance(TOKENS.TRUST_REGISTRY_CONFIG, {
+      enabled: false,
+      url: '',
+      ecosystemDid: '',
+      cacheTTL: 3600000, // 1 hour
+      showWarningForUntrusted: true,
+      blockUntrustedIssuers: false,
+      blockUntrustedVerifiers: false,
+    })
+
     return this
   }
 

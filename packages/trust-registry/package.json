@@ -1,0 +1,72 @@
+{
+  "name": "@bifold/trust-registry",
+  "version": "1.0.0",
+  "description": "Trust Registry integration for Bifold Wallet (ToIP TRQP v2)",
+  "main": "lib/commonjs/index.js",
+  "module": "lib/module/index.js",
+  "types": "lib/typescript/src/index.d.ts",
+  "react-native": "./lib/commonjs/index.js",
+  "source": "src/index.ts",
+  "exports": {
+    ".": {
+      "react-native": "./src/index.ts",
+      "import": "./lib/module/index.js",
+      "require": "./lib/commonjs/index.js",
+      "types": "./lib/typescript/src/index.d.ts"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openwallet-foundation/bifold-wallet.git",
+    "directory": "packages/trust-registry"
+  },
+  "homepage": "https://github.com/openwallet-foundation/bifold-wallet/",
+  "files": [
+    "lib",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
+  "scripts": {
+    "build": "echo 'building trust-registry 🏗️' && yarn clean && bob build && echo 'trust-registry built ✅'",
+    "clean": "rimraf ./lib",
+    "test": "TZ=GMT jest",
+    "coverage": "TZ=GMT jest --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@babel/core": "~7.22.20",
+    "@babel/runtime": "~7.23.9",
+    "@testing-library/jest-native": "~5.4.3",
+    "@testing-library/react-native": "~12.3.3",
+    "@types/jest": "~29.5.14",
+    "@types/react": "~18.2.79",
+    "fast-check": "~3.22.0",
+    "jest": "~29.6.4",
+    "react": "*",
+    "react-native": "0.73.11",
+    "react-native-builder-bob": "~0.21.3",
+    "react-test-renderer": "~18.2.0",
+    "rimraf": "~5.0.10",
+    "typescript": "~5.5.4"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.70.0"
+  },
+  "dependencies": {
+    "@bifold/core": "workspace:*"
+  },
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "commonjs",
+      "module",
+      "typescript"
+    ]
+  }
+}

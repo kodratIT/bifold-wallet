@@ -1,5 +1,7 @@
-import { BifoldLogger, Container, TokenMapping } from '@bifold/core'
+import { BifoldLogger, Container, TokenMapping, TOKENS } from '@bifold/core'
+import { TrustRegistryService } from '@bifold/trust-registry'
 import { DependencyContainer } from 'tsyringe'
+import { getTrustRegistryConfig, isTrustRegistryConfigured } from './config/trustRegistry'
 
 export class AppContainer implements Container {
   private _container: DependencyContainer
@@ -20,6 +22,9 @@ export class AppContainer implements Container {
     // Here you can register any component to override components in core package
     // Example: Replacing button in core with custom button
     // this.container.registerInstance(TOKENS.COMP_BUTTON, Button)
+
+    // Trust Registry Configuration from environment variables
+    this.initTrustRegistry()
 
     //This is an example of how to customize the screen layout and use custom header for wallets who wnat to hide default navigation header
     //To hide navigation header for a specific page, use headerShown: false in the screen options like this
@@ -57,5 +62,28 @@ export class AppContainer implements Container {
     tokens: [...T]
   ): { [I in keyof T]: TokenMapping[T[I]] } {
     return tokens.map((key) => this.resolve(key)!) as { [I in keyof T]: TokenMapping[T[I]] }
+  }
+
+  /**
+   * Initialize Trust Registry from environment variables
+   */
+  private initTrustRegistry(): void {
+    const config = getTrustRegistryConfig()
+
+    // Override default config with env values
+    this._container.registerInstance(TOKENS.TRUST_REGISTRY_CONFIG, config)
+
+    // Register service if properly configured
+    if (isTrustRegistryConfigured()) {
+      this.log?.info('Trust Registry enabled', {
+        url: config.url,
+        ecosystemDid: config.ecosystemDid,
+      })
+
+      const service = new TrustRegistryService(config, this.log)
+      this._container.registerInstance(TOKENS.TRUST_REGISTRY_SERVICE, service)
+    } else if (config.enabled) {
+      this.log?.warn('Trust Registry enabled but not properly configured - missing url or ecosystemDid')
+    }
   }
 }

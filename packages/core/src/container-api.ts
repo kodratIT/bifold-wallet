@@ -151,6 +151,11 @@ export const CONFIG_TOKENS = {
   ONBOARDING: 'utility.onboarding',
 } as const
 
+export const TRUST_REGISTRY_TOKENS = {
+  TRUST_REGISTRY_SERVICE: 'trust-registry.service',
+  TRUST_REGISTRY_CONFIG: 'trust-registry.config',
+} as const
+
 export const TOKENS = {
   ...PROOF_TOKENS,
   ...COMPONENT_TOKENS,
@@ -168,6 +173,7 @@ export const TOKENS = {
   ...UTILITY_TOKENS,
   ...CONFIG_TOKENS,
   ...HISTORY_TOKENS,
+  ...TRUST_REGISTRY_TOKENS,
 } as const
 
 export type FN_HISTORY_MANAGER = (agent: Agent<any>) => IHistoryManager
@@ -232,6 +238,16 @@ export type TokenMapping = {
   [TOKENS.COMPONENT_CONNECTION_ALERT]: React.FC<{ connectionLabel?: string }>
   [TOKENS.UTIL_AGENT_BRIDGE]: AgentBridge
   [TOKENS.UTIL_REFRESH_ORCHESTRATOR]: IRefreshOrchestrator
+  [TOKENS.TRUST_REGISTRY_SERVICE]: unknown
+  [TOKENS.TRUST_REGISTRY_CONFIG]: {
+    enabled: boolean
+    url: string
+    ecosystemDid: string
+    cacheTTL: number
+    showWarningForUntrusted: boolean
+    blockUntrustedIssuers: boolean
+    blockUntrustedVerifiers: boolean
+  }
 }
 
 export interface Container {
