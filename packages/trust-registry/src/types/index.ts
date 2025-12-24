@@ -124,15 +124,13 @@ export interface VerifierInfo {
 }
 
 /**
- * Lookup response wrapper
+ * Lookup response (direct structure)
  */
 export interface LookupResponse<T> {
-  data: {
-    found: boolean
-    issuer?: T
-    verifier?: T
-    message?: string
-  }
+  found: boolean
+  issuer?: T
+  verifier?: T
+  message?: string
 }
 
 // ============================================================================

@@ -1,0 +1,15 @@
+LOG  [TrustRegistry
+] Outgoing Request {
+    "body": undefined,
+    "method": "GET",
+    "url": "https://trust-local.devlab.biz.id/v2/public/lookup/issuer/did%3Asov%3A5aZKdauXBKkuBFYmKcfTY9"
+}
+ LOG  INFO : {
+    "message": "Credential metadata ensured",
+    "data": {}
+}
+ ERROR  [TrustRegistry
+] Failed to lookup issuer {
+    "did": "did:sov:5aZKdauXBKkuBFYmKcfTY9",
+    "error": "Cannot read property 'issuer' of undefined"
+}

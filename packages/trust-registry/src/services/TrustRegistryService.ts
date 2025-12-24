@@ -319,13 +319,13 @@ export class TrustRegistryService implements ITrustRegistryService {
     response: LookupResponse<IssuerInfo | VerifierInfo>,
     type: 'issuer' | 'verifier'
   ): TrustResult {
-    const entity = type === 'issuer' ? response.data.issuer : response.data.verifier
+    const entity = type === 'issuer' ? response.issuer : response.verifier
 
-    if (!response.data.found || !entity) {
+    if (!response.found || !entity) {
       return {
         level: 'untrusted',
         found: false,
-        message: response.data.message ?? 'Entity not found in registry',
+        message: response.message ?? 'Entity not found in registry',
         checkedAt: new Date(),
       }
     }
@@ -334,7 +334,7 @@ export class TrustRegistryService implements ITrustRegistryService {
       level: mapToTrustLevel(entity.status, entity.accreditationLevel),
       found: true,
       entity,
-      message: response.data.message,
+      message: response.message,
       checkedAt: new Date(),
     }
   }
