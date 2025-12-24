@@ -167,7 +167,14 @@
   "TrustRegistry": {
     "UnauthorizedTitle": "Unauthorized Issuer",
     "UnauthorizedMessage": "This issuer is not authorized to issue this type of credential.",
-    "AuthorizationError": "There was an error verifying the authorization with the Trust Registry."
+    "AuthorizationError": "There was an error verifying the authorization with the Trust Registry.",
+    "CheckStatus": "Check Trust Status",
+    "IssuerCapability": "Issuer Capability",
+    "CanIssue": "Authorized to Issue",
+    "CanVerify": "Authorized to Verify only",
+    "NotAuthorized": "Not Authorized",
+    "ProceedAccept": "Proceed with Acceptance?",
+    "ProceedDecline": "Proceed with Decline?"
   },
   "SelectionAxs": {
     "RadioChecked": "checked",

@@ -250,16 +250,49 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
 
         try {
           const auth = await service.checkIssuerAuthorization(issuerDid, credentialType)
+          const capability = auth.authorized ? t('TrustRegistry.CanIssue') : t('TrustRegistry.CanVerify')
+          const message = `${t('TrustRegistry.IssuerCapability')}: ${capability}\n\n${auth.message || ''}`
+
           if (!auth.authorized) {
             Alert.alert(
               t('TrustRegistry.UnauthorizedTitle'),
-              auth.message || t('TrustRegistry.UnauthorizedMessage'),
-              [{ text: t('Global.Okay') }]
+              message,
+              [
+                { text: t('Global.Reject'), style: 'destructive', onPress: handleDeclineTouched },
+                {
+                  text: t('Global.Continue'), onPress: async () => {
+                    setAcceptModalVisible(true)
+                    await agent.credentials.acceptOffer({ credentialRecordId: credential.id })
+                    if (historyEventsLogger.logAttestationAccepted) {
+                      const type = HistoryCardType.CardAccepted
+                      await logHistoryRecord(type)
+                    }
+                  }
+                }
+              ]
             )
-
-            if (trustRegistryConfig.blockUntrustedIssuers) {
-              return
-            }
+            return // Stop here, Wait for user selection in Alert
+          } else {
+            // Optional: Show success popup or just proceed
+            // User requested "muncul pop up untuk cek status did nya", so let's show it even for success
+            Alert.alert(
+              t('TrustRegistry.CheckStatus'),
+              message,
+              [
+                { text: t('Global.Back'), style: 'cancel' },
+                {
+                  text: t('Global.Accept'), onPress: async () => {
+                    setAcceptModalVisible(true)
+                    await agent.credentials.acceptOffer({ credentialRecordId: credential.id })
+                    if (historyEventsLogger.logAttestationAccepted) {
+                      const type = HistoryCardType.CardAccepted
+                      await logHistoryRecord(type)
+                    }
+                  }
+                }
+              ]
+            )
+            return // Proceeding via Alert onPress
           }
         } catch (e) {
           logger.error('Trust Registry Authorization check failed', { error: e })
@@ -267,7 +300,6 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
       }
 
       setAcceptModalVisible(true)
-
       await agent.credentials.acceptOffer({ credentialRecordId: credential.id })
       if (historyEventsLogger.logAttestationAccepted) {
         const type = HistoryCardType.CardAccepted
@@ -278,22 +310,62 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
       const error = new BifoldError(t('Error.Title1024'), t('Error.Message1024'), (err as Error)?.message ?? err, 1024)
       DeviceEventEmitter.emit(EventTypes.ERROR_ADDED, error)
     }
-  }, [agent, credential, assertNetworkConnected, logHistoryRecord, t, historyEventsLogger.logAttestationAccepted])
+  }, [
+    agent,
+    credential,
+    assertNetworkConnected,
+    logHistoryRecord,
+    t,
+    historyEventsLogger.logAttestationAccepted,
+    trustRegistryService,
+    trustRegistryConfig,
+    issuerDid,
+    schemaId,
+    logger
+  ])
 
   const handleDeclineTouched = useCallback(async () => {
     try {
-      if (agent && credential) {
-        const connectionId = credential.connectionId ?? ''
-        const connection = await agent.connections.findById(connectionId)
+      if (!(agent && credential)) return
 
-        await agent.credentials.declineOffer(credential.id)
+      // Trust Registry Check for Decline (as requested)
+      if (trustRegistryService && trustRegistryConfig?.enabled) {
+        const service = trustRegistryService as any
+        const credentialType = schemaId?.split(':')[2] || 'Credential'
+        try {
+          const auth = await service.checkIssuerAuthorization(issuerDid, credentialType)
+          const capability = auth.authorized ? t('TrustRegistry.CanIssue') : t('TrustRegistry.CanVerify')
+          const message = `${t('TrustRegistry.IssuerCapability')}: ${capability}\n\n${t('TrustRegistry.ProceedDecline')}`
 
-        if (connection) {
-          await agent.credentials.sendProblemReport({
-            credentialRecordId: credential.id,
-            description: t('CredentialOffer.Declined'),
-          })
+          Alert.alert(
+            t('TrustRegistry.CheckStatus'),
+            message,
+            [
+              { text: t('Global.Back'), style: 'cancel' },
+              {
+                text: t('Global.Decline'), style: 'destructive', onPress: async () => {
+                  await agent.credentials.declineOffer(credential.id)
+                  navigation.getParent()?.navigate(TabStacks.HomeStack, { screen: Screens.Home })
+                }
+              }
+            ]
+          )
+          return
+        } catch (e) {
+          logger.error('Trust Registry check during decline failed', { error: e })
         }
+      }
+
+      const connectionId = credential.connectionId ?? ''
+      const connection = await agent.connections.findById(connectionId)
+
+      await agent.credentials.declineOffer(credential.id)
+
+      if (connection) {
+        await agent.credentials.sendProblemReport({
+          credentialRecordId: credential.id,
+          description: t('CredentialOffer.Declined'),
+        })
       }
 
       toggleDeclineModalVisible()
@@ -315,6 +387,11 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
     navigation,
     logHistoryRecord,
     historyEventsLogger.logAttestationRefused,
+    trustRegistryService,
+    trustRegistryConfig,
+    issuerDid,
+    schemaId,
+    logger
   ])
 
   const header = () => {
