@@ -1,5 +1,5 @@
 import { BifoldLogger, Container, TokenMapping, TOKENS } from '@bifold/core'
-import { TrustRegistryService } from '@bifold/trust-registry'
+import { TrustRegistryService, TrustBadgeWrapper } from '@bifold/trust-registry'
 import { DependencyContainer } from 'tsyringe'
 import { getTrustRegistryConfig, isTrustRegistryConfigured } from './config/trustRegistry'
 
@@ -85,5 +85,8 @@ export class AppContainer implements Container {
     } else if (config.enabled) {
       this.log?.warn('Trust Registry enabled but not properly configured - missing url or ecosystemDid')
     }
+
+    // Register UI components
+    this._container.registerInstance(TOKENS.COMPONENT_TRUST_BADGE, TrustBadgeWrapper)
   }
 }

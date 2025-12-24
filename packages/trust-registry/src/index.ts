@@ -22,6 +22,7 @@ export type { UseTrustRegistryStatusResult } from './hooks/useTrustRegistryStatu
 
 // Components
 export { TrustBadge, getBadgeConfig, TRUST_BADGE_CONFIG, BADGE_SIZES } from './components/TrustBadge'
+export { TrustBadgeWrapper } from './components/TrustBadgeWrapper'
 export type { TrustBadgeProps, BadgeConfig } from './components/TrustBadge'
 export { TrustWarning, getWarningConfig, shouldShowWarning, isDismissible } from './components/TrustWarning'
 export type { TrustWarningProps, WarningConfig } from './components/TrustWarning'

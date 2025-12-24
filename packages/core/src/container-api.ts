@@ -88,6 +88,7 @@ export const COMPONENT_TOKENS = {
   COMPONENT_CONTACT_LIST_ITEM: 'component.contact-list-item',
   COMPONENT_CONTACT_DETAILS_CRED_LIST_ITEM: 'component.contact-details-cred-list-item',
   COMPONENT_CONNECTION_ALERT: 'component.connection-alert',
+  COMPONENT_TRUST_BADGE: 'component.trust-badge',
 } as const
 
 export const NOTIFICATION_TOKENS = {
@@ -236,6 +237,7 @@ export type TokenMapping = {
   [TOKENS.INLINE_ERRORS]: InlineErrorConfig
   [TOKENS.CUSTOM_NAV_STACK_1]: React.FC
   [TOKENS.COMPONENT_CONNECTION_ALERT]: React.FC<{ connectionLabel?: string }>
+  [TOKENS.COMPONENT_TRUST_BADGE]: React.FC<{ issuerDid?: string }>
   [TOKENS.UTIL_AGENT_BRIDGE]: AgentBridge
   [TOKENS.UTIL_REFRESH_ORCHESTRATOR]: IRefreshOrchestrator
   [TOKENS.TRUST_REGISTRY_SERVICE]: unknown

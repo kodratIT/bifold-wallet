@@ -78,12 +78,34 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
   const { start } = useTour()
   const screenIsFocused = useIsFocused()
   const goalCode = useOutOfBandByConnectionId(credential?.connectionId ?? '')?.outOfBandInvitation?.goalCode
-  const [ConnectionAlert] = useServices([TOKENS.COMPONENT_CONNECTION_ALERT])
+  const [ConnectionAlert, TrustBadge] = useServices([TOKENS.COMPONENT_CONNECTION_ALERT, TOKENS.COMPONENT_TRUST_BADGE])
+
+  const { credentialDefinitionId, schemaId } = credential
+    ? getCredentialIdentifiers(credential)
+    : { credentialDefinitionId: undefined, schemaId: undefined }
+
+  // Extract DID: it's the part before the first occurrence of :2: (schema) or :3: (cred def)
+  // or simply handle both qualified and unqualified DIDs
+  const getDidFromId = (id?: string) => {
+    if (!id) return undefined
+    // If it's a qualified DID (contains did:), we need to find where the indy-specific parts start
+    if (id.startsWith('did:')) {
+      const match = id.match(/^(did:[^:]+:[^:]+)/)
+      return match ? match[1] : id.split(':')[0]
+    }
+    // Unqualified indy DID
+    return id.split(':')[0]
+  }
+
+  const issuerDid = getDidFromId(credentialDefinitionId) || getDidFromId(schemaId)
 
   const styles = StyleSheet.create({
     headerTextContainer: {
       paddingHorizontal: 25,
       paddingVertical: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
     headerText: {
       flexShrink: 1,
@@ -276,6 +298,7 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
             <ThemedText>{credentialConnectionLabel || t('ContactDetails.AContact')}</ThemedText>{' '}
             {t('CredentialOffer.IsOfferingYouACredential')}
           </ThemedText>
+          {TrustBadge && <TrustBadge issuerDid={issuerDid} />}
         </View>
         {!loading && credential && (
           <View style={{ marginHorizontal: 15, marginBottom: 16 }}>

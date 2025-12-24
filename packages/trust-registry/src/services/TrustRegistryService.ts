@@ -105,7 +105,10 @@ export class TrustRegistryService implements ITrustRegistryService {
   private retryCount: number = 1
 
   constructor(config: TrustRegistryConfig, logger?: Logger) {
-    this.config = config
+    this.config = {
+      ...config,
+      url: config.url.replace(/\/v2\/?$/, ''),
+    }
     this.cache = new TrustRegistryCache(config.cacheTTL)
     this.logger = logger ?? defaultLogger
   }
@@ -125,6 +128,12 @@ export class TrustRegistryService implements ITrustRegistryService {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
 
+        this.logger.info(`Outgoing Request`, {
+          url,
+          method: options.method ?? 'GET',
+          body: options.body ? JSON.parse(options.body as string) : undefined
+        })
+
         const response = await fetch(url, {
           ...options,
           signal: controller.signal,
@@ -133,10 +142,24 @@ export class TrustRegistryService implements ITrustRegistryService {
         clearTimeout(timeoutId)
 
         if (!response.ok) {
+          let errorBody = ''
+          try {
+            errorBody = await response.text()
+          } catch (e) {
+            errorBody = 'Could not read error body'
+          }
+
+          this.logger.error(`Trust Registry Request Failed`, {
+            url,
+            status: response.status,
+            statusText: response.statusText,
+            body: errorBody,
+          })
+
           throw new TrustRegistryError(
             `HTTP ${response.status}: ${response.statusText}`,
             TrustRegistryErrorCode.INVALID_RESPONSE,
-            { url, status: response.status }
+            { url, status: response.status, body: errorBody }
           )
         }
 

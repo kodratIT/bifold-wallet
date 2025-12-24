@@ -35,10 +35,13 @@ if (typeof global.Buffer === 'undefined') {
 }
 
 import { initLanguages, translationResources, createApp, MainContainer } from '@bifold/core'
+import { TrustRegistryProvider } from '@bifold/trust-registry'
+import React from 'react'
 import { AppRegistry, LogBox } from 'react-native'
 import { container } from 'tsyringe'
 
 import { name as appName } from './app.json'
+import { getTrustRegistryConfig } from './config/trustRegistry'
 import { AppContainer } from './container-imp'
 
 LogBox.ignoreAllLogs()
@@ -46,5 +49,12 @@ LogBox.ignoreAllLogs()
 initLanguages(translationResources)
 const bifoldContainer = new MainContainer(container.createChildContainer()).init()
 const appContainer = new AppContainer(bifoldContainer).init()
-const App = createApp(appContainer)
+const BifoldApp = createApp(appContainer)
+
+const App = () => (
+  <TrustRegistryProvider config={getTrustRegistryConfig()}>
+    <BifoldApp />
+  </TrustRegistryProvider>
+)
+
 AppRegistry.registerComponent(appName, () => App)

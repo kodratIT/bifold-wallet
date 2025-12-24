@@ -2,7 +2,7 @@ import { IndyVdrPoolConfig } from '@credo-ts/indy-vdr'
 import axios from 'axios'
 
 const INDY_NETWORK_URL =
-  'https://raw.githubusercontent.com/hyperledger/indy-node-monitor/main/fetch-validator-status/networks.json'
+  'https://raw.githubusercontent.com/kodratIT/openwallet-utils/refs/heads/main/indy-node-monitor.json'
 
 const ERROR_TAG = 'LEDGER ERROR'
 
@@ -110,44 +110,43 @@ export async function getIndyLedgers(indyLedgerConfigs: IndyLedgerConfig[]): Pro
     return []
   }
 
-  const allIndyLedgers = await _fetchUrlContent<IndyLedgersRecord>(INDY_NETWORK_URL)
+  try {
+    const allIndyLedgers = await _fetchUrlContent<IndyLedgersRecord>(INDY_NETWORK_URL)
 
-  const ledgers: IndyLedgerJSON[] = []
-  // Iterate through the supported network configs and map them to the Indy ledgers
-  for (const ledgerConfig of indyLedgerConfigs) {
-    const indyLedger = allIndyLedgers[ledgerConfig.ledgerId]
+    const ledgers: IndyLedgerJSON[] = []
+    for (const ledgerConfig of indyLedgerConfigs) {
+      const indyLedger = allIndyLedgers[ledgerConfig.ledgerId]
 
-    if (!indyLedger) {
-      throw new Error(`${ERROR_TAG}: Ledger config for ${ledgerConfig.ledgerId} not found`)
+      if (!indyLedger) {
+        continue
+      }
+
+      const ledgerId = indyLedger.name
+        .split(' ')
+        .filter((word) => !/\W+/im.test(word))
+        .join('')
+
+      ledgers.push({
+        id: ledgerId,
+        indyNamespace: indyLedger.indyNamespace,
+        isProduction: ledgerConfig.isProduction,
+        connectOnStartup: !ledgerConfig.doNotConnectOnStartup,
+        genesisTransactions: indyLedger.genesisUrl,
+      })
     }
 
-    const ledgerId = indyLedger.name
-      .split(' ')
-      .filter((word) => !/\W+/im.test(word))
-      .join('')
+    const genesisPromises = ledgers.map((ledger) => _fetchUrlContent<string>(ledger.genesisTransactions))
+    const genesisTransactions = await Promise.all(genesisPromises)
 
-    ledgers.push({
-      id: ledgerId,
-      indyNamespace: indyLedger.indyNamespace,
-      isProduction: ledgerConfig.isProduction,
-      connectOnStartup: !ledgerConfig.doNotConnectOnStartup,
-      // This url will need to be fetched to get the genesis transactions
-      genesisTransactions: indyLedger.genesisUrl,
+    genesisTransactions.forEach((transactions, index) => {
+      ledgers[index].genesisTransactions = transactions.trim()
     })
+
+    return ledgers
+  } catch (error) {
+    console.warn(`${ERROR_TAG}: Failed to fetch from GitHub, returning empty list to avoid overwriting valid local config.`)
+    return []
   }
-
-  // Step 1: Collect all genesis transaction promises
-  const genesisPromises = ledgers.map((ledger) => _fetchUrlContent<string>(ledger.genesisTransactions))
-
-  // Step 2: Await all promises to resolve in parallel
-  const genesisTransactions = await Promise.all(genesisPromises)
-
-  // Step 3: Assign the fetched genesis transactions back to the ledgers
-  genesisTransactions.forEach((transactions, index) => {
-    ledgers[index].genesisTransactions = transactions.trim()
-  })
-
-  return ledgers
 }
 
 /**
