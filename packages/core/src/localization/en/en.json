@@ -164,6 +164,11 @@
       "Message": "There was an unexpected error, please try again later."
     }
   },
+  "TrustRegistry": {
+    "UnauthorizedTitle": "Unauthorized Issuer",
+    "UnauthorizedMessage": "This issuer is not authorized to issue this type of credential.",
+    "AuthorizationError": "There was an error verifying the authorization with the Trust Registry."
+  },
   "SelectionAxs": {
     "RadioChecked": "checked",
     "RadioUnchecked": "unchecked"

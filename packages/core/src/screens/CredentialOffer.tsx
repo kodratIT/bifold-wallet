@@ -5,7 +5,7 @@ import { Attribute, CredentialOverlay } from '@bifold/oca/build/legacy'
 import { useIsFocused } from '@react-navigation/native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DeviceEventEmitter, StyleSheet, View } from 'react-native'
+import { Alert, DeviceEventEmitter, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import Button, { ButtonType } from '../components/buttons/Button'
@@ -78,7 +78,12 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
   const { start } = useTour()
   const screenIsFocused = useIsFocused()
   const goalCode = useOutOfBandByConnectionId(credential?.connectionId ?? '')?.outOfBandInvitation?.goalCode
-  const [ConnectionAlert, TrustBadge] = useServices([TOKENS.COMPONENT_CONNECTION_ALERT, TOKENS.COMPONENT_TRUST_BADGE])
+  const [ConnectionAlert, TrustBadge, trustRegistryService, trustRegistryConfig] = useServices([
+    TOKENS.COMPONENT_CONNECTION_ALERT,
+    TOKENS.COMPONENT_TRUST_BADGE,
+    TOKENS.TRUST_REGISTRY_SERVICE,
+    TOKENS.TRUST_REGISTRY_CONFIG,
+  ])
 
   const { credentialDefinitionId, schemaId } = credential
     ? getCredentialIdentifiers(credential)
@@ -236,6 +241,29 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
     try {
       if (!(agent && credential && assertNetworkConnected())) {
         return
+      }
+
+      // Trust Registry Authorization Check
+      if (trustRegistryService && trustRegistryConfig?.enabled) {
+        const service = trustRegistryService as any
+        const credentialType = schemaId?.split(':')[2] || 'Credential'
+
+        try {
+          const auth = await service.checkIssuerAuthorization(issuerDid, credentialType)
+          if (!auth.authorized) {
+            Alert.alert(
+              t('TrustRegistry.UnauthorizedTitle'),
+              auth.message || t('TrustRegistry.UnauthorizedMessage'),
+              [{ text: t('Global.Okay') }]
+            )
+
+            if (trustRegistryConfig.blockUntrustedIssuers) {
+              return
+            }
+          }
+        } catch (e) {
+          logger.error('Trust Registry Authorization check failed', { error: e })
+        }
       }
 
       setAcceptModalVisible(true)

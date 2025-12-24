@@ -59,10 +59,23 @@ const defaultLogger: Logger = {
 }
 
 /**
+ * Normalize a DID. If it's an unqualified Indy DID, add the did:sov: prefix.
+ */
+export function normalizeDid(did: string): string {
+  if (!did) return did
+  if (did.startsWith('did:')) return did
+
+  // Basic check for indy DID (base58, length around 22)
+  // For simplicity and to match user expectation, we'll assume unqualified DIDs 
+  // in this context should be did:sov
+  return `did:sov:${did}`
+}
+
+/**
  * URL-encode a DID for use in URL path
  */
 export function encodeDid(did: string): string {
-  return encodeURIComponent(did)
+  return encodeURIComponent(normalizeDid(did))
 }
 
 /**
@@ -236,7 +249,8 @@ export class TrustRegistryService implements ITrustRegistryService {
    * Lookup issuer by DID
    */
   async lookupIssuer(did: string): Promise<TrustResult> {
-    const cacheKey = CacheKeys.issuer(did)
+    const normalizedDid = normalizeDid(did)
+    const cacheKey = CacheKeys.issuer(normalizedDid)
     const cached = this.cache.get<TrustResult>(cacheKey)
 
     if (cached) {
@@ -244,7 +258,7 @@ export class TrustRegistryService implements ITrustRegistryService {
     }
 
     try {
-      const url = `${this.config.url}/v2/public/lookup/issuer/${encodeDid(did)}`
+      const url = `${this.config.url}/v2/public/lookup/issuer/${encodeDid(normalizedDid)}`
       const response = await this.fetchWithRetry<LookupResponse<IssuerInfo>>(url)
 
       const result = this.mapLookupResponseToTrustResult(response, 'issuer')
@@ -252,7 +266,7 @@ export class TrustRegistryService implements ITrustRegistryService {
       return result
     } catch (error) {
       this.logger.error('Failed to lookup issuer', {
-        did,
+        did: normalizedDid,
         error: (error as Error).message,
       })
 
@@ -332,7 +346,10 @@ export class TrustRegistryService implements ITrustRegistryService {
     issuerDid: string,
     credentialType: string
   ): Promise<AuthorizationResponse> {
-    const cacheKey = CacheKeys.authorization(issuerDid, 'issue', credentialType)
+    const normalizedIssuerDid = normalizeDid(issuerDid)
+    const normalizedAuthorityId = normalizeDid(this.config.ecosystemDid)
+
+    const cacheKey = CacheKeys.authorization(normalizedIssuerDid, 'issue', credentialType)
     const cached = this.cache.get<AuthorizationResponse>(cacheKey)
 
     if (cached) {
@@ -340,8 +357,8 @@ export class TrustRegistryService implements ITrustRegistryService {
     }
 
     const request: AuthorizationRequest = {
-      entity_id: issuerDid,
-      authority_id: this.config.ecosystemDid,
+      entity_id: normalizedIssuerDid,
+      authority_id: normalizedAuthorityId,
       action: 'issue',
       resource: credentialType,
       context: {
