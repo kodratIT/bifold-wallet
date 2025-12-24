@@ -484,6 +484,7 @@ exports[`displays a proof request screen ProofRequest Screen, W3C displays a pro
                             }
                           >
                             <Text
+                              accessible={false}
                               maxFontSizeMultiplier={2}
                               style={
                                 Array [
@@ -494,14 +495,14 @@ exports[`displays a proof request screen ProofRequest Screen, W3C displays a pro
                                   },
                                   Array [
                                     Object {
-                                      "color": "#FFFFFF",
-                                      "fontSize": 18,
-                                      "fontWeight": "bold",
-                                    },
-                                    Object {
                                       "alignSelf": "center",
                                       "color": "#000",
                                       "fontSize": 45,
+                                    },
+                                    Object {
+                                      "color": "#FFFFFF",
+                                      "fontSize": 18,
+                                      "fontWeight": "bold",
                                     },
                                   ],
                                 ]
@@ -566,29 +567,10 @@ exports[`displays a proof request screen ProofRequest Screen, W3C displays a pro
                                 }
                               }
                             >
-                              <Text
-                                allowFontScaling={false}
-                                selectable={false}
-                                style={
-                                  Array [
-                                    Object {
-                                      "color": undefined,
-                                      "fontSize": 30,
-                                    },
-                                    Object {
-                                      "color": "#D8292F",
-                                    },
-                                    Object {
-                                      "fontFamily": "Material Icons",
-                                      "fontStyle": "normal",
-                                      "fontWeight": "normal",
-                                    },
-                                    Object {},
-                                  ]
-                                }
-                              >
-                                
-                              </Text>
+                              <
+                                height={30}
+                                width={30}
+                              />
                               <Text
                                 maxFontSizeMultiplier={2}
                                 style={
@@ -1083,6 +1065,7 @@ exports[`displays a proof request screen ProofRequest Screen, W3C displays a pro
                             }
                           >
                             <Text
+                              accessible={false}
                               maxFontSizeMultiplier={2}
                               style={
                                 Array [
@@ -1093,14 +1076,14 @@ exports[`displays a proof request screen ProofRequest Screen, W3C displays a pro
                                   },
                                   Array [
                                     Object {
-                                      "color": "#FFFFFF",
-                                      "fontSize": 18,
-                                      "fontWeight": "bold",
-                                    },
-                                    Object {
                                       "alignSelf": "center",
                                       "color": "#000",
                                       "fontSize": 45,
+                                    },
+                                    Object {
+                                      "color": "#FFFFFF",
+                                      "fontSize": 18,
+                                      "fontWeight": "bold",
                                     },
                                   ],
                                 ]

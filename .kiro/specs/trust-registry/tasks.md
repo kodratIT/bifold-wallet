@@ -1,0 +1,213 @@
+# Implementation Plan
+
+- [x] 1. Setup Package Structure
+  - [x] 1.1 Create package.json for trust-registry package
+    - Create `packages/trust-registry/package.json` with name `@bifold/trust-registry`
+    - Add dependencies: @bifold/core as workspace dependency
+    - Add peer dependencies: react, react-native
+    - Add scripts: build, clean, test
+    - _Requirements: 1.1, 1.4_
+  - [x] 1.2 Create TypeScript configuration
+    - Create `packages/trust-registry/tsconfig.json` extending base config
+    - Configure output to `build/` directory
+    - _Requirements: 1.2, 1.3_
+  - [x] 1.3 Create Jest configuration
+    - Create `packages/trust-registry/jest.config.js`
+    - Configure for TypeScript and React Native
+    - _Requirements: 1.2_
+  - [x] 1.4 Update root package.json workspaces
+    - Add `packages/trust-registry` to workspaces array
+    - _Requirements: 1.1_
+  - [x] 1.5 Create index.ts entry point
+    - Create `packages/trust-registry/src/index.ts`
+    - Export all public APIs
+    - _Requirements: 1.1_
+
+- [x] 2. Implement Type Definitions
+  - [x] 2.1 Create type definitions file
+    - Create `packages/trust-registry/src/types/index.ts`
+    - Define TrustRegistryConfig interface
+    - Define TrustRegistryMetadata interface
+    - Define IssuerInfo, VerifierInfo interfaces
+    - Define AuthorizationRequest, AuthorizationResponse interfaces
+    - Define EntityStatus, AccreditationLevel, TrustLevel types
+    - Define TrustResult interface
+    - Define CredentialTypeInfo, Jurisdiction, RegistryInfo interfaces
+    - Define LookupResponse generic interface
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
+  - [x] 2.2 Write property test for type serialization round-trip
+    - **Property 1: Type Serialization Round-Trip**
+    - **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6**
+
+- [x] 3. Implement Cache Utility
+  - [x] 3.1 Create cache utility
+    - Create `packages/trust-registry/src/utils/cache.ts`
+    - Implement in-memory cache with TTL support
+    - Implement get, set, clear methods
+    - Implement cache key generation
+    - _Requirements: 4.1, 4.5_
+  - [x] 3.2 Write property test for cache TTL behavior
+    - **Property 5: Cache TTL Behavior**
+    - **Validates: Requirements 4.1, 4.2, 4.3**
+  - [x] 3.3 Write property test for cache key uniqueness
+    - **Property 6: Cache Key Uniqueness**
+    - **Validates: Requirements 4.5**
+  - [x] 3.4 Write property test for cache clearing
+    - **Property 7: Cache Clearing**
+    - **Validates: Requirements 4.4**
+
+- [x] 4. Implement TrustRegistryService
+  - [x] 4.1 Create TrustRegistryService class
+    - Create `packages/trust-registry/src/services/TrustRegistryService.ts`
+    - Implement ITrustRegistryService interface
+    - Implement constructor with config parameter
+    - Implement URL encoding utility for DIDs
+    - _Requirements: 3.1, 3.6_
+  - [x] 4.2 Implement getMetadata method
+    - Send GET request to /v2/metadata
+    - Parse and return TrustRegistryMetadata
+    - Handle errors gracefully
+    - _Requirements: 3.1_
+  - [x] 4.3 Implement lookupIssuer method
+    - Send GET request to /v2/public/lookup/issuer/{did}
+    - URL-encode DID in path
+    - Map response to TrustResult
+    - Use cache for results
+    - _Requirements: 3.2, 3.6_
+  - [x] 4.4 Implement lookupVerifier method
+    - Send GET request to /v2/public/lookup/verifier/{did}
+    - URL-encode DID in path
+    - Map response to TrustResult
+    - Use cache for results
+    - _Requirements: 3.3, 3.6_
+  - [x] 4.5 Implement checkIssuerAuthorization method
+    - Send POST request to /v2/authorization
+    - Set action to "issue"
+    - Return AuthorizationResponse
+    - _Requirements: 3.4_
+  - [x] 4.6 Implement checkVerifierAuthorization method
+    - Send POST request to /v2/authorization
+    - Set action to "verify"
+    - Return AuthorizationResponse
+    - _Requirements: 3.5_
+  - [x] 4.7 Implement error handling and retry logic
+    - Implement retry on network timeout (1 retry)
+    - Create TrustRegistryError class
+    - Log errors with context
+    - _Requirements: 3.7, 10.1, 10.2, 10.3, 10.4_
+  - [x] 4.8 Write property test for entity lookup
+    - **Property 2: Entity Lookup Returns Correct TrustResult**
+    - **Validates: Requirements 3.2, 3.3**
+  - [x] 4.9 Write property test for authorization request formatting
+    - **Property 3: Authorization Request Formatting**
+    - **Validates: Requirements 3.4, 3.5**
+  - [x] 4.10 Write property test for DID URL encoding
+    - **Property 4: DID URL Encoding**
+    - **Validates: Requirements 3.6**
+  - [x] 4.11 Write property test for graceful degradation
+    - **Property 13: Graceful Degradation When Unavailable**
+    - **Validates: Requirements 10.1**
+  - [x] 4.12 Write property test for network retry behavior
+    - **Property 14: Network Retry Behavior**
+    - **Validates: Requirements 10.2**
+  - [x] 4.13 Write property test for error logging
+    - **Property 15: Error Logging with Context**
+    - **Validates: Requirements 10.3**
+
+- [x] 5. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 6. Implement React Context and Hooks
+  - [x] 6.1 Create TrustRegistryContext
+    - Create `packages/trust-registry/src/contexts/TrustRegistryContext.tsx`
+    - Implement TrustRegistryProvider component
+    - Implement useTrustRegistry hook
+    - Manage state: isEnabled, isAvailable, metadata
+    - Provide service methods through context
+    - _Requirements: 5.1, 5.2_
+  - [x] 6.2 Create useIssuerTrust hook
+    - Create `packages/trust-registry/src/hooks/useIssuerTrust.ts`
+    - Accept DID parameter
+    - Return trustResult and isLoading state
+    - Handle loading and error states
+    - _Requirements: 5.3_
+  - [x] 6.3 Create useVerifierTrust hook
+    - Create `packages/trust-registry/src/hooks/useVerifierTrust.ts`
+    - Accept DID parameter
+    - Return trustResult and isLoading state
+    - Handle loading and error states
+    - _Requirements: 5.4_
+  - [x] 6.4 Create useTrustRegistryStatus hook
+    - Create `packages/trust-registry/src/hooks/useTrustRegistryStatus.ts`
+    - Return isAvailable and metadata
+    - _Requirements: 5.5_
+  - [x] 6.5 Write unit tests for hooks
+    - Test useIssuerTrust hook behavior
+    - Test useVerifierTrust hook behavior
+    - Test useTrustRegistryStatus hook behavior
+    - _Requirements: 5.3, 5.4, 5.5_
+
+- [x] 7. Implement UI Components
+  - [x] 7.1 Create TrustBadge component
+    - Create `packages/trust-registry/src/components/TrustBadge.tsx`
+    - Implement trust level to icon/color mapping
+    - Support size prop (small, medium, large)
+    - Support showLabel prop
+    - Support onPress prop
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9_
+  - [x] 7.2 Write property test for trust level mapping
+    - **Property 8: Trust Level to Badge Mapping**
+    - **Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7**
+  - [x] 7.3 Write property test for badge size rendering
+    - **Property 9: TrustBadge Size Rendering**
+    - **Validates: Requirements 6.8**
+  - [x] 7.4 Create TrustWarning component
+    - Create `packages/trust-registry/src/components/TrustWarning.tsx`
+    - Implement dismissible warning for untrusted entities
+    - Implement non-dismissible warning for suspended/revoked
+    - Add "Learn more" action
+    - Add accessibility attributes (ARIA)
+    - _Requirements: 7.1, 7.2, 7.3, 7.4_
+  - [x] 7.5 Write property test for warning dismissibility
+    - **Property 10: TrustWarning Dismissibility Based on Status**
+    - **Validates: Requirements 7.1, 7.2**
+  - [x] 7.6 Write property test for warning accessibility
+    - **Property 11: TrustWarning Accessibility**
+    - **Validates: Requirements 7.4**
+  - [x] 7.7 Create IssuerInfoCard component
+    - Create `packages/trust-registry/src/components/IssuerInfoCard.tsx`
+    - Display issuer name and DID
+    - Display accreditation level with visual indicator
+    - Display credential types list
+    - Display validity period when available
+    - Display registry name and ecosystem info
+    - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
+  - [x] 7.8 Write property test for IssuerInfoCard content
+    - **Property 12: IssuerInfoCard Displays Required Information**
+    - **Validates: Requirements 8.1, 8.2, 8.3, 8.4, 8.5**
+
+- [x] 8. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 9. Container Integration
+  - [x] 9.1 Add TRUST_REGISTRY_TOKENS to container-api.ts
+    - Add TRUST_REGISTRY_SERVICE token
+    - Add TRUST_REGISTRY_CONFIG token
+    - Extend TOKENS object
+    - Add TokenMapping entries
+    - _Requirements: 9.1_
+  - [x] 9.2 Register default config in container-impl.ts
+    - Register default TrustRegistryConfig with enabled: false
+    - _Requirements: 9.2, 9.3_
+
+- [x] 10. Update Package Exports
+  - [x] 10.1 Update index.ts with all exports
+    - Export all types
+    - Export TrustRegistryService
+    - Export TrustRegistryProvider and hooks
+    - Export UI components
+    - _Requirements: 1.1_
+
+- [x] 11. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
