@@ -89,6 +89,8 @@ export const COMPONENT_TOKENS = {
   COMPONENT_CONTACT_DETAILS_CRED_LIST_ITEM: 'component.contact-details-cred-list-item',
   COMPONENT_CONNECTION_ALERT: 'component.connection-alert',
   COMPONENT_TRUST_BADGE: 'component.trust-badge',
+  COMPONENT_TRUST_REGISTRY_MODAL: 'component.trust-registry-modal',
+  COMPONENT_TRUST_CONFIRM_MODAL: 'component.trust-confirm-modal',
 } as const
 
 export const NOTIFICATION_TOKENS = {
@@ -237,7 +239,7 @@ export type TokenMapping = {
   [TOKENS.INLINE_ERRORS]: InlineErrorConfig
   [TOKENS.CUSTOM_NAV_STACK_1]: React.FC
   [TOKENS.COMPONENT_CONNECTION_ALERT]: React.FC<{ connectionLabel?: string }>
-  [TOKENS.COMPONENT_TRUST_BADGE]: React.FC<{ issuerDid?: string }>
+  [TOKENS.COMPONENT_TRUST_BADGE]: React.FC<{ issuerDid?: string; credentialType?: string }>
   [TOKENS.UTIL_AGENT_BRIDGE]: AgentBridge
   [TOKENS.UTIL_REFRESH_ORCHESTRATOR]: IRefreshOrchestrator
   [TOKENS.TRUST_REGISTRY_SERVICE]: unknown
@@ -250,6 +252,15 @@ export type TokenMapping = {
     blockUntrustedIssuers: boolean
     blockUntrustedVerifiers: boolean
   }
+  [TOKENS.COMPONENT_TRUST_REGISTRY_MODAL]: React.FC<any>
+  [TOKENS.COMPONENT_TRUST_CONFIRM_MODAL]: React.FC<{
+    visible: boolean
+    isAuthorized: boolean
+    onAccept: () => void
+    onDecline: () => void
+    onClose: () => void
+    message?: string
+  }>
 }
 
 export interface Container {

@@ -1,10 +1,10 @@
 /**
  * TrustBadge Component
- * Visual indicator for trust status
+ * Visual indicator for trust status based on authorization
  */
 
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle } from 'react-native'
+import { View, Text, TouchableOpacity, ViewStyle, TextStyle, ActivityIndicator } from 'react-native'
 import { TrustResult, TrustLevel } from '../types'
 
 /**
@@ -19,49 +19,38 @@ export interface BadgeConfig {
 
 /**
  * Trust level to badge configuration mapping
+ * More informative labels based on authorization status
  */
 export const TRUST_BADGE_CONFIG: Record<TrustLevel, BadgeConfig> = {
   trusted_high: {
     icon: '✓',
     color: '#FFFFFF',
     backgroundColor: '#22C55E', // Green
-    label: 'Trusted - High Accreditation',
+    label: 'Issuer Verified',
   },
   trusted_medium: {
     icon: '✓',
     color: '#FFFFFF',
     backgroundColor: '#3B82F6', // Blue
-    label: 'Trusted',
+    label: 'Issuer Trusted',
   },
   trusted_low: {
     icon: '✓',
     color: '#FFFFFF',
     backgroundColor: '#6B7280', // Gray
-    label: 'Registered',
+    label: 'Issuer Registered',
   },
   untrusted: {
     icon: '⚠',
     color: '#000000',
     backgroundColor: '#FCD34D', // Yellow
-    label: 'Unregistered',
-  },
-  suspended: {
-    icon: '⚠',
-    color: '#FFFFFF',
-    backgroundColor: '#F97316', // Orange
-    label: 'Suspended',
-  },
-  revoked: {
-    icon: '✕',
-    color: '#FFFFFF',
-    backgroundColor: '#EF4444', // Red
-    label: 'Revoked',
+    label: 'Issuer Not Verified',
   },
   unknown: {
-    icon: '?',
-    color: '#FFFFFF',
-    backgroundColor: '#9CA3AF', // Gray
-    label: 'Unknown',
+    icon: '○',
+    color: '#6B7280',
+    backgroundColor: '#F3F4F6', // Light Gray
+    label: 'Verifying Issuer...',
   },
 }
 
@@ -108,6 +97,10 @@ export interface TrustBadgeProps {
   style?: ViewStyle
   /** Test ID for testing */
   testID?: string
+  /** Show loading indicator while checking */
+  isLoading?: boolean
+  /** Hide badge if unable to verify */
+  hideOnError?: boolean
 }
 
 /**
@@ -127,7 +120,14 @@ export const TrustBadge: React.FC<TrustBadgeProps> = ({
   onPress,
   style,
   testID = 'trust-badge',
+  isLoading = false,
+  hideOnError = false,
 }) => {
+  // Don't show badge if hideOnError is true and status is unknown
+  if (hideOnError && trustResult.level === 'unknown') {
+    return null
+  }
+
   const config = getBadgeConfig(trustResult.level)
   const sizeConfig = BADGE_SIZES[size]
 
@@ -150,6 +150,23 @@ export const TrustBadge: React.FC<TrustBadgeProps> = ({
     fontSize: sizeConfig.fontSize,
     color: config.color,
     fontWeight: '500',
+  }
+
+  // Show loading spinner if loading
+  if (isLoading) {
+    return (
+      <View
+        style={[containerStyle, { backgroundColor: '#F3F4F6' }, style]}
+        testID={testID}
+      >
+        <ActivityIndicator size="small" color="#6B7280" />
+        {showLabel && (
+          <Text style={[labelStyle, { color: '#6B7280', marginLeft: 4 }]}>
+            Checking...
+          </Text>
+        )}
+      </View>
+    )
   }
 
   const content = (
@@ -185,9 +202,5 @@ export const TrustBadge: React.FC<TrustBadgeProps> = ({
 
   return content
 }
-
-const styles = StyleSheet.create({
-  // Styles are inline for flexibility, but can be extracted here if needed
-})
 
 export default TrustBadge

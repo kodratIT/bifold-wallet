@@ -1,22 +1,17 @@
 /**
  * Trust Registry Service
  * HTTP client for ToIP Trust Registry Query Protocol (TRQP) v2
+ * Simplified to use Authorization endpoint only
  */
 
 import {
   TrustRegistryConfig,
   TrustRegistryMetadata,
-  IssuerInfo,
-  VerifierInfo,
   AuthorizationRequest,
   AuthorizationResponse,
-  TrustResult,
-  TrustLevel,
   TrustRegistryError,
   TrustRegistryErrorCode,
-  LookupResponse,
-  EntityStatus,
-  AccreditationLevel,
+  TrustLevel,
 } from '../types'
 import { TrustRegistryCache, CacheKeys } from '../utils/cache'
 
@@ -27,10 +22,6 @@ export interface ITrustRegistryService {
   // Service Discovery
   getMetadata(): Promise<TrustRegistryMetadata>
   isAvailable(): Promise<boolean>
-
-  // Lookup
-  lookupIssuer(did: string): Promise<TrustResult>
-  lookupVerifier(did: string): Promise<TrustResult>
 
   // Authorization
   checkIssuerAuthorization(issuerDid: string, credentialType: string): Promise<AuthorizationResponse>
@@ -53,9 +44,9 @@ export interface Logger {
  * Default console logger
  */
 const defaultLogger: Logger = {
-  info: (message, context) => console.log(`[TrustRegistry] ${message}`, context),
-  warn: (message, context) => console.warn(`[TrustRegistry] ${message}`, context),
-  error: (message, context) => console.error(`[TrustRegistry] ${message}`, context),
+  info: (message, context) => console.log(`[TrustRegistry\n] ${message}`, context),
+  warn: (message, context) => console.warn(`[TrustRegistry\n] ${message}`, context),
+  error: (message, context) => console.error(`[TrustRegistry\n] ${message}`, context),
 }
 
 /**
@@ -79,37 +70,15 @@ export function encodeDid(did: string): string {
 }
 
 /**
- * Map entity status and accreditation level to TrustLevel
+ * Map authorization response to TrustLevel
  */
-export function mapToTrustLevel(
-  status: EntityStatus,
-  accreditationLevel?: AccreditationLevel
-): TrustLevel {
-  switch (status) {
-    case 'suspended':
-      return 'suspended'
-    case 'revoked':
-      return 'revoked'
-    case 'pending':
-      return 'untrusted'
-    case 'active':
-      switch (accreditationLevel) {
-        case 'high':
-          return 'trusted_high'
-        case 'medium':
-          return 'trusted_medium'
-        case 'low':
-          return 'trusted_low'
-        default:
-          return 'trusted_medium'
-      }
-    default:
-      return 'unknown'
-  }
+export function mapAuthorizationToTrustLevel(authorized: boolean): TrustLevel {
+  return authorized ? 'trusted_high' : 'untrusted'
 }
 
 /**
  * Trust Registry Service Implementation
+ * Uses only Authorization endpoint
  */
 export class TrustRegistryService implements ITrustRegistryService {
   private config: TrustRegistryConfig
@@ -246,100 +215,6 @@ export class TrustRegistryService implements ITrustRegistryService {
   }
 
   /**
-   * Lookup issuer by DID
-   */
-  async lookupIssuer(did: string): Promise<TrustResult> {
-    const normalizedDid = normalizeDid(did)
-    const cacheKey = CacheKeys.issuer(normalizedDid)
-    const cached = this.cache.get<TrustResult>(cacheKey)
-
-    if (cached) {
-      return cached
-    }
-
-    try {
-      const url = `${this.config.url}/v2/public/lookup/issuer/${encodeDid(normalizedDid)}`
-      const response = await this.fetchWithRetry<LookupResponse<IssuerInfo>>(url)
-
-      const result = this.mapLookupResponseToTrustResult(response, 'issuer')
-      this.cache.set(cacheKey, result)
-      return result
-    } catch (error) {
-      this.logger.error('Failed to lookup issuer', {
-        did: normalizedDid,
-        error: (error as Error).message,
-      })
-
-      return {
-        level: 'unknown',
-        found: false,
-        message: (error as Error).message,
-        checkedAt: new Date(),
-      }
-    }
-  }
-
-  /**
-   * Lookup verifier by DID
-   */
-  async lookupVerifier(did: string): Promise<TrustResult> {
-    const cacheKey = CacheKeys.verifier(did)
-    const cached = this.cache.get<TrustResult>(cacheKey)
-
-    if (cached) {
-      return cached
-    }
-
-    try {
-      const url = `${this.config.url}/v2/public/lookup/verifier/${encodeDid(did)}`
-      const response = await this.fetchWithRetry<LookupResponse<VerifierInfo>>(url)
-
-      const result = this.mapLookupResponseToTrustResult(response, 'verifier')
-      this.cache.set(cacheKey, result)
-      return result
-    } catch (error) {
-      this.logger.error('Failed to lookup verifier', {
-        did,
-        error: (error as Error).message,
-      })
-
-      return {
-        level: 'unknown',
-        found: false,
-        message: (error as Error).message,
-        checkedAt: new Date(),
-      }
-    }
-  }
-
-  /**
-   * Map lookup response to TrustResult
-   */
-  private mapLookupResponseToTrustResult(
-    response: LookupResponse<IssuerInfo | VerifierInfo>,
-    type: 'issuer' | 'verifier'
-  ): TrustResult {
-    const entity = type === 'issuer' ? response.issuer : response.verifier
-
-    if (!response.found || !entity) {
-      return {
-        level: 'untrusted',
-        found: false,
-        message: response.message ?? 'Entity not found in registry',
-        checkedAt: new Date(),
-      }
-    }
-
-    return {
-      level: mapToTrustLevel(entity.status, entity.accreditationLevel),
-      found: true,
-      entity,
-      message: response.message,
-      checkedAt: new Date(),
-    }
-  }
-
-  /**
    * Check issuer authorization for a credential type
    */
   async checkIssuerAuthorization(
@@ -386,7 +261,10 @@ export class TrustRegistryService implements ITrustRegistryService {
     verifierDid: string,
     credentialType: string
   ): Promise<AuthorizationResponse> {
-    const cacheKey = CacheKeys.authorization(verifierDid, 'verify', credentialType)
+    const normalizedVerifierDid = normalizeDid(verifierDid)
+    const normalizedAuthorityId = normalizeDid(this.config.ecosystemDid)
+
+    const cacheKey = CacheKeys.authorization(normalizedVerifierDid, 'verify', credentialType)
     const cached = this.cache.get<AuthorizationResponse>(cacheKey)
 
     if (cached) {
@@ -394,8 +272,8 @@ export class TrustRegistryService implements ITrustRegistryService {
     }
 
     const request: AuthorizationRequest = {
-      entity_id: verifierDid,
-      authority_id: this.config.ecosystemDid,
+      entity_id: normalizedVerifierDid,
+      authority_id: normalizedAuthorityId,
       action: 'verify',
       resource: credentialType,
       context: {

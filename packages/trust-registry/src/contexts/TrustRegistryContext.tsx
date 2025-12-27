@@ -1,13 +1,13 @@
 /**
  * Trust Registry Context
  * React context for trust registry state management
+ * Simplified for Authorization-only flow
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, PropsWithChildren } from 'react'
 import {
   TrustRegistryConfig,
   TrustRegistryMetadata,
-  TrustResult,
   AuthorizationResponse,
   TrustRegistryContextValue,
 } from '../types'
@@ -20,18 +20,6 @@ const defaultContextValue: TrustRegistryContextValue = {
   isEnabled: false,
   isAvailable: false,
   metadata: null,
-  checkIssuer: async () => ({
-    level: 'unknown',
-    found: false,
-    message: 'Trust registry not initialized',
-    checkedAt: new Date(),
-  }),
-  checkVerifier: async () => ({
-    level: 'unknown',
-    found: false,
-    message: 'Trust registry not initialized',
-    checkedAt: new Date(),
-  }),
   checkIssuerAuthorization: async () => ({
     entity_id: '',
     authority_id: '',
@@ -50,8 +38,8 @@ const defaultContextValue: TrustRegistryContextValue = {
     time_evaluated: new Date().toISOString(),
     message: 'Trust registry not initialized',
   }),
-  refreshMetadata: async () => {},
-  clearCache: () => {},
+  refreshMetadata: async () => { },
+  clearCache: () => { },
 }
 
 /**
@@ -107,37 +95,6 @@ export const TrustRegistryProvider: React.FC<TrustRegistryProviderProps> = ({ co
 
     checkAvailability()
   }, [service])
-
-  // Memoized actions
-  const checkIssuer = useCallback(
-    async (did: string): Promise<TrustResult> => {
-      if (!service) {
-        return {
-          level: 'unknown',
-          found: false,
-          message: 'Trust registry not enabled',
-          checkedAt: new Date(),
-        }
-      }
-      return service.lookupIssuer(did)
-    },
-    [service]
-  )
-
-  const checkVerifier = useCallback(
-    async (did: string): Promise<TrustResult> => {
-      if (!service) {
-        return {
-          level: 'unknown',
-          found: false,
-          message: 'Trust registry not enabled',
-          checkedAt: new Date(),
-        }
-      }
-      return service.lookupVerifier(did)
-    },
-    [service]
-  )
 
   const checkIssuerAuthorization = useCallback(
     async (did: string, credType: string): Promise<AuthorizationResponse> => {
@@ -199,8 +156,6 @@ export const TrustRegistryProvider: React.FC<TrustRegistryProviderProps> = ({ co
       isEnabled: config.enabled,
       isAvailable,
       metadata,
-      checkIssuer,
-      checkVerifier,
       checkIssuerAuthorization,
       checkVerifierAuthorization,
       refreshMetadata,
@@ -210,8 +165,6 @@ export const TrustRegistryProvider: React.FC<TrustRegistryProviderProps> = ({ co
       config.enabled,
       isAvailable,
       metadata,
-      checkIssuer,
-      checkVerifier,
       checkIssuerAuthorization,
       checkVerifierAuthorization,
       refreshMetadata,

@@ -1,6 +1,6 @@
 /**
  * TrustWarning Component
- * Warning banner for untrusted or problematic entities
+ * Warning banner for untrusted entities (based on authorization)
  */
 
 import React, { useState } from 'react'
@@ -21,6 +21,7 @@ export interface WarningConfig {
 
 /**
  * Get warning configuration based on trust level
+ * Simplified for authorization-based flow
  */
 export function getWarningConfig(level: TrustLevel, entityType: 'issuer' | 'verifier'): WarningConfig | null {
   const entityLabel = entityType === 'issuer' ? 'Issuer' : 'Verifier'
@@ -31,39 +32,21 @@ export function getWarningConfig(level: TrustLevel, entityType: 'issuer' | 'veri
         icon: '⚠️',
         backgroundColor: '#FEF3C7', // Yellow-100
         textColor: '#92400E', // Yellow-800
-        title: `Unregistered ${entityLabel}`,
-        message: `This ${entityLabel.toLowerCase()} is not registered in the trust registry. Proceed with caution.`,
+        title: `${entityLabel} Not Authorized`,
+        message: `This ${entityLabel.toLowerCase()} is not authorized in the trust registry. Proceed with caution.`,
         dismissible: true,
-      }
-    case 'suspended':
-      return {
-        icon: '🚫',
-        backgroundColor: '#FFEDD5', // Orange-100
-        textColor: '#9A3412', // Orange-800
-        title: `Suspended ${entityLabel}`,
-        message: `This ${entityLabel.toLowerCase()} has been suspended. Their credentials may not be valid.`,
-        dismissible: false,
-      }
-    case 'revoked':
-      return {
-        icon: '❌',
-        backgroundColor: '#FEE2E2', // Red-100
-        textColor: '#991B1B', // Red-800
-        title: `Revoked ${entityLabel}`,
-        message: `This ${entityLabel.toLowerCase()} has been revoked. Do not trust their credentials.`,
-        dismissible: false,
       }
     case 'unknown':
       return {
         icon: '❓',
         backgroundColor: '#F3F4F6', // Gray-100
         textColor: '#374151', // Gray-700
-        title: 'Trust Status Unknown',
-        message: 'Unable to verify trust status. The trust registry may be unavailable.',
+        title: 'Authorization Status Unknown',
+        message: 'Unable to verify authorization status. The trust registry may be unavailable.',
         dismissible: true,
       }
     default:
-      return null // No warning for trusted entities
+      return null // No warning for authorized entities
   }
 }
 
@@ -71,7 +54,7 @@ export function getWarningConfig(level: TrustLevel, entityType: 'issuer' | 'veri
  * Check if a trust level should show a warning
  */
 export function shouldShowWarning(level: TrustLevel): boolean {
-  return ['untrusted', 'suspended', 'revoked', 'unknown'].includes(level)
+  return ['untrusted', 'unknown'].includes(level)
 }
 
 /**

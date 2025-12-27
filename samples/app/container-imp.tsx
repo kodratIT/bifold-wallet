@@ -1,5 +1,5 @@
 import { BifoldLogger, Container, TokenMapping, TOKENS } from '@bifold/core'
-import { TrustRegistryService, TrustBadgeWrapper } from '@bifold/trust-registry'
+import { TrustRegistryService, TrustBadgeWrapper, TrustRegistryModal, TrustConfirmModal } from '@bifold/trust-registry'
 import { DependencyContainer } from 'tsyringe'
 import { getTrustRegistryConfig, isTrustRegistryConfigured } from './config/trustRegistry'
 
@@ -88,5 +88,7 @@ export class AppContainer implements Container {
 
     // Register UI components
     this._container.registerInstance(TOKENS.COMPONENT_TRUST_BADGE, TrustBadgeWrapper)
+    this._container.registerInstance(TOKENS.COMPONENT_TRUST_REGISTRY_MODAL, TrustRegistryModal)
+    this._container.registerInstance(TOKENS.COMPONENT_TRUST_CONFIRM_MODAL, TrustConfirmModal)
   }
 }

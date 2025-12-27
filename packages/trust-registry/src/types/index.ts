@@ -1,6 +1,7 @@
 /**
  * Trust Registry Type Definitions
  * Based on ToIP Trust Registry Query Protocol (TRQP) v2
+ * Simplified for Authorization-only flow
  */
 
 // ============================================================================
@@ -63,77 +64,6 @@ export interface RegistryEndpoints {
 }
 
 // ============================================================================
-// Entity Types
-// ============================================================================
-
-export type EntityStatus = 'pending' | 'active' | 'suspended' | 'revoked'
-export type AccreditationLevel = 'high' | 'medium' | 'low'
-
-/**
- * Credential type information
- */
-export interface CredentialTypeInfo {
-  id?: string
-  type: string
-  name?: string
-}
-
-/**
- * Jurisdiction information
- */
-export interface Jurisdiction {
-  code: string
-  name?: string
-}
-
-/**
- * Registry information
- */
-export interface RegistryInfo {
-  id?: string
-  name: string
-  ecosystemDid?: string
-}
-
-/**
- * Issuer information (GET /v2/public/lookup/issuer/{did})
- */
-export interface IssuerInfo {
-  did: string
-  name: string
-  status: EntityStatus
-  accreditationLevel?: AccreditationLevel
-  credentialTypes: CredentialTypeInfo[]
-  jurisdictions?: Jurisdiction[]
-  validFrom?: string
-  validUntil?: string
-  registry?: RegistryInfo
-}
-
-/**
- * Verifier information (GET /v2/public/lookup/verifier/{did})
- */
-export interface VerifierInfo {
-  did: string
-  name: string
-  status: EntityStatus
-  accreditationLevel?: AccreditationLevel
-  credentialTypes: CredentialTypeInfo[]
-  jurisdictions?: Jurisdiction[]
-  registry?: RegistryInfo
-}
-
-/**
- * Lookup response (direct structure)
- */
-export interface LookupResponse<T> {
-  found: boolean
-  issuer?: T
-  verifier?: T
-  message?: string
-}
-
-// ============================================================================
 // Authorization Types (POST /v2/authorization)
 // ============================================================================
 
@@ -171,24 +101,24 @@ export interface AuthorizationResponse {
 // ============================================================================
 
 /**
- * Trust level classification
+ * Trust level classification (derived from authorization)
  */
 export type TrustLevel =
   | 'trusted_high'
   | 'trusted_medium'
   | 'trusted_low'
   | 'untrusted'
-  | 'suspended'
-  | 'revoked'
   | 'unknown'
 
 /**
- * Trust check result
+ * Trust result based on authorization check
  */
 export interface TrustResult {
   level: TrustLevel
-  found: boolean
-  entity?: IssuerInfo | VerifierInfo
+  authorized: boolean
+  entityDid?: string
+  credentialType?: string
+  action?: 'issue' | 'verify'
   message?: string
   checkedAt: Date
 }
@@ -240,9 +170,7 @@ export interface TrustRegistryContextValue {
   isAvailable: boolean
   metadata: TrustRegistryMetadata | null
 
-  // Actions
-  checkIssuer: (did: string) => Promise<TrustResult>
-  checkVerifier: (did: string) => Promise<TrustResult>
+  // Actions (Authorization-based)
   checkIssuerAuthorization: (did: string, credType: string) => Promise<AuthorizationResponse>
   checkVerifierAuthorization: (did: string, credType: string) => Promise<AuthorizationResponse>
 

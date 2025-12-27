@@ -1,13 +1,14 @@
 /**
  * @bifold/trust-registry
  * Trust Registry integration for Bifold Wallet (ToIP TRQP v2)
+ * Simplified for Authorization-only flow
  */
 
 // Types
 export * from './types'
 
 // Services
-export { TrustRegistryService, encodeDid, mapToTrustLevel } from './services/TrustRegistryService'
+export { TrustRegistryService, encodeDid, mapAuthorizationToTrustLevel, normalizeDid } from './services/TrustRegistryService'
 export type { ITrustRegistryService, Logger } from './services/TrustRegistryService'
 
 // Context and Hooks
@@ -23,11 +24,14 @@ export type { UseTrustRegistryStatusResult } from './hooks/useTrustRegistryStatu
 // Components
 export { TrustBadge, getBadgeConfig, TRUST_BADGE_CONFIG, BADGE_SIZES } from './components/TrustBadge'
 export { TrustBadgeWrapper } from './components/TrustBadgeWrapper'
+export { TrustRegistryModal } from './components/TrustRegistryModal'
 export type { TrustBadgeProps, BadgeConfig } from './components/TrustBadge'
+export type { TrustBadgeWrapperProps } from './components/TrustBadgeWrapper'
+export type { TrustRegistryModalProps } from './components/TrustRegistryModal'
 export { TrustWarning, getWarningConfig, shouldShowWarning, isDismissible } from './components/TrustWarning'
 export type { TrustWarningProps, WarningConfig } from './components/TrustWarning'
-export { IssuerInfoCard, formatDate, ACCREDITATION_CONFIG } from './components/IssuerInfoCard'
-export type { IssuerInfoCardProps } from './components/IssuerInfoCard'
+export { TrustConfirmModal } from './components/TrustConfirmModal'
+export type { TrustConfirmModalProps } from './components/TrustConfirmModal'
 
 // Utils
 export { TrustRegistryCache, generateCacheKey, CacheKeys } from './utils/cache'

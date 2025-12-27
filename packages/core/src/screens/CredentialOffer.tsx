@@ -71,6 +71,8 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
   const [buttonsVisible, setButtonsVisible] = useState(true)
   const [acceptModalVisible, setAcceptModalVisible] = useState(false)
   const [declineModalVisible, setDeclineModalVisible] = useState(false)
+  const [trustConfirmVisible, setTrustConfirmVisible] = useState(false)
+  const [trustAuthResult, setTrustAuthResult] = useState<{ authorized: boolean; message?: string } | null>(null)
   const [overlay, setOverlay] = useState<CredentialOverlay<BrandingOverlay>>({ presentationFields: [] })
   const credential = useCredentialById(credentialId)
   const credentialConnectionLabel = useCredentialConnectionLabel(credential)
@@ -78,11 +80,12 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
   const { start } = useTour()
   const screenIsFocused = useIsFocused()
   const goalCode = useOutOfBandByConnectionId(credential?.connectionId ?? '')?.outOfBandInvitation?.goalCode
-  const [ConnectionAlert, TrustBadge, trustRegistryService, trustRegistryConfig] = useServices([
+  const [ConnectionAlert, TrustBadge, trustRegistryService, trustRegistryConfig, TrustConfirmModal] = useServices([
     TOKENS.COMPONENT_CONNECTION_ALERT,
     TOKENS.COMPONENT_TRUST_BADGE,
     TOKENS.TRUST_REGISTRY_SERVICE,
     TOKENS.TRUST_REGISTRY_CONFIG,
+    TOKENS.COMPONENT_TRUST_CONFIRM_MODAL,
   ])
 
   const { credentialDefinitionId, schemaId } = credential
@@ -103,6 +106,7 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
   }
 
   const issuerDid = getDidFromId(credentialDefinitionId) || getDidFromId(schemaId)
+  const credentialType = schemaId?.split(':')[2] || 'Credential'
 
   const styles = StyleSheet.create({
     headerTextContainer: {
@@ -246,54 +250,13 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
       // Trust Registry Authorization Check
       if (trustRegistryService && trustRegistryConfig?.enabled) {
         const service = trustRegistryService as any
-        const credentialType = schemaId?.split(':')[2] || 'Credential'
 
         try {
           const auth = await service.checkIssuerAuthorization(issuerDid, credentialType)
-          const capability = auth.authorized ? t('TrustRegistry.CanIssue') : t('TrustRegistry.CanVerify')
-          const message = `${t('TrustRegistry.IssuerCapability')}: ${capability}\n\n${auth.message || ''}`
-
-          if (!auth.authorized) {
-            Alert.alert(
-              t('TrustRegistry.UnauthorizedTitle'),
-              message,
-              [
-                { text: t('Global.Reject'), style: 'destructive', onPress: handleDeclineTouched },
-                {
-                  text: t('Global.Continue'), onPress: async () => {
-                    setAcceptModalVisible(true)
-                    await agent.credentials.acceptOffer({ credentialRecordId: credential.id })
-                    if (historyEventsLogger.logAttestationAccepted) {
-                      const type = HistoryCardType.CardAccepted
-                      await logHistoryRecord(type)
-                    }
-                  }
-                }
-              ]
-            )
-            return // Stop here, Wait for user selection in Alert
-          } else {
-            // Optional: Show success popup or just proceed
-            // User requested "muncul pop up untuk cek status did nya", so let's show it even for success
-            Alert.alert(
-              t('TrustRegistry.CheckStatus'),
-              message,
-              [
-                { text: t('Global.Back'), style: 'cancel' },
-                {
-                  text: t('Global.Accept'), onPress: async () => {
-                    setAcceptModalVisible(true)
-                    await agent.credentials.acceptOffer({ credentialRecordId: credential.id })
-                    if (historyEventsLogger.logAttestationAccepted) {
-                      const type = HistoryCardType.CardAccepted
-                      await logHistoryRecord(type)
-                    }
-                  }
-                }
-              ]
-            )
-            return // Proceeding via Alert onPress
-          }
+          // Show Trust Confirm Modal
+          setTrustAuthResult({ authorized: auth.authorized, message: auth.message })
+          setTrustConfirmVisible(true)
+          return // Wait for modal action
         } catch (e) {
           logger.error('Trust Registry Authorization check failed', { error: e })
         }
@@ -320,9 +283,31 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
     trustRegistryService,
     trustRegistryConfig,
     issuerDid,
-    schemaId,
+    credentialType,
     logger
   ])
+
+  // Handle accept from Trust Confirm Modal
+  const handleTrustConfirmAccept = useCallback(async () => {
+    try {
+      if (!(agent && credential)) return
+      setTrustConfirmVisible(false)
+      setAcceptModalVisible(true)
+      await agent.credentials.acceptOffer({ credentialRecordId: credential.id })
+      if (historyEventsLogger.logAttestationAccepted) {
+        const type = HistoryCardType.CardAccepted
+        await logHistoryRecord(type)
+      }
+    } catch (err: unknown) {
+      setButtonsVisible(true)
+      const error = new BifoldError(t('Error.Title1024'), t('Error.Message1024'), (err as Error)?.message ?? err, 1024)
+      DeviceEventEmitter.emit(EventTypes.ERROR_ADDED, error)
+    }
+  }, [agent, credential, historyEventsLogger.logAttestationAccepted, logHistoryRecord, t])
+
+  const handleTrustConfirmClose = useCallback(() => {
+    setTrustConfirmVisible(false)
+  }, [])
 
   const handleDeclineTouched = useCallback(async () => {
     try {
@@ -403,7 +388,7 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
             <ThemedText>{credentialConnectionLabel || t('ContactDetails.AContact')}</ThemedText>{' '}
             {t('CredentialOffer.IsOfferingYouACredential')}
           </ThemedText>
-          {TrustBadge && <TrustBadge issuerDid={issuerDid} />}
+          {TrustBadge && <TrustBadge issuerDid={issuerDid} credentialType={credentialType} />}
         </View>
         {!loading && credential && (
           <View style={{ marginHorizontal: 15, marginBottom: 16 }}>
@@ -462,6 +447,16 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
         onSubmit={handleDeclineTouched}
         onCancel={toggleDeclineModalVisible}
       />
+      {TrustConfirmModal && (
+        <TrustConfirmModal
+          visible={trustConfirmVisible}
+          isAuthorized={trustAuthResult?.authorized ?? false}
+          onAccept={handleTrustConfirmAccept}
+          onDecline={handleTrustConfirmClose}
+          onClose={handleTrustConfirmClose}
+          message={trustAuthResult?.message}
+        />
+      )}
     </SafeAreaView>
   )
 }
