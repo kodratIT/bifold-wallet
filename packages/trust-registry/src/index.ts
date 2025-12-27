@@ -10,6 +10,7 @@ export * from './types'
 // Services
 export { TrustRegistryService, encodeDid, mapAuthorizationToTrustLevel, normalizeDid } from './services/TrustRegistryService'
 export type { ITrustRegistryService, Logger } from './services/TrustRegistryService'
+export { AuthorityDiscoveryService } from './services/AuthorityDiscoveryService'
 
 // Context and Hooks
 export { TrustRegistryProvider, useTrustRegistry, TrustRegistryContext } from './contexts/TrustRegistryContext'
@@ -20,6 +21,8 @@ export { useVerifierTrust } from './hooks/useVerifierTrust'
 export type { UseVerifierTrustResult } from './hooks/useVerifierTrust'
 export { useTrustRegistryStatus } from './hooks/useTrustRegistryStatus'
 export type { UseTrustRegistryStatusResult } from './hooks/useTrustRegistryStatus'
+export { useFederatedTrust } from './hooks/useFederatedTrust'
+export type { FederatedTrustResult } from './hooks/useFederatedTrust'
 
 // Components
 export { TrustBadge, getBadgeConfig, TRUST_BADGE_CONFIG, BADGE_SIZES } from './components/TrustBadge'

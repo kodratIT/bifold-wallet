@@ -32,6 +32,7 @@ import { AgentSetupReturnType } from './hooks/useBifoldAgentSetup'
 import { OnboardingStackProps } from './navigators/OnboardingStack'
 import { AgentBridge } from './services/AgentBridge'
 import { IRefreshOrchestrator } from './modules/openid/refresh/types'
+import { FederatedTrustResult } from './types/trust-registry'
 
 export type FN_ONBOARDING_DONE = (
   dispatch: React.Dispatch<ReducerAction<unknown>>,
@@ -75,6 +76,7 @@ export const NAV_TOKENS = {
 
 export const HOOK_TOKENS = {
   HOOK_USE_AGENT_SETUP: 'hook.useAgentSetup',
+  HOOK_USE_FEDERATED_TRUST: 'hook.useFederatedTrust',
 } as const
 
 export const COMPONENT_TOKENS = {
@@ -201,6 +203,11 @@ export type TokenMapping = {
   [TOKENS.SCREEN_ONBOARDING]: typeof Onboarding
   [TOKENS.SCREEN_PIN_EXPLAINER]: React.FC<PINExplainerProps>
   [TOKENS.HOOK_USE_AGENT_SETUP]: () => AgentSetupReturnType
+  [TOKENS.HOOK_USE_FEDERATED_TRUST]: (
+    issuerDid: string | undefined,
+    credential?: any,
+    credentialType?: string
+  ) => FederatedTrustResult
   [TOKENS.FN_ONBOARDING_DONE]: FN_ONBOARDING_DONE
   [TOKENS.LOAD_STATE]: LoadStateFn
   [TOKENS.COMP_BUTTON]: Button
@@ -239,7 +246,7 @@ export type TokenMapping = {
   [TOKENS.INLINE_ERRORS]: InlineErrorConfig
   [TOKENS.CUSTOM_NAV_STACK_1]: React.FC
   [TOKENS.COMPONENT_CONNECTION_ALERT]: React.FC<{ connectionLabel?: string }>
-  [TOKENS.COMPONENT_TRUST_BADGE]: React.FC<{ issuerDid?: string; credentialType?: string }>
+  [TOKENS.COMPONENT_TRUST_BADGE]: React.FC<{ issuerDid?: string; credentialType?: string; credential?: any }>
   [TOKENS.UTIL_AGENT_BRIDGE]: AgentBridge
   [TOKENS.UTIL_REFRESH_ORCHESTRATOR]: IRefreshOrchestrator
   [TOKENS.TRUST_REGISTRY_SERVICE]: unknown

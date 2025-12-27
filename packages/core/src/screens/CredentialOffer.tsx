@@ -80,33 +80,54 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
   const { start } = useTour()
   const screenIsFocused = useIsFocused()
   const goalCode = useOutOfBandByConnectionId(credential?.connectionId ?? '')?.outOfBandInvitation?.goalCode
-  const [ConnectionAlert, TrustBadge, trustRegistryService, trustRegistryConfig, TrustConfirmModal] = useServices([
+  const [
+    ConnectionAlert,
+    TrustBadge,
+    trustRegistryService,
+    trustRegistryConfig,
+    TrustConfirmModal,
+    useFederatedTrust,
+  ] = useServices([
     TOKENS.COMPONENT_CONNECTION_ALERT,
     TOKENS.COMPONENT_TRUST_BADGE,
     TOKENS.TRUST_REGISTRY_SERVICE,
     TOKENS.TRUST_REGISTRY_CONFIG,
     TOKENS.COMPONENT_TRUST_CONFIRM_MODAL,
+    TOKENS.HOOK_USE_FEDERATED_TRUST,
   ])
 
   const { credentialDefinitionId, schemaId } = credential
     ? getCredentialIdentifiers(credential)
     : { credentialDefinitionId: undefined, schemaId: undefined }
 
-  // Extract DID: it's the part before the first occurrence of :2: (schema) or :3: (cred def)
-  // or simply handle both qualified and unqualified DIDs
+  const [w3cIssuerDid, setW3CIssuerDid] = useState<string | undefined>(undefined)
+
+
+  // Extract DID from identifier
   const getDidFromId = (id?: string) => {
     if (!id) return undefined
-    // If it's a qualified DID (contains did:), we need to find where the indy-specific parts start
+
     if (id.startsWith('did:')) {
-      const match = id.match(/^(did:[^:]+:[^:]+)/)
-      return match ? match[1] : id.split(':')[0]
+      // Check for Indy identifiers with artifacts (:2: or :3:)
+      if (id.includes(':2:') || id.includes(':3:')) {
+        const match = id.match(/^(did:[^:]+:[^:]+)/)
+        return match ? match[1] : id.split(':')[0]
+      }
+
+      // For other DIDs (did:key, did:web, did:cheqd:testnet, etc.)
+      // Return the DID part without path/query/fragment
+      return id.split('?')[0].split('/')[0].split('#')[0]
     }
+
     // Unqualified indy DID
     return id.split(':')[0]
   }
 
-  const issuerDid = getDidFromId(credentialDefinitionId) || getDidFromId(schemaId)
+  const issuerDid = w3cIssuerDid || getDidFromId(credentialDefinitionId) || getDidFromId(schemaId)
   const credentialType = schemaId?.split(':')[2] || 'Credential'
+
+  // Federation Trust Check - replaces old trust registry check
+  const federatedTrust = useFederatedTrust(issuerDid, credential, credentialType)
 
   const styles = StyleSheet.create({
     headerTextContainer: {
@@ -160,6 +181,23 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
       const { ...formatData } = await agent.credentials.getFormatData(credential.id)
       const { offer, offerAttributes } = formatData
       const offerData = offer?.anoncreds ?? offer?.indy
+
+      // Try to extract issuer from W3C/JWT offers if present
+      // This covers did:key, did:web, etc.
+      if (!offerData) {
+        // Check for other formats
+        const w3cOffer = (offer as any)?.w3c || (offer as any)?.jwt_vc || (offer as any)?.jwt_vp || (offer as any)?.['did:oyd:vp']
+        if (w3cOffer && typeof w3cOffer === 'object') {
+          const issuer = (w3cOffer as any).issuer
+          if (issuer) {
+            if (typeof issuer === 'string') {
+              setW3CIssuerDid(getDidFromId(issuer))
+            } else if (typeof issuer === 'object' && issuer.id) {
+              setW3CIssuerDid(getDidFromId(issuer.id))
+            }
+          }
+        }
+      }
 
       if (offerData) {
         await ensureCredentialMetadata(
@@ -247,19 +285,18 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
         return
       }
 
-      // Trust Registry Authorization Check
-      if (trustRegistryService && trustRegistryConfig?.enabled) {
-        const service = trustRegistryService as any
-
-        try {
-          const auth = await service.checkIssuerAuthorization(issuerDid, credentialType)
-          // Show Trust Confirm Modal
-          setTrustAuthResult({ authorized: auth.authorized, message: auth.message })
-          setTrustConfirmVisible(true)
-          return // Wait for modal action
-        } catch (e) {
-          logger.error('Trust Registry Authorization check failed', { error: e })
-        }
+      // Federation Trust Check - using the hook result
+      if (trustRegistryConfig?.enabled && !federatedTrust.isLoading) {
+        // Show Trust Confirm Modal with federation info
+        setTrustAuthResult({
+          authorized: federatedTrust.authorized,
+          message: federatedTrust.message ||
+            (federatedTrust.trustSource === 'federation'
+              ? `Verified via ${federatedTrust.trustAuthority?.name || 'Federation'}`
+              : undefined)
+        })
+        setTrustConfirmVisible(true)
+        return // Wait for modal action
       }
 
       setAcceptModalVisible(true)
@@ -280,10 +317,8 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
     logHistoryRecord,
     t,
     historyEventsLogger.logAttestationAccepted,
-    trustRegistryService,
     trustRegistryConfig,
-    issuerDid,
-    credentialType,
+    federatedTrust,
     logger
   ])
 

@@ -1,11 +1,13 @@
-import React, { useState, useCallback } from 'react'
-import { useIssuerTrust } from '../hooks/useIssuerTrust'
+import React, { useState, useCallback, useMemo } from 'react'
+import { useFederatedTrust } from '../hooks/useFederatedTrust'
 import { TrustBadge } from './TrustBadge'
 import { TrustRegistryModal } from './TrustRegistryModal'
+import { TrustResult } from '../types'
 
 export interface TrustBadgeWrapperProps {
     issuerDid?: string
     credentialType?: string
+    credential?: any
     /** Hide badge if unable to verify (error/unknown) */
     hideOnError?: boolean
     /** Allow clicking badge to show details (default: true) */
@@ -15,11 +17,42 @@ export interface TrustBadgeWrapperProps {
 export const TrustBadgeWrapper: React.FC<TrustBadgeWrapperProps> = ({
     issuerDid,
     credentialType = 'Credential',
+    credential,
     hideOnError = false,
     showDetailsOnPress = true
 }) => {
-    const { trustResult, authResponse, isLoading } = useIssuerTrust(issuerDid, credentialType)
+    // Use Federated Trust hook to support both local and federation
+    const federatedResult = useFederatedTrust(issuerDid, credential, credentialType)
+    const { level, authorized, isLoading, message, trustSource, trustAuthority } = federatedResult
+
     const [modalVisible, setModalVisible] = useState(false)
+
+    // Map FederatedTrustResult to TrustResult expected by components
+    const trustResult: TrustResult | null = useMemo(() => {
+        if (level === 'unknown' && !isLoading) {
+            // If unknown and not loading, it might be effectively null or just unknown
+            return {
+                level: 'unknown',
+                authorized: false,
+                entityDid: issuerDid,
+                credentialType,
+                message: message || 'Trust status unknown',
+                checkedAt: new Date()
+            }
+        }
+
+        return {
+            level,
+            authorized,
+            entityDid: issuerDid,
+            credentialType,
+            message,
+            checkedAt: new Date(),
+            // Extra fields for federation context
+            trustSource,
+            trustAuthority
+        } as TrustResult
+    }, [level, authorized, issuerDid, credentialType, message, isLoading, trustSource, trustAuthority])
 
     const handleBadgePress = useCallback(() => {
         if (showDetailsOnPress && trustResult && !isLoading) {
@@ -30,11 +63,6 @@ export const TrustBadgeWrapper: React.FC<TrustBadgeWrapperProps> = ({
     const handleModalClose = useCallback(() => {
         setModalVisible(false)
     }, [])
-
-    // If no result yet and not loading, don't show anything
-    if (!trustResult && !isLoading) {
-        return null
-    }
 
     // Show loading badge while checking
     if (isLoading) {
@@ -50,7 +78,7 @@ export const TrustBadgeWrapper: React.FC<TrustBadgeWrapperProps> = ({
         )
     }
 
-    // Don't render if result is null
+    // Don't render if result is null or (hideOnError is true and status unknown)
     if (!trustResult) {
         return null
     }
@@ -65,7 +93,7 @@ export const TrustBadgeWrapper: React.FC<TrustBadgeWrapperProps> = ({
             <TrustRegistryModal
                 visible={modalVisible}
                 trustResult={trustResult}
-                authResponse={authResponse}
+                authResponse={null} // federatedResult doesn't return raw auth response, but trustResult has details
                 onAccept={handleModalClose}
                 onDecline={handleModalClose}
                 onClose={handleModalClose}

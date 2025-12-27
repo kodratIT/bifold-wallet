@@ -40,6 +40,12 @@ export const TRUST_BADGE_CONFIG: Record<TrustLevel, BadgeConfig> = {
     backgroundColor: '#6B7280', // Gray
     label: 'Issuer Registered',
   },
+  trusted_federation: {
+    icon: '🛡',
+    color: '#FFFFFF',
+    backgroundColor: '#F59E0B', // Amber/Orange
+    label: 'Verified via Federation',
+  },
   untrusted: {
     icon: '⚠',
     color: '#000000',

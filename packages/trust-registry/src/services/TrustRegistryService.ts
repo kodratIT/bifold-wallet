@@ -9,6 +9,8 @@ import {
   TrustRegistryMetadata,
   AuthorizationRequest,
   AuthorizationResponse,
+  RecognitionRequest,
+  RecognitionResponse,
   TrustRegistryError,
   TrustRegistryErrorCode,
   TrustLevel,
@@ -26,6 +28,9 @@ export interface ITrustRegistryService {
   // Authorization
   checkIssuerAuthorization(issuerDid: string, credentialType: string): Promise<AuthorizationResponse>
   checkVerifierAuthorization(verifierDid: string, credentialType: string): Promise<AuthorizationResponse>
+
+  // Recognition (Federation)
+  checkRecognition(foreignAuthorityDid: string, resource?: string): Promise<RecognitionResponse>
 
   // Cache
   clearCache(): void
@@ -291,6 +296,64 @@ export class TrustRegistryService implements ITrustRegistryService {
     })
 
     this.cache.set(cacheKey, response, 60 * 1000) // 1 minute cache for auth
+    return response
+  }
+
+  /**
+   * Check if local authority recognizes a foreign authority
+   * Used for Federation Strategy to verify cross-border trust
+   * 
+   * @param foreignAuthorityDid - DID of the foreign authority to check
+   * @param resource - Optional resource/credential type context
+   * @returns Recognition response indicating if foreign authority is recognized
+   */
+  async checkRecognition(
+    foreignAuthorityDid: string,
+    resource: string = 'governance'
+  ): Promise<RecognitionResponse> {
+    const normalizedForeignDid = normalizeDid(foreignAuthorityDid)
+    const normalizedAuthorityId = normalizeDid(this.config.ecosystemDid)
+
+    const cacheKey = CacheKeys.recognition(normalizedForeignDid)
+    const cached = this.cache.get<RecognitionResponse>(cacheKey)
+
+    if (cached) {
+      this.logger.info('Recognition cache hit', { foreignAuthority: normalizedForeignDid })
+      return cached
+    }
+
+    const request: RecognitionRequest = {
+      entity_id: normalizedForeignDid,
+      authority_id: normalizedAuthorityId,
+      action: 'recognize',
+      resource: resource,
+      context: {
+        time: new Date().toISOString(),
+      },
+    }
+
+    this.logger.info('Checking recognition', {
+      foreignAuthority: normalizedForeignDid,
+      localAuthority: normalizedAuthorityId,
+    })
+
+    const url = `${this.config.url}/v2/recognition`
+    const response = await this.fetchWithRetry<RecognitionResponse>(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    })
+
+    // Cache recognition for longer (1 hour) as it changes less frequently
+    this.cache.set(cacheKey, response, 60 * 60 * 1000)
+
+    this.logger.info('Recognition check completed', {
+      foreignAuthority: normalizedForeignDid,
+      recognized: response.recognized,
+    })
+
     return response
   }
 

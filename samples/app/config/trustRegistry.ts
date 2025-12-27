@@ -1,5 +1,25 @@
 /**
  * Trust Registry Configuration from Environment Variables
+ * 
+ * This configuration supports both:
+ * 1. Local Trust Registry (Direct Authorization)
+ * 2. Federation Strategy (Recognition via termsOfUse in credentials)
+ * 
+ * For Federation Strategy:
+ * - The local anchor (ecosystemDid + url) is used as the primary trust authority
+ * - Foreign authorities are discovered from credential's termsOfUse field
+ * - Recognition queries are sent to the local anchor to verify foreign authorities
+ * 
+ * Example .env configuration:
+ * ```
+ * TRUST_REGISTRY_ENABLED=true
+ * TRUST_REGISTRY_URL=https://trust.kemdikbud.go.id
+ * TRUST_REGISTRY_ECOSYSTEM_DID=did:web:kemdikbud.go.id
+ * TRUST_REGISTRY_CACHE_TTL=3600000
+ * TRUST_REGISTRY_SHOW_WARNING=true
+ * TRUST_REGISTRY_BLOCK_UNTRUSTED_ISSUERS=false
+ * TRUST_REGISTRY_BLOCK_UNTRUSTED_VERIFIERS=false
+ * ```
  */
 import Config from 'react-native-config'
 import { TrustRegistryConfig } from '@bifold/trust-registry'
@@ -24,3 +44,4 @@ export const isTrustRegistryConfigured = (): boolean => {
   const config = getTrustRegistryConfig()
   return config.enabled && !!config.url && !!config.ecosystemDid
 }
+

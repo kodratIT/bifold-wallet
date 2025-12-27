@@ -8,7 +8,7 @@ import { CacheEntry } from '../types'
 /**
  * Cache key types for different query types
  */
-export type CacheKeyType = 'metadata' | 'issuer' | 'verifier' | 'auth'
+export type CacheKeyType = 'metadata' | 'issuer' | 'verifier' | 'auth' | 'recognition'
 
 /**
  * Generate a unique cache key
@@ -43,7 +43,7 @@ export class TrustRegistryCache {
    */
   get<T>(key: string): T | undefined {
     const entry = this.cache.get(key)
-    
+
     if (!entry) {
       return undefined
     }
@@ -75,7 +75,7 @@ export class TrustRegistryCache {
    */
   has(key: string): boolean {
     const entry = this.cache.get(key)
-    
+
     if (!entry) {
       return false
     }
@@ -144,4 +144,6 @@ export const CacheKeys = {
   verifier: (did: string) => generateCacheKey('verifier', did),
   authorization: (entityId: string, action: string, resource: string) =>
     generateCacheKey('auth', entityId, action, resource),
+  recognition: (foreignAuthorityDid: string) =>
+    generateCacheKey('recognition', foreignAuthorityDid),
 }

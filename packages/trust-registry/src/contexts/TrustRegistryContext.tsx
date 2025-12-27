@@ -9,6 +9,7 @@ import {
   TrustRegistryConfig,
   TrustRegistryMetadata,
   AuthorizationResponse,
+  RecognitionResponse,
   TrustRegistryContextValue,
 } from '../types'
 import { TrustRegistryService, ITrustRegistryService } from '../services/TrustRegistryService'
@@ -35,6 +36,15 @@ const defaultContextValue: TrustRegistryContextValue = {
     action: 'verify',
     resource: '',
     authorized: false,
+    time_evaluated: new Date().toISOString(),
+    message: 'Trust registry not initialized',
+  }),
+  checkRecognition: async () => ({
+    entity_id: '',
+    authority_id: '',
+    action: 'recognize',
+    resource: '',
+    recognized: false,
     time_evaluated: new Date().toISOString(),
     message: 'Trust registry not initialized',
   }),
@@ -150,6 +160,24 @@ export const TrustRegistryProvider: React.FC<TrustRegistryProviderProps> = ({ co
     service?.clearCache()
   }, [service])
 
+  const checkRecognition = useCallback(
+    async (foreignAuthorityDid: string, resource?: string): Promise<RecognitionResponse> => {
+      if (!service) {
+        return {
+          entity_id: foreignAuthorityDid,
+          authority_id: '',
+          action: 'recognize',
+          resource: resource || 'governance',
+          recognized: false,
+          time_evaluated: new Date().toISOString(),
+          message: 'Trust registry not enabled',
+        }
+      }
+      return service.checkRecognition(foreignAuthorityDid, resource)
+    },
+    [service]
+  )
+
   // Memoized context value
   const contextValue = useMemo<TrustRegistryContextValue>(
     () => ({
@@ -158,6 +186,7 @@ export const TrustRegistryProvider: React.FC<TrustRegistryProviderProps> = ({ co
       metadata,
       checkIssuerAuthorization,
       checkVerifierAuthorization,
+      checkRecognition,
       refreshMetadata,
       clearCache,
     }),
@@ -167,6 +196,7 @@ export const TrustRegistryProvider: React.FC<TrustRegistryProviderProps> = ({ co
       metadata,
       checkIssuerAuthorization,
       checkVerifierAuthorization,
+      checkRecognition,
       refreshMetadata,
       clearCache,
     ]

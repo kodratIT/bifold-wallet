@@ -31,8 +31,20 @@ type OpenIDCredentialDetailsProps = StackScreenProps<DeliveryStackParams, Screen
 const OpenIDCredentialOffer: React.FC<OpenIDCredentialDetailsProps> = ({ navigation, route }) => {
   // FIXME: change params to accept credential id to avoid 'non-serializable' warnings
   const { credential } = route.params
-  const [logger] = useServices([TOKENS.UTIL_LOGGER])
-  const credentialDisplay = getCredentialForDisplay(credential)
+  const [
+    logger,
+    TrustBadge,
+    trustRegistryConfig,
+    TrustConfirmModal,
+    useFederatedTrust,
+  ] = useServices([
+    TOKENS.UTIL_LOGGER,
+    TOKENS.COMPONENT_TRUST_BADGE,
+    TOKENS.TRUST_REGISTRY_CONFIG,
+    TOKENS.COMPONENT_TRUST_CONFIRM_MODAL,
+    TOKENS.HOOK_USE_FEDERATED_TRUST,
+  ])
+  const credentialDisplay = React.useMemo(() => getCredentialForDisplay(credential), [credential])
   const { display } = credentialDisplay
 
   // console.log('$$ ====> Credential Display', JSON.stringify(credentialDisplay))
@@ -45,6 +57,9 @@ const OpenIDCredentialOffer: React.FC<OpenIDCredentialDetailsProps> = ({ navigat
   const [isRemoveModalDisplayed, setIsRemoveModalDisplayed] = useState(false)
   const [buttonsVisible, setButtonsVisible] = useState(true)
   const [acceptModalVisible, setAcceptModalVisible] = useState(false)
+  const [trustConfirmVisible, setTrustConfirmVisible] = useState(false)
+  const [trustAuthResult, setTrustAuthResult] = useState<{ authorized: boolean; message?: string } | null>(null)
+
   const { acceptNewCredential } = useAcceptReplacement()
   const { declineByNewId } = useDeclineReplacement({ logger: logger })
 
@@ -55,10 +70,32 @@ const OpenIDCredentialOffer: React.FC<OpenIDCredentialDetailsProps> = ({ navigat
     brandingOverlay: undefined,
   })
 
+  // Federated Trust Check
+  const issuerDid = (credential as any)?.credential?.issuerId
+  const credentialType = (credential as any)?.credential?.type?.length > 0
+    ? (credential as any).credential.type[(credential as any).credential.type.length - 1]
+    : 'Credential'
+
+  // Use credential object for discovery, augmented with decoded attributes from display
+  // This allows AuthorityDiscoveryService to inspect decoded claims (e.g. from SD-JWT)
+  const discoveryCredential = React.useMemo(() => ({
+    ...credential,
+    attributes: credentialDisplay.attributes
+  }), [credential, credentialDisplay.attributes])
+
+  const federatedTrust = useFederatedTrust(
+    issuerDid,
+    discoveryCredential,
+    credentialType
+  )
+
   useEffect(() => {
     if (!credential) {
       return
     }
+
+    console.log('[OpenIDCredentialOffer] Credential Params:', JSON.stringify(credential, null, 2))
+    console.log('[OpenIDCredentialOffer] Decoded Attributes:', JSON.stringify(credentialDisplay.attributes, null, 2))
 
     const resolveOverlay = async () => {
       const brandingOverlay = await resolveBundleForCredential(credential)
@@ -117,15 +154,46 @@ const OpenIDCredentialOffer: React.FC<OpenIDCredentialDetailsProps> = ({ navigat
     if (!agent) {
       return
     }
+
+    // Federation Trust Check
+    if (trustRegistryConfig?.enabled && !federatedTrust.isLoading) {
+      setTrustAuthResult({
+        authorized: federatedTrust.authorized,
+        message: federatedTrust.message ||
+          (federatedTrust.trustSource === 'federation'
+            ? `Verified via ${federatedTrust.trustAuthority?.name || 'Federation'}`
+            : undefined)
+      })
+      setTrustConfirmVisible(true)
+      return
+    }
+
+    await processAccept()
+  }
+
+  const processAccept = async () => {
     try {
       await acceptNewCredential(credential)
       await handleSendNotification(NotificationEventType.CREDENTIAL_ACCEPTED)
+
+      // Close confirmation modal if open
+      setTrustConfirmVisible(false)
+
       setAcceptModalVisible(true)
     } catch (err: unknown) {
       setButtonsVisible(true)
       const error = new BifoldError(t('Error.Title1024'), t('Error.Message1024'), (err as Error)?.message ?? err, 1024)
       DeviceEventEmitter.emit(EventTypes.ERROR_ADDED, error)
     }
+  }
+
+  // Handle accept from Trust Confirm Modal
+  const handleTrustConfirmAccept = async () => {
+    await processAccept()
+  }
+
+  const handleTrustConfirmClose = () => {
+    setTrustConfirmVisible(false)
   }
 
   const footerButton = (
@@ -167,6 +235,7 @@ const OpenIDCredentialOffer: React.FC<OpenIDCredentialDetailsProps> = ({ navigat
             <Text>{display.issuer.name || t('ContactDetails.AContact')}</Text>{' '}
             {t('CredentialOffer.IsOfferingYouACredential')}
           </Text>
+          {TrustBadge && <TrustBadge issuerDid={issuerDid} credentialType={credentialType} credential={discoveryCredential} />}
         </View>
         {credential && <View style={{ marginHorizontal: 15, marginBottom: 16 }}>{renderOpenIdCard()}</View>}
       </>
@@ -217,6 +286,16 @@ const OpenIDCredentialOffer: React.FC<OpenIDCredentialDetailsProps> = ({ navigat
         onCancel={toggleDeclineModalVisible}
         extraDetails={display.issuer.name}
       />
+      {TrustConfirmModal && (
+        <TrustConfirmModal
+          visible={trustConfirmVisible}
+          isAuthorized={trustAuthResult?.authorized ?? false}
+          onAccept={handleTrustConfirmAccept}
+          onDecline={handleTrustConfirmClose}
+          onClose={handleTrustConfirmClose}
+          message={trustAuthResult?.message}
+        />
+      )}
     </ScreenLayout>
   )
 }
