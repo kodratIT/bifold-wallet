@@ -183,6 +183,7 @@ export const TrustRegistryProvider: React.FC<TrustRegistryProviderProps> = ({ co
     () => ({
       isEnabled: config.enabled,
       isAvailable,
+      config,
       metadata,
       checkIssuerAuthorization,
       checkVerifierAuthorization,
@@ -191,6 +192,7 @@ export const TrustRegistryProvider: React.FC<TrustRegistryProviderProps> = ({ co
       clearCache,
     }),
     [
+      config,
       config.enabled,
       isAvailable,
       metadata,

@@ -31,6 +31,11 @@ export interface TrustRegistryConfig {
    * Optional local anchor configuration if different from url/ecosystemDid
    */
   localAnchor?: TrustAnchor
+
+  /** Allow fallback to default authority in dev mode */
+  devMode?: boolean
+  /** Default authority to use if none found in credential (only in dev mode) */
+  fallbackAuthority?: TrustAnchor
 }
 
 // ============================================================================
@@ -225,6 +230,7 @@ export interface TrustRegistryContextValue {
   // State
   isEnabled: boolean
   isAvailable: boolean
+  config?: TrustRegistryConfig
   metadata: TrustRegistryMetadata | null
 
   // Actions (Authorization-based)

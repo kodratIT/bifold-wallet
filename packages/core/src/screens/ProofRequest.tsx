@@ -1,3 +1,4 @@
+
 import {
   AnonCredsCredentialsForProofRequest,
   AnonCredsRequestedAttributeMatch,
@@ -38,6 +39,12 @@ import ProofCancelModal from '../components/modals/ProofCancelModal'
 import InfoTextBox from '../components/texts/InfoTextBox'
 import { EventTypes } from '../constants'
 import { TOKENS, useServices } from '../container-api'
+// We should import useVerifierTrust directly from its source if possible, OR if it's injected, we use useServices correctly.
+// But useServices returns services, not hooks directly usable as hooks unless they are functions.
+// Let's assume we need to import it from container-api if it's re-exported or from trust-registry if available.
+// The previous errors suggest useVerifierTrust wasn't found. 
+// Let's import UseVerifierTrustResult type but for the hook, we need how it's exposed. 
+// Based on previous edit, we added HOOK_USE_VERIFIER_TRUST to container, so we access it via useServices.
 import { useNetwork } from '../contexts/network'
 import { DispatchAction } from '../contexts/reducers/store'
 import { useStore } from '../contexts/store'
@@ -115,13 +122,6 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
 
   const [store, dispatch] = useStore()
   const credProofPromise = useAllCredentialsForProof(proofId)
-  const [ConnectionAlert] = useServices([TOKENS.COMPONENT_CONNECTION_ALERT])
-  const proofConnectionLabel = useMemo(
-    () => getConnectionName(connection, store.preferences.alternateContactNames),
-    [connection, store.preferences.alternateContactNames]
-  )
-  const { start } = useTour()
-  const screenIsFocused = useIsFocused()
   const [
     bundleResolver,
     attestationMonitor,
@@ -130,6 +130,10 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
     historyManagerCurried,
     historyEnabled,
     historyEventsLogger,
+    ConnectionAlert,
+    TrustBadge,
+    TrustConfirmModal,
+    useVerifierTrustHook,
   ] = useServices([
     TOKENS.UTIL_OCA_RESOLVER,
     TOKENS.UTIL_ATTESTATION_MONITOR,
@@ -138,7 +142,23 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
     TOKENS.FN_LOAD_HISTORY,
     TOKENS.HISTORY_ENABLED,
     TOKENS.HISTORY_EVENTS_LOGGER,
+    TOKENS.COMPONENT_CONNECTION_ALERT,
+    TOKENS.COMPONENT_TRUST_BADGE,
+    TOKENS.COMPONENT_TRUST_CONFIRM_MODAL,
+    TOKENS.HOOK_USE_VERIFIER_TRUST,
   ])
+
+  // Trust Registry Verifier Check
+  // Determine who the verifier is (from connection or maybe connectionless proof)
+  const verifierDid = connection?.theirDid
+  const { trustResult, isLoading: isVerifierTrustLoading } = useVerifierTrustHook(verifierDid)
+  const [trustConfirmVisible, setTrustConfirmVisible] = useState(false)
+  const proofConnectionLabel = useMemo(
+    () => getConnectionName(connection, store.preferences.alternateContactNames),
+    [connection, store.preferences.alternateContactNames]
+  )
+  const { start } = useTour()
+  const screenIsFocused = useIsFocused()
   const styles = StyleSheet.create({
     pageContainer: {
       flex: 1,
@@ -334,16 +354,16 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
 
       const selectRetrievedCredentials: AnonCredsCredentialsForProofRequest | undefined = retrievedCredentials
         ? {
-            ...retrievedCredentials,
-            attributes: formatCredentials(retrievedCredentials.attributes, credList) as Record<
-              string,
-              AnonCredsRequestedAttributeMatch[]
-            >,
-            predicates: formatCredentials(retrievedCredentials.predicates, credList) as Record<
-              string,
-              AnonCredsRequestedPredicateMatch[]
-            >,
-          }
+          ...retrievedCredentials,
+          attributes: formatCredentials(retrievedCredentials.attributes, credList) as Record<
+            string,
+            AnonCredsRequestedAttributeMatch[]
+          >,
+          predicates: formatCredentials(retrievedCredentials.predicates, credList) as Record<
+            string,
+            AnonCredsRequestedPredicateMatch[]
+          >,
+        }
         : undefined
 
       setRetrievedCredentials(selectRetrievedCredentials)
@@ -477,17 +497,14 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
     [agent, historyEnabled, logger, historyManagerCurried, proof, proofId, proofConnectionLabel]
   )
 
-  const handleAcceptPress = useCallback(async () => {
+  const acceptProofRequest = useCallback(async () => {
     try {
-      if (!(agent && proof && assertNetworkConnected())) {
-        return
-      }
       setPendingModalVisible(true)
 
       if (!retrievedCredentials) {
         throw new Error(t('ProofRequest.RequestedCredentialsCouldNotBeFound'))
       }
-      const format = await agent.proofs.getFormatData(proof.id)
+      const format = await agent.proofs.getFormatData(proof!.id)
 
       if (format.request?.presentationExchange) {
         if (!descriptorMetadata) throw new Error(t('ProofRequest.PresentationMetadataNotFound'))
@@ -502,12 +519,12 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
         )
 
         await agent.proofs.acceptRequest({
-          proofRecordId: proof.id,
+          proofRecordId: proof!.id,
           proofFormats: { presentationExchange: { credentials: selectedCredentials } },
         })
 
-        if (proof.connectionId && goalCode?.endsWith('verify.once')) {
-          agent.connections.deleteById(proof.connectionId)
+        if (proof?.connectionId && goalCode?.endsWith('verify.once')) {
+          agent.connections.deleteById(proof!.connectionId)
         }
         return
       }
@@ -549,11 +566,11 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       }
 
       await agent.proofs.acceptRequest({
-        proofRecordId: proof.id,
+        proofRecordId: proof!.id,
         proofFormats: automaticRequestedCreds.proofFormats,
       })
-      if (proof.connectionId && goalCode?.endsWith('verify.once')) {
-        agent.connections.deleteById(proof.connectionId)
+      if (proof?.connectionId && goalCode?.endsWith('verify.once')) {
+        agent.connections.deleteById(proof!.connectionId)
       }
 
       if (historyEventsLogger.logInformationSent) {
@@ -567,7 +584,6 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
   }, [
     agent,
     proof,
-    assertNetworkConnected,
     retrievedCredentials,
     activeCreds,
     descriptorMetadata,
@@ -575,6 +591,33 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
     t,
     historyEventsLogger.logInformationSent,
     logHistoryRecord,
+  ])
+
+  const handleAcceptPress = useCallback(async () => {
+    if (!(agent && proof && assertNetworkConnected())) {
+      return
+    }
+
+    // Trust Registry: Check Verifier Trust
+    // If not actively loading and we have a result that is NOT authorized/trusted, confirm with user
+    if (!isVerifierTrustLoading && trustResult) {
+      // Check if explicitly untrusted or unknown
+      // Assuming 'authorized' boolean is the main flag, or check 'level'
+      if (!trustResult.authorized) {
+        setTrustConfirmVisible(true)
+        return
+      }
+    }
+
+    // If trusted or check skipped, proceed
+    await acceptProofRequest()
+  }, [
+    agent,
+    proof,
+    assertNetworkConnected,
+    isVerifierTrustLoading,
+    trustResult,
+    acceptProofRequest
   ])
 
   const handleDeclineTouched = useCallback(async () => {
@@ -866,8 +909,8 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
                     handleAltCredChange={
                       item.altCredentials && item.altCredentials.length > 1
                         ? () => {
-                            handleAltCredChange(item.credId, item.altCredentials ?? [item.credId])
-                          }
+                          handleAltCredChange(item.credId, item.altCredentials ?? [item.credId])
+                        }
                         : undefined
                     }
                     proof
@@ -991,7 +1034,23 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
           onSubmit={handleDeclineTouched}
           onCancel={toggleDeclineModalVisible}
         />
-        <ProofCancelModal visible={cancelModalVisible} onDone={onCancelDone} />
+        <ProofCancelModal
+          visible={cancelModalVisible}
+          onDone={onCancelDone}
+        />
+        {TrustConfirmModal && (
+          <TrustConfirmModal
+            visible={trustConfirmVisible}
+            isAuthorized={trustResult?.authorized ?? false}
+            onAccept={() => {
+              setTrustConfirmVisible(false)
+              acceptProofRequest()
+            }}
+            onDecline={() => setTrustConfirmVisible(false)}
+            onClose={() => setTrustConfirmVisible(false)}
+            message={trustResult?.message}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   )

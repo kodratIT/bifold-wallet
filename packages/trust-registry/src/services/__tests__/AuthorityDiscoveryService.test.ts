@@ -212,6 +212,49 @@ describe('AuthorityDiscoveryService', () => {
             const result = await AuthorityDiscoveryService.findAuthority('did:web:issuer.edu')
             expect(result).toBeNull()
         })
+
+        it('should use fallback authority when devMode is true and no other authority found', async () => {
+            const credential = {}
+            const fallback = {
+                devMode: true,
+                authority: {
+                    did: 'did:web:dev.authority',
+                    url: 'https://dev.authority',
+                    name: 'Dev Authority'
+                }
+            }
+
+            const result = await AuthorityDiscoveryService.findAuthority(
+                'did:web:issuer.edu',
+                credential,
+                fallback
+            )
+
+            expect(result).not.toBeNull()
+            expect(result?.id).toBe(fallback.authority.did)
+            expect(result?.registryUrl).toBe(fallback.authority.url)
+            expect(result?.name).toBe(fallback.authority.name)
+        })
+
+        it('should NOT use fallback authority when devMode is false', async () => {
+            const credential = {}
+            const fallback = {
+                devMode: false,
+                authority: {
+                    did: 'did:web:dev.authority',
+                    url: 'https://dev.authority',
+                    name: 'Dev Authority'
+                }
+            }
+
+            const result = await AuthorityDiscoveryService.findAuthority(
+                'did:web:issuer.edu',
+                credential,
+                fallback
+            )
+
+            expect(result).toBeNull()
+        })
     })
 
     describe('extractFromDid', () => {

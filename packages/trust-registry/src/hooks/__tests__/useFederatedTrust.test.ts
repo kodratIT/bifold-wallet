@@ -5,12 +5,15 @@
 import { renderHook, waitFor } from '@testing-library/react-native'
 import { useFederatedTrust } from '../useFederatedTrust'
 import { useTrustRegistry } from '../../contexts/TrustRegistryContext'
+import { AuthorityDiscoveryService } from '../../services/AuthorityDiscoveryService'
 
 // Mock the dependencies
 jest.mock('../../contexts/TrustRegistryContext')
 jest.mock('../../services/AuthorityDiscoveryService')
 
 const mockUseTrustRegistry = useTrustRegistry as jest.MockedFunction<typeof useTrustRegistry>
+// Get the mocked class
+const MockAuthorityDiscoveryService = AuthorityDiscoveryService as jest.Mocked<typeof AuthorityDiscoveryService>
 
 describe('useFederatedTrust', () => {
     const mockCheckIssuerAuthorization = jest.fn()
@@ -135,6 +138,13 @@ describe('useFederatedTrust', () => {
                 message: 'Recognized via bilateral agreement',
             })
 
+            // Mock successful discovery
+            MockAuthorityDiscoveryService.findAuthority.mockResolvedValue({
+                id: 'did:web:ed.gov',
+                name: 'US Department of Education',
+                registryUrl: 'https://trust.ed.gov'
+            })
+
             const { result } = renderHook(() =>
                 useFederatedTrust('did:web:mit.edu', credential, 'UniversityDegree')
             )
@@ -207,6 +217,13 @@ describe('useFederatedTrust', () => {
                 recognized: false,
                 time_evaluated: new Date().toISOString(),
                 message: 'Foreign authority not recognized',
+            })
+
+            // Mock successful discovery but unrecognized
+            MockAuthorityDiscoveryService.findAuthority.mockResolvedValue({
+                id: 'did:web:unknown-authority.gov',
+                name: 'Unknown Authority',
+                registryUrl: 'https://unknown.gov'
             })
 
             const { result } = renderHook(() =>

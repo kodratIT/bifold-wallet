@@ -32,7 +32,7 @@ import { AgentSetupReturnType } from './hooks/useBifoldAgentSetup'
 import { OnboardingStackProps } from './navigators/OnboardingStack'
 import { AgentBridge } from './services/AgentBridge'
 import { IRefreshOrchestrator } from './modules/openid/refresh/types'
-import { FederatedTrustResult } from './types/trust-registry'
+import { FederatedTrustResult, TrustRegistryConfig, UseVerifierTrustResult } from './types/trust-registry'
 
 export type FN_ONBOARDING_DONE = (
   dispatch: React.Dispatch<ReducerAction<unknown>>,
@@ -77,6 +77,7 @@ export const NAV_TOKENS = {
 export const HOOK_TOKENS = {
   HOOK_USE_AGENT_SETUP: 'hook.useAgentSetup',
   HOOK_USE_FEDERATED_TRUST: 'hook.useFederatedTrust',
+  HOOK_USE_VERIFIER_TRUST: 'hook.useVerifierTrust',
 } as const
 
 export const COMPONENT_TOKENS = {
@@ -208,6 +209,7 @@ export type TokenMapping = {
     credential?: any,
     credentialType?: string
   ) => FederatedTrustResult
+  [TOKENS.HOOK_USE_VERIFIER_TRUST]: (inputDid: string | undefined) => UseVerifierTrustResult
   [TOKENS.FN_ONBOARDING_DONE]: FN_ONBOARDING_DONE
   [TOKENS.LOAD_STATE]: LoadStateFn
   [TOKENS.COMP_BUTTON]: Button
@@ -250,15 +252,8 @@ export type TokenMapping = {
   [TOKENS.UTIL_AGENT_BRIDGE]: AgentBridge
   [TOKENS.UTIL_REFRESH_ORCHESTRATOR]: IRefreshOrchestrator
   [TOKENS.TRUST_REGISTRY_SERVICE]: unknown
-  [TOKENS.TRUST_REGISTRY_CONFIG]: {
-    enabled: boolean
-    url: string
-    ecosystemDid: string
-    cacheTTL: number
-    showWarningForUntrusted: boolean
-    blockUntrustedIssuers: boolean
-    blockUntrustedVerifiers: boolean
-  }
+
+  [TOKENS.TRUST_REGISTRY_CONFIG]: TrustRegistryConfig
   [TOKENS.COMPONENT_TRUST_REGISTRY_MODAL]: React.FC<any>
   [TOKENS.COMPONENT_TRUST_CONFIRM_MODAL]: React.FC<{
     visible: boolean

@@ -35,6 +35,14 @@ export const getTrustRegistryConfig = (): TrustRegistryConfig => ({
   showWarningForUntrusted: Config.TRUST_REGISTRY_SHOW_WARNING !== 'false',
   blockUntrustedIssuers: Config.TRUST_REGISTRY_BLOCK_UNTRUSTED_ISSUERS === 'true',
   blockUntrustedVerifiers: Config.TRUST_REGISTRY_BLOCK_UNTRUSTED_VERIFIERS === 'true',
+
+  // Dev Mode Fallback configuration
+  devMode: Config.ENV === 'dev' || Config.DEV_MODE === 'true' || __DEV__,
+  fallbackAuthority: (Config.TRUST_REGISTRY_FALLBACK_DID && Config.TRUST_REGISTRY_FALLBACK_URL) ? {
+    did: Config.TRUST_REGISTRY_FALLBACK_DID,
+    url: Config.TRUST_REGISTRY_FALLBACK_URL,
+    name: Config.TRUST_REGISTRY_FALLBACK_NAME || 'Development Authority'
+  } : undefined
 })
 
 /**

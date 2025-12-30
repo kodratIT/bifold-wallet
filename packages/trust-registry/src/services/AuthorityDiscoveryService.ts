@@ -1,4 +1,4 @@
-import { TrustFramework } from '../types'
+import { TrustFramework, TrustAnchor } from '../types'
 
 /**
  * Service for discovering Trust Authority from credentials or issuers
@@ -148,7 +148,11 @@ export class AuthorityDiscoveryService {
      */
     static async findAuthority(
         issuerDid: string,
-        credential?: any
+        credential?: any,
+        fallback?: {
+            devMode?: boolean
+            authority?: TrustAnchor
+        }
     ): Promise<TrustFramework | null> {
         // Strategy 1: Try Credential termsOfUse (Fastest, Offline-capable, W3C Recommended)
         if (credential) {
@@ -161,6 +165,17 @@ export class AuthorityDiscoveryService {
             const fromEvidence = this.extractFromEvidence(credential)
             if (fromEvidence) {
                 return fromEvidence
+            }
+        }
+
+        // Strategy 3: Dev Mode Fallback
+        // "jika env dev = true maka dia ngambil dari env untuk autority_id dan auturity url nya"
+        if (fallback?.devMode && fallback.authority) {
+            console.log('[AuthorityDiscovery] Using Dev Mode Fallback Authority')
+            return {
+                id: fallback.authority.did,
+                registryUrl: fallback.authority.url,
+                name: fallback.authority.name || 'Dev Authority'
             }
         }
 

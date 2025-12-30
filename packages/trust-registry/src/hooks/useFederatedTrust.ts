@@ -48,7 +48,7 @@ export function useFederatedTrust(
     credential?: any,
     credentialType: string = 'Credential'
 ): FederatedTrustResult {
-    const { isEnabled, checkIssuerAuthorization, checkRecognition } = useTrustRegistry()
+    const { isEnabled, config, checkIssuerAuthorization, checkRecognition } = useTrustRegistry()
 
     const [result, setResult] = useState<FederatedTrustResult>({
         level: 'unknown',
@@ -99,7 +99,11 @@ export function useFederatedTrust(
                 console.log(`[TrustRegistry] Issuer not authorized locally. Attempting discovery from credential...`)
                 const foreignAuthority = await AuthorityDiscoveryService.findAuthority(
                     issuerDid,
-                    credential
+                    credential,
+                    {
+                        devMode: config?.devMode,
+                        authority: config?.fallbackAuthority
+                    }
                 )
                 console.log(`[TrustRegistry] Authority Discovery result for ${issuerDid}:`, foreignAuthority)
 
@@ -176,7 +180,7 @@ export function useFederatedTrust(
         return () => {
             cancelled = true
         }
-    }, [isEnabled, issuerDid, credential, credentialType, checkIssuerAuthorization, checkRecognition])
+    }, [isEnabled, config, issuerDid, credential, credentialType, checkIssuerAuthorization, checkRecognition])
 
     return result
 }

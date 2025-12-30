@@ -12,6 +12,12 @@ export interface TrustFramework {
     registryUrl?: string
 }
 
+export interface TrustAnchor {
+    did: string
+    url: string
+    name?: string
+}
+
 export interface FederatedTrustResult {
     level: TrustLevel
     authorized: boolean
@@ -22,6 +28,35 @@ export interface FederatedTrustResult {
     message?: string
 }
 
+export interface AuthorizationResponse {
+    entity_id: string
+    authority_id: string
+    action: string
+    resource: string
+    authorized: boolean
+    time_evaluated: string
+    message: string
+    context?: Record<string, unknown>
+}
+
+export interface TrustResult {
+    level: TrustLevel
+    authorized: boolean
+    entityDid?: string
+    credentialType?: string
+    action?: 'issue' | 'verify'
+    message?: string
+    checkedAt: Date
+}
+
+export interface UseVerifierTrustResult {
+    trustResult: TrustResult | null
+    authResponse: AuthorizationResponse | null
+    isLoading: boolean
+    error: string | null
+    refresh: () => Promise<void>
+}
+
 export interface TrustRegistryConfig {
     enabled: boolean
     url: string
@@ -30,4 +65,7 @@ export interface TrustRegistryConfig {
     showWarningForUntrusted: boolean
     blockUntrustedIssuers: boolean
     blockUntrustedVerifiers: boolean
+    localAnchor?: TrustAnchor
+    devMode?: boolean
+    fallbackAuthority?: TrustAnchor
 }
