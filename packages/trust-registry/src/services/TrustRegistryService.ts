@@ -15,6 +15,7 @@ import {
   TrustRegistryErrorCode,
   TrustLevel,
 } from '../types'
+import { DevModeDids } from './DevModeDids'
 import { TrustRegistryCache, CacheKeys } from '../utils/cache'
 
 /**
@@ -311,8 +312,19 @@ export class TrustRegistryService implements ITrustRegistryService {
     foreignAuthorityDid: string,
     resource: string = 'governance'
   ): Promise<RecognitionResponse> {
-    const normalizedForeignDid = normalizeDid(foreignAuthorityDid)
-    const normalizedAuthorityId = normalizeDid(this.config.ecosystemDid)
+    let normalizedForeignDid = normalizeDid(foreignAuthorityDid)
+    let normalizedAuthorityId = normalizeDid(this.config.ecosystemDid)
+    let action: 'recognize' | 'govern' = 'govern'
+    let finalResource = resource
+
+    // If devMode is enabled, override values from DevModeDids
+    if (this.config.devMode) {
+      this.logger.info('Dev Mode enabled, using DIDs from file')
+      normalizedForeignDid = normalizeDid(DevModeDids.ENTITY_ID)
+      normalizedAuthorityId = normalizeDid(DevModeDids.AUTHORITY_ID)
+      action = DevModeDids.ACTION
+      finalResource = DevModeDids.RESOURCE
+    }
 
     const cacheKey = CacheKeys.recognition(normalizedForeignDid)
     const cached = this.cache.get<RecognitionResponse>(cacheKey)
@@ -325,8 +337,8 @@ export class TrustRegistryService implements ITrustRegistryService {
     const request: RecognitionRequest = {
       entity_id: normalizedForeignDid,
       authority_id: normalizedAuthorityId,
-      action: 'recognize',
-      resource: resource,
+      action: action,
+      resource: finalResource,
       context: {
         time: new Date().toISOString(),
       },

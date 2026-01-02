@@ -248,7 +248,7 @@ export type TokenMapping = {
   [TOKENS.INLINE_ERRORS]: InlineErrorConfig
   [TOKENS.CUSTOM_NAV_STACK_1]: React.FC
   [TOKENS.COMPONENT_CONNECTION_ALERT]: React.FC<{ connectionLabel?: string }>
-  [TOKENS.COMPONENT_TRUST_BADGE]: React.FC<{ issuerDid?: string; credentialType?: string; credential?: any }>
+  [TOKENS.COMPONENT_TRUST_BADGE]: React.FC<{ issuerDid?: string; verifierDid?: string; credentialType?: string; credential?: any }>
   [TOKENS.UTIL_AGENT_BRIDGE]: AgentBridge
   [TOKENS.UTIL_REFRESH_ORCHESTRATOR]: IRefreshOrchestrator
   [TOKENS.TRUST_REGISTRY_SERVICE]: unknown

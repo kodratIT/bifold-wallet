@@ -182,6 +182,8 @@ export interface TrustResult {
   action?: 'issue' | 'verify'
   message?: string
   checkedAt: Date
+  trustSource?: 'local' | 'federation' | 'unknown'
+  trustAuthority?: TrustFramework
 }
 
 // ============================================================================

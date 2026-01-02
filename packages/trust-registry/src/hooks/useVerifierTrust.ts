@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { TrustResult, AuthorizationResponse } from '../types'
 import { useTrustRegistry } from '../contexts/TrustRegistryContext'
 import { mapAuthorizationToTrustLevel } from '../services/TrustRegistryService'
+import { AuthorityDiscoveryService } from '../services/AuthorityDiscoveryService'
 
 /**
  * Return type for useVerifierTrust hook
@@ -34,7 +35,7 @@ export function useVerifierTrust(
   did: string | undefined,
   credentialType: string = 'Credential'
 ): UseVerifierTrustResult {
-  const { isEnabled, checkVerifierAuthorization } = useTrustRegistry()
+  const { isEnabled, config, checkVerifierAuthorization, checkRecognition } = useTrustRegistry()
   const [trustResult, setTrustResult] = useState<TrustResult | null>(null)
   const [authResponse, setAuthResponse] = useState<AuthorizationResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -52,20 +53,58 @@ export function useVerifierTrust(
     setError(null)
 
     try {
+      // Step 1: Check local authorization
       const response = await checkVerifierAuthorization(did, credentialType)
       setAuthResponse(response)
 
-      // Create TrustResult from authorization response
-      const result: TrustResult = {
-        level: mapAuthorizationToTrustLevel(response.authorized),
-        authorized: response.authorized,
+      if (response.authorized) {
+        // Create TrustResult from authorization response
+        const result: TrustResult = {
+          level: mapAuthorizationToTrustLevel(response.authorized),
+          authorized: response.authorized,
+          entityDid: response.entity_id,
+          credentialType: response.resource,
+          action: 'verify',
+          message: response.message,
+          checkedAt: new Date(),
+        }
+        setTrustResult(result)
+        return
+      }
+
+      // Step 2: Try Federation (Recognition)
+      // We already have checkRecognition from useTrustRegistry() call at top of hook
+      const foreignAuthority = await AuthorityDiscoveryService.findAuthority(did, undefined, {
+        devMode: config?.devMode,
+        authority: config?.fallbackAuthority
+      })
+
+      if (foreignAuthority) {
+        const recognitionResponse = await checkRecognition(foreignAuthority.id, credentialType)
+        if (recognitionResponse.recognized) {
+          setTrustResult({
+            level: 'trusted_federation',
+            authorized: true,
+            entityDid: did,
+            credentialType,
+            action: 'verify',
+            message: recognitionResponse.message || `Recognized via ${foreignAuthority.name || foreignAuthority.id}`,
+            checkedAt: new Date(),
+          })
+          return
+        }
+      }
+
+      // Step 3: Not authorized and not recognized
+      setTrustResult({
+        level: mapAuthorizationToTrustLevel(false),
+        authorized: false,
         entityDid: response.entity_id,
         credentialType: response.resource,
         action: 'verify',
-        message: response.message,
+        message: response.message || 'Verifier not authorized',
         checkedAt: new Date(),
-      }
-      setTrustResult(result)
+      })
     } catch (err) {
       setError((err as Error).message)
       setTrustResult({
@@ -79,7 +118,7 @@ export function useVerifierTrust(
     } finally {
       setIsLoading(false)
     }
-  }, [did, credentialType, isEnabled, checkVerifierAuthorization])
+  }, [did, credentialType, isEnabled, config, checkVerifierAuthorization, checkRecognition])
 
   // Fetch trust status when DID or credentialType changes
   useEffect(() => {

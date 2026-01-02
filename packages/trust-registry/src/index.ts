@@ -11,6 +11,7 @@ export * from './types'
 export { TrustRegistryService, encodeDid, mapAuthorizationToTrustLevel, normalizeDid } from './services/TrustRegistryService'
 export type { ITrustRegistryService, Logger } from './services/TrustRegistryService'
 export { AuthorityDiscoveryService } from './services/AuthorityDiscoveryService'
+export { DevModeDids } from './services/DevModeDids'
 
 // Context and Hooks
 export { TrustRegistryProvider, useTrustRegistry, TrustRegistryContext } from './contexts/TrustRegistryContext'

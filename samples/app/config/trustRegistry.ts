@@ -22,7 +22,7 @@
  * ```
  */
 import Config from 'react-native-config'
-import { TrustRegistryConfig } from '@bifold/trust-registry'
+import { TrustRegistryConfig, DevModeDids } from '@bifold/trust-registry'
 
 /**
  * Get Trust Registry configuration from environment variables
@@ -38,11 +38,19 @@ export const getTrustRegistryConfig = (): TrustRegistryConfig => ({
 
   // Dev Mode Fallback configuration
   devMode: Config.ENV === 'dev' || Config.DEV_MODE === 'true' || __DEV__,
-  fallbackAuthority: (Config.TRUST_REGISTRY_FALLBACK_DID && Config.TRUST_REGISTRY_FALLBACK_URL) ? {
-    did: Config.TRUST_REGISTRY_FALLBACK_DID,
-    url: Config.TRUST_REGISTRY_FALLBACK_URL,
-    name: Config.TRUST_REGISTRY_FALLBACK_NAME || 'Development Authority'
-  } : undefined
+  fallbackAuthority: (Config.TRUST_REGISTRY_FALLBACK_DID && Config.TRUST_REGISTRY_FALLBACK_URL)
+    ? {
+      did: Config.TRUST_REGISTRY_FALLBACK_DID,
+      url: Config.TRUST_REGISTRY_FALLBACK_URL,
+      name: Config.TRUST_REGISTRY_FALLBACK_NAME || 'Development Authority'
+    }
+    : (Config.ENV === 'dev' || Config.DEV_MODE === 'true' || __DEV__)
+      ? {
+        did: DevModeDids.ENTITY_ID,
+        url: Config.TRUST_REGISTRY_URL || '', // Use the same TR URL
+        name: 'Dev Authority (File)'
+      }
+      : undefined
 })
 
 /**

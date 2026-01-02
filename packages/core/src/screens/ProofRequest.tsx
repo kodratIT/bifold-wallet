@@ -134,6 +134,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
     TrustBadge,
     TrustConfirmModal,
     useVerifierTrustHook,
+    trustRegistryConfig,
   ] = useServices([
     TOKENS.UTIL_OCA_RESOLVER,
     TOKENS.UTIL_ATTESTATION_MONITOR,
@@ -146,6 +147,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
     TOKENS.COMPONENT_TRUST_BADGE,
     TOKENS.COMPONENT_TRUST_CONFIRM_MODAL,
     TOKENS.HOOK_USE_VERIFIER_TRUST,
+    TOKENS.TRUST_REGISTRY_CONFIG,
   ])
 
   // Trust Registry Verifier Check
@@ -175,6 +177,9 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
     },
     headerTextContainer: {
       paddingVertical: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
     headerText: {
       ...ListItems.recordAttributeText,
@@ -609,6 +614,21 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       }
     }
 
+    // If trusted or skip check, and Trust Registry is enabled, we might still want to show a confirm if it's the first time
+    // but the user only complained about the badge and info.
+    // Let's ensure the modal can also be used for Trusted status if we want to follow CredentialOffer exactly.
+    // CredentialOffer shows modal even if trusted if TR is enabled? 
+    // Actually lines 289-300 in CredentialOffer.tsx shows it whenever enabled.
+
+    // Let's match CredentialOffer behavior if TR enabled
+    if (trustRegistryConfig?.enabled && !isVerifierTrustLoading && trustResult) {
+      // if we haven't shown the confirm yet
+      if (!trustConfirmVisible) {
+        setTrustConfirmVisible(true)
+        return
+      }
+    }
+
     // If trusted or check skipped, proceed
     await acceptProofRequest()
   }, [
@@ -617,7 +637,9 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
     assertNetworkConnected,
     isVerifierTrustLoading,
     trustResult,
-    acceptProofRequest
+    acceptProofRequest,
+    trustRegistryConfig,
+    trustConfirmVisible
   ])
 
   const handleDeclineTouched = useCallback(async () => {
@@ -738,32 +760,33 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
                   {activeCreds?.length > 1 ? t('ProofRequest.Credentials') : t('ProofRequest.Credential')}
                 </ThemedText>
               </ThemedText>
-              {isShareDisabled && (
-                <InfoTextBox type={InfoBoxType.Error} style={{ marginTop: 16 }} textStyle={{ fontWeight: 'normal' }}>
-                  <View style={{ flex: 1, flexWrap: 'wrap' }}>
+              {TrustBadge && <TrustBadge verifierDid={verifierDid} />}
+            </View>
+            {isShareDisabled && (
+              <InfoTextBox type={InfoBoxType.Error} style={{ marginTop: 16 }} textStyle={{ fontWeight: 'normal' }}>
+                <View style={{ flex: 1, flexWrap: 'wrap' }}>
+                  <ThemedText
+                    style={{
+                      alignSelf: 'center',
+                      flex: 1,
+                      flexWrap: 'wrap',
+                      color: ColorPalette.notification.errorText,
+                    }}
+                  >
+                    {t('ProofRequest.YouCantRespond')}{' '}
                     <ThemedText
                       style={{
-                        alignSelf: 'center',
-                        flex: 1,
-                        flexWrap: 'wrap',
-                        color: ColorPalette.notification.errorText,
+                        fontWeight: TextTheme.normal.fontWeight,
+                        color: ColorPalette.brand.link,
                       }}
+                      onPress={() => setShowDetailsModal(true)}
                     >
-                      {t('ProofRequest.YouCantRespond')}{' '}
-                      <ThemedText
-                        style={{
-                          fontWeight: TextTheme.normal.fontWeight,
-                          color: ColorPalette.brand.link,
-                        }}
-                        onPress={() => setShowDetailsModal(true)}
-                      >
-                        {t('Global.ShowDetails')}
-                      </ThemedText>
+                      {t('Global.ShowDetails')}
                     </ThemedText>
-                  </View>
-                </InfoTextBox>
-              )}
-            </View>
+                  </ThemedText>
+                </View>
+              </InfoTextBox>
+            )}
           </View>
         )}
       </>

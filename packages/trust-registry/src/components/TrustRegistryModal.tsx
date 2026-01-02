@@ -31,7 +31,8 @@ export const TrustRegistryModal: React.FC<TrustRegistryModalProps> = ({
 
     if (!visible) return null
 
-    const isAuthorized = authResponse?.authorized ?? trustResult?.authorized ?? false
+    const isFederated = trustResult?.level === 'trusted_federation'
+    const isAuthorized = isFederated ? true : (authResponse?.authorized ?? trustResult?.authorized ?? false)
     const entityDid = authResponse?.entity_id || trustResult?.entityDid || 'Unknown DID'
     const credentialType = authResponse?.resource || trustResult?.credentialType || 'Credential'
     const action = authResponse?.action || trustResult?.action || 'issue'
@@ -42,7 +43,7 @@ export const TrustRegistryModal: React.FC<TrustRegistryModalProps> = ({
 
     // Design Constants
     const statusColor = isAuthorized ? '#22C55E' : '#EAB308'
-    const statusIcon = isAuthorized ? 'verified-user' : 'gpp-maybe'
+    const statusIcon = isFederated ? 'security' : (isAuthorized ? 'verified-user' : 'gpp-maybe')
     const actionLabel = action === 'issue' ? 'Issuer' : 'Verifier'
 
     return (
@@ -72,10 +73,23 @@ export const TrustRegistryModal: React.FC<TrustRegistryModalProps> = ({
                                     color={isAuthorized ? '#16A34A' : '#CA8A04'}
                                 />
                                 <Text style={[styles.statusText, { color: isAuthorized ? '#16A34A' : '#CA8A04' }]}>
-                                    {isAuthorized ? 'Authorized' : 'Not Authorized'}
+                                    {isFederated ? 'Authorized via Federation' : (isAuthorized ? 'Authorized' : 'Not Authorized')}
                                 </Text>
                             </View>
                         </View>
+
+                        {/* Trust Authority (for Federation) */}
+                        {isFederated && trustResult?.trustAuthority && (
+                            <View style={styles.section}>
+                                <Text style={styles.label}>TRUST AUTHORITY</Text>
+                                <View style={styles.infoRow}>
+                                    <Icon name="account-balance" size={18} color="#6B7280" />
+                                    <Text style={styles.infoText}>
+                                        {trustResult.trustAuthority.name || trustResult.trustAuthority.id}
+                                    </Text>
+                                </View>
+                            </View>
+                        )}
 
                         {/* Entity DID */}
                         <View style={styles.section}>
@@ -144,9 +158,11 @@ export const TrustRegistryModal: React.FC<TrustRegistryModalProps> = ({
                                 styles.infoBoxText,
                                 { color: isAuthorized ? '#166534' : '#92400E' }
                             ]}>
-                                {isAuthorized
-                                    ? `This ${actionLabel.toLowerCase()} is authorized by the trust registry to ${action} this credential type.`
-                                    : `This ${actionLabel.toLowerCase()} is not authorized by the trust registry. Proceed with caution.`}
+                                {isFederated
+                                    ? `This ${actionLabel.toLowerCase()} is authorized via trust federation through ${trustResult?.trustAuthority?.name || 'a recognized authority'}.`
+                                    : isAuthorized
+                                        ? `This ${actionLabel.toLowerCase()} is authorized by the trust registry to ${action} this credential type.`
+                                        : `This ${actionLabel.toLowerCase()} is not authorized by the trust registry. Proceed with caution.`}
                             </Text>
                         </View>
                     </ScrollView>
