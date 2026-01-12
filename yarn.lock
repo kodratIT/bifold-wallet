@@ -601,7 +601,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-proposal-decorators@npm:^7.12.9":
+"@babel/plugin-proposal-decorators@npm:^7.12.9, @babel/plugin-proposal-decorators@npm:^7.23.9":
   version: 7.28.0
   resolution: "@babel/plugin-proposal-decorators@npm:7.28.0"
   dependencies:
@@ -1058,7 +1058,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-classes@npm:^7.0.0, @babel/plugin-transform-classes@npm:^7.22.15, @babel/plugin-transform-classes@npm:^7.25.9, @babel/plugin-transform-classes@npm:^7.28.4":
+"@babel/plugin-transform-classes@npm:^7.0.0, @babel/plugin-transform-classes@npm:^7.0.0-0, @babel/plugin-transform-classes@npm:^7.22.15, @babel/plugin-transform-classes@npm:^7.25.9, @babel/plugin-transform-classes@npm:^7.28.4":
   version: 7.28.4
   resolution: "@babel/plugin-transform-classes@npm:7.28.4"
   dependencies:
@@ -1392,7 +1392,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-optional-chaining@npm:^7.22.15, @babel/plugin-transform-optional-chaining@npm:^7.25.9, @babel/plugin-transform-optional-chaining@npm:^7.27.1, @babel/plugin-transform-optional-chaining@npm:^7.28.5":
+"@babel/plugin-transform-optional-chaining@npm:^7.0.0-0, @babel/plugin-transform-optional-chaining@npm:^7.22.15, @babel/plugin-transform-optional-chaining@npm:^7.25.9, @babel/plugin-transform-optional-chaining@npm:^7.27.1, @babel/plugin-transform-optional-chaining@npm:^7.28.5":
   version: 7.28.5
   resolution: "@babel/plugin-transform-optional-chaining@npm:7.28.5"
   dependencies:
@@ -2035,7 +2035,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/preset-typescript@npm:^7.13.0, @babel/preset-typescript@npm:^7.17.12":
+"@babel/preset-typescript@npm:^7.13.0, @babel/preset-typescript@npm:^7.16.7, @babel/preset-typescript@npm:^7.17.12":
   version: 7.28.5
   resolution: "@babel/preset-typescript@npm:7.28.5"
   dependencies:
@@ -2152,7 +2152,37 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bifold/core@npm:2.11.8, @bifold/core@workspace:*, @bifold/core@workspace:packages/core":
+"@bifold/backup@workspace:^, @bifold/backup@workspace:packages/backup":
+  version: 0.0.0-use.local
+  resolution: "@bifold/backup@workspace:packages/backup"
+  dependencies:
+    "@babel/core": "npm:~7.22.20"
+    "@babel/plugin-proposal-decorators": "npm:^7.23.9"
+    "@babel/runtime": "npm:~7.23.9"
+    "@credo-ts/core": "npm:0.5.17"
+    "@react-native/babel-preset": "npm:~0.73.21"
+    "@types/jest": "npm:^29.5.14"
+    "@types/react": "npm:~18.2.79"
+    "@types/react-native": "npm:0.73.0"
+    bip39: "npm:^3.1.0"
+    jest: "npm:^29.6.4"
+    react: "npm:18.3.1"
+    react-native: "npm:0.73.11"
+    react-native-document-picker: "npm:^9.3.1"
+    react-native-fs: "npm:^2.20.0"
+    react-native-share: "npm:^10.0.2"
+    tsyringe: "npm:~4.8.0"
+    typescript: "npm:~5.5.4"
+  peerDependencies:
+    bip39: "*"
+    react-native-document-picker: "*"
+    react-native-fs: "*"
+    react-native-get-random-values: "*"
+    react-native-share: "*"
+  languageName: unknown
+  linkType: soft
+
+"@bifold/core@npm:2.11.11, @bifold/core@workspace:*, @bifold/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@bifold/core@workspace:packages/core"
   dependencies:
@@ -2345,7 +2375,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bifold/oca@npm:2.11.8, @bifold/oca@workspace:*, @bifold/oca@workspace:packages/oca":
+"@bifold/oca@npm:2.11.11, @bifold/oca@workspace:*, @bifold/oca@workspace:packages/oca":
   version: 0.0.0-use.local
   resolution: "@bifold/oca@workspace:packages/oca"
   dependencies:
@@ -2466,7 +2496,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bifold/verifier@npm:2.11.8, @bifold/verifier@workspace:packages/verifier":
+"@bifold/verifier@npm:2.11.11, @bifold/verifier@workspace:packages/verifier":
   version: 0.0.0-use.local
   resolution: "@bifold/verifier@workspace:packages/verifier"
   dependencies:
@@ -4879,7 +4909,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/hashes@npm:1.8.0, @noble/hashes@npm:^1.3.0, @noble/hashes@npm:^1.5.0, @noble/hashes@npm:^1.8.0":
+"@noble/hashes@npm:1.8.0, @noble/hashes@npm:^1.2.0, @noble/hashes@npm:^1.3.0, @noble/hashes@npm:^1.5.0, @noble/hashes@npm:^1.8.0":
   version: 1.8.0
   resolution: "@noble/hashes@npm:1.8.0"
   checksum: 10c0/06a0b52c81a6fa7f04d67762e08b2c476a00285858150caeaaff4037356dd5e119f45b2a530f638b77a5eeca013168ec1b655db41bae3236cb2e9d511484fc77
@@ -6796,7 +6826,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:~29.5.12, @types/jest@npm:~29.5.14":
+"@types/jest@npm:^29.5.14, @types/jest@npm:~29.5.12, @types/jest@npm:~29.5.14":
   version: 29.5.14
   resolution: "@types/jest@npm:29.5.14"
   dependencies:
@@ -6940,6 +6970,15 @@ __metadata:
     "@types/react": "npm:*"
     "@types/react-native": "npm:^0.70"
   checksum: 10c0/b27f2295c5baaba9ce2ff9ade6e505e4d1fe4f40a628df13dc26d0e1b3ccee9775846f3613a443d91cfe86844703b81e9e64a10cc4b7fac1edfde96cb82c893b
+  languageName: node
+  linkType: hard
+
+"@types/react-native@npm:0.73.0":
+  version: 0.73.0
+  resolution: "@types/react-native@npm:0.73.0"
+  dependencies:
+    react-native: "npm:*"
+  checksum: 10c0/81b8824f3bea30f18f92bb1e7c69777801b6b91a603c712173179b10e8fd6754f3594841dc452d0fc4a4cdc597e366fdf7839d27e0c5c5957f7dadde65882212
   languageName: node
   linkType: hard
 
@@ -8523,6 +8562,7 @@ __metadata:
     "@babel/core": "npm:~7.22.20"
     "@babel/preset-env": "npm:~7.22.20"
     "@babel/runtime": "npm:~7.23.9"
+    "@bifold/backup": "workspace:^"
     "@bifold/core": "workspace:*"
     "@bifold/oca": "workspace:*"
     "@bifold/trust-registry": "workspace:*"
@@ -8568,6 +8608,7 @@ __metadata:
     axios: "npm:~1.13.2"
     babel-plugin-module-resolver: "npm:~5.0.2"
     base-64: "npm:~1.0.0"
+    bip39: "npm:^3.1.0"
     buffer: "npm:^6.0.3"
     eslint: "npm:~8.57.1"
     eslint-import-resolver-typescript: "npm:~3.6.3"
@@ -8592,10 +8633,11 @@ __metadata:
     react-native-config: "npm:~1.5.5"
     react-native-confirmation-code-field: "npm:~7.3.2"
     react-native-device-info: "npm:~8.7.1"
+    react-native-document-picker: "npm:^9.3.1"
     react-native-encrypted-storage: "npm:~4.0.3"
-    react-native-fs: "npm:~2.20.0"
+    react-native-fs: "npm:^2.20.0"
     react-native-gesture-handler: "npm:~2.18.1"
-    react-native-get-random-values: "npm:~1.8.0"
+    react-native-get-random-values: "npm:^2.0.0"
     react-native-gifted-chat: "npm:~2.4.1"
     react-native-keyboard-controller: "npm:~1.10.6"
     react-native-keychain: "npm:~8.1.3"
@@ -8610,6 +8652,7 @@ __metadata:
     react-native-scalable-image: "npm:~1.1.0"
     react-native-screenguard: "npm:~1.1.0"
     react-native-screens: "npm:~4.4.0"
+    react-native-share: "npm:^12.2.2"
     react-native-splash-screen: "npm:~3.3.0"
     react-native-svg: "npm:~15.0.0"
     react-native-svg-transformer: "npm:~0.14.3"
@@ -8661,6 +8704,15 @@ __metadata:
   version: 9.3.1
   resolution: "bignumber.js@npm:9.3.1"
   checksum: 10c0/61342ba5fe1c10887f0ecf5be02ff6709271481aff48631f86b4d37d55a99b87ce441cfd54df3d16d10ee07ceab7e272fc0be430c657ffafbbbf7b7d631efb75
+  languageName: node
+  linkType: hard
+
+"bip39@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "bip39@npm:3.1.0"
+  dependencies:
+    "@noble/hashes": "npm:^1.2.0"
+  checksum: 10c0/68f9673a0d6a851e9635f3af8a85f2a1ecef9066c76d77e6f0d58d274b5bf22a67f429da3997e07c0d2cf153a4d7321f9273e656cac0526f667575ddee28ef71
   languageName: node
   linkType: hard
 
@@ -14297,6 +14349,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jest@npm:^29.6.4, jest@npm:~29.7.0":
+  version: 29.7.0
+  resolution: "jest@npm:29.7.0"
+  dependencies:
+    "@jest/core": "npm:^29.7.0"
+    "@jest/types": "npm:^29.6.3"
+    import-local: "npm:^3.0.2"
+    jest-cli: "npm:^29.7.0"
+  peerDependencies:
+    node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
+  peerDependenciesMeta:
+    node-notifier:
+      optional: true
+  bin:
+    jest: bin/jest.js
+  checksum: 10c0/f40eb8171cf147c617cc6ada49d062fbb03b4da666cb8d39cdbfb739a7d75eea4c3ca150fb072d0d273dce0c753db4d0467d54906ad0293f59c54f9db4a09d8b
+  languageName: node
+  linkType: hard
+
 "jest@npm:~29.6.4":
   version: 29.6.4
   resolution: "jest@npm:29.6.4"
@@ -14313,25 +14384,6 @@ __metadata:
   bin:
     jest: bin/jest.js
   checksum: 10c0/7f4519a30b2c58d116f118cc841dbf9558fb9c47ed3b651a8feef0e98fbc96ce5bd9b574ace9bbef9d31f1f5720f121065f2d0351416449a088f1d655517bf39
-  languageName: node
-  linkType: hard
-
-"jest@npm:~29.7.0":
-  version: 29.7.0
-  resolution: "jest@npm:29.7.0"
-  dependencies:
-    "@jest/core": "npm:^29.7.0"
-    "@jest/types": "npm:^29.6.3"
-    import-local: "npm:^3.0.2"
-    jest-cli: "npm:^29.7.0"
-  peerDependencies:
-    node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
-  peerDependenciesMeta:
-    node-notifier:
-      optional: true
-  bin:
-    jest: bin/jest.js
-  checksum: 10c0/f40eb8171cf147c617cc6ada49d062fbb03b4da666cb8d39cdbfb739a7d75eea4c3ca150fb072d0d273dce0c753db4d0467d54906ad0293f59c54f9db4a09d8b
   languageName: node
   linkType: hard
 
@@ -15965,7 +16017,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^9.0.4, minimatch@npm:^9.0.5":
+"minimatch@npm:^9.0.4":
   version: 9.0.5
   resolution: "minimatch@npm:9.0.5"
   dependencies:
@@ -17516,7 +17568,7 @@ __metadata:
   resolution: "qs@npm:6.14.0"
   dependencies:
     side-channel: "npm:^1.1.0"
-  checksum: 10c0/0e3b22dc451f48ce5940cbbc7c7d9068d895074f8c969c0801ac15c1313d1859c4d738e46dc4da2f498f41a9ffd8c201bd9fb12df67799b827db94cc373d2613
+  checksum: 10c0/8ea5d91bf34f440598ee389d4a7d95820e3b837d3fd9f433871f7924801becaa0cd3b3b4628d49a7784d06a8aea9bc4554d2b6d8d584e2d221dc06238a42909c
   languageName: node
   linkType: hard
 
@@ -17805,6 +17857,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-document-picker@npm:^9.3.1":
+  version: 9.3.1
+  resolution: "react-native-document-picker@npm:9.3.1"
+  dependencies:
+    invariant: "npm:^2.2.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-windows: "*"
+  peerDependenciesMeta:
+    react-native-windows:
+      optional: true
+  checksum: 10c0/62ac1c1567fb4aabd791c03768e51b0898de727e37bb695cca9fc72c31eb3f2d75faf5bc7fb4be86a3e2b96b77cf948558b496412ecf17687ca006eb52ef6dd8
+  languageName: node
+  linkType: hard
+
 "react-native-encrypted-storage@npm:~4.0.3":
   version: 4.0.3
   resolution: "react-native-encrypted-storage@npm:4.0.3"
@@ -17815,7 +17883,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-fs@npm:~2.20.0":
+"react-native-fs@npm:^2.20.0, react-native-fs@npm:~2.20.0":
   version: 2.20.0
   resolution: "react-native-fs@npm:2.20.0"
   dependencies:
@@ -17843,6 +17911,17 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/6c0f69de1f31eb92cf858903223cbe37b5a71b9e943b70a284e564507067539c5381956b0f832a874da5e1185d01a0a56f06f11ea79985973235eaf3d469274b
+  languageName: node
+  linkType: hard
+
+"react-native-get-random-values@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "react-native-get-random-values@npm:2.0.0"
+  dependencies:
+    fast-base64-decode: "npm:^1.0.0"
+  peerDependencies:
+    react-native: ">=0.81"
+  checksum: 10c0/fd2e10ab3bca54bff8f5844e3314b797e02822e86663bc2dafe00a511b8a8e1c05d96aa0b8dc1ffad428387d44bbf458ce770a429858433d36f58a16e6e52986
   languageName: node
   linkType: hard
 
@@ -18094,6 +18173,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-share@npm:^10.0.2":
+  version: 10.2.1
+  resolution: "react-native-share@npm:10.2.1"
+  checksum: 10c0/534e6930d337d7e48de5572d8d6afac865bdad027a5d1c7fa843c7adba702d594b82cf2bb8124f82ffb1b4171f78754744c97a88b2fa5e5fda479f486768d42e
+  languageName: node
+  linkType: hard
+
+"react-native-share@npm:^12.2.2":
+  version: 12.2.2
+  resolution: "react-native-share@npm:12.2.2"
+  checksum: 10c0/8d642cd0e98fa28cdba143d94d741efb0c8eec1450ba38737eae7b7f5c2356c059aa9b04fd382ecd219c41a7e2121647406ed59e525b5c26b59af757cb132681
+  languageName: node
+  linkType: hard
+
 "react-native-splash-screen@npm:~3.3.0":
   version: 3.3.0
   resolution: "react-native-splash-screen@npm:3.3.0"
@@ -18168,6 +18261,21 @@ __metadata:
   version: 2.0.3
   resolution: "react-native-uuid@npm:2.0.3"
   checksum: 10c0/d94bccc28936c2dea081ab404f90b0c968092013af4d428b8e74bf407d6098ad5410914f77a903ad1296cce364fc85d27d8dfd70d22ec48d8cf1b7edc8803a8d
+  languageName: node
+  linkType: hard
+
+"react-native-vector-icons@npm:~10.0.3":
+  version: 10.0.3
+  resolution: "react-native-vector-icons@npm:10.0.3"
+  dependencies:
+    prop-types: "npm:^15.7.2"
+    yargs: "npm:^16.1.1"
+  bin:
+    fa-upgrade.sh: bin/fa-upgrade.sh
+    fa5-upgrade: bin/fa5-upgrade.sh
+    fa6-upgrade: bin/fa6-upgrade.sh
+    generate-icon: bin/generate-icon.js
+  checksum: 10c0/f7741e03cba701ac577779784db64ef581d5056a14698ac34de0bea731ff0d2bbe4b1c5ede441caa1b8748b18e57ee96b4d8dd75d53ef1b240995d1ffdc6419d
   languageName: node
   linkType: hard
 
@@ -20216,7 +20324,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-api-utils@npm:^2.4.0":
+"ts-api-utils@npm:^2.1.0":
   version: 2.4.0
   resolution: "ts-api-utils@npm:2.4.0"
   peerDependencies:

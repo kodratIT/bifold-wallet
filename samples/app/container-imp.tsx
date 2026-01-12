@@ -1,7 +1,16 @@
 import { BifoldLogger, Container, TokenMapping, TOKENS } from '@bifold/core'
-import { TrustRegistryService, TrustBadgeWrapper, TrustRegistryModal, TrustConfirmModal, useFederatedTrust, useVerifierTrust } from '@bifold/trust-registry'
+import { BackupService } from '@bifold/backup'
+import {
+  TrustRegistryService,
+  TrustBadgeWrapper,
+  TrustRegistryModal,
+  TrustConfirmModal,
+  useFederatedTrust,
+  useVerifierTrust,
+} from '@bifold/trust-registry'
 import { DependencyContainer } from 'tsyringe'
 import { getTrustRegistryConfig, isTrustRegistryConfigured } from './config/trustRegistry'
+import BackupStack from './navigators/BackupStack'
 
 export class AppContainer implements Container {
   private _container: DependencyContainer
@@ -19,6 +28,13 @@ export class AppContainer implements Container {
   public init(): Container {
     // eslint-disable-next-line no-console
     this.log?.info(`Initializing App container`)
+
+    // Register Backup Service
+    this.container.registerSingleton(BackupService)
+
+    // Register Backup Stack
+    this.container.registerInstance(TOKENS.CUSTOM_NAV_STACK_1, BackupStack)
+
     // Here you can register any component to override components in core package
     // Example: Replacing button in core with custom button
     // this.container.registerInstance(TOKENS.COMP_BUTTON, Button)
