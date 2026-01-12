@@ -1,5 +1,19 @@
 # Change Log
 
+## 2.11.11
+
+## 2.11.10
+
+### Patch Changes
+
+- a16e341: ledger export
+
+## 2.11.9
+
+### Patch Changes
+
+- 414b3c0: added resolutions to use patched versions of elliptic and sha.js
+
 ## 2.11.8
 
 ### Patch Changes

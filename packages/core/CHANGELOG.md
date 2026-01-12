@@ -1,5 +1,26 @@
 # @bifold/core
 
+## 2.11.11
+
+### Patch Changes
+
+- 7d51e3d: Make hashing function injectable while still maintaining previous implementation
+
+## 2.11.10
+
+### Patch Changes
+
+- a16e341: ledger export
+
+## 2.11.9
+
+### Patch Changes
+
+- bc3bea3: update keyboard dep package
+- 57a071d: Fix for PIN error not clearing
+- f4b8a77: Add card status icons to theme for customization purposes
+- 414b3c0: added resolutions to use patched versions of elliptic and sha.js
+
 ## 2.11.8
 
 ### Patch Changes

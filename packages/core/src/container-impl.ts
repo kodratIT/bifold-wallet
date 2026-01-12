@@ -59,6 +59,7 @@ import {
   Onboarding as StoreOnboardingState,
   Tours as ToursState,
 } from './types/state'
+import { hashPIN } from './utils/crypto'
 
 export const defaultConfig: Config = {
   PINSecurity: {

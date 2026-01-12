@@ -183,6 +183,7 @@ export const TOKENS = {
 } as const
 
 export type FN_HISTORY_MANAGER = (agent: Agent<any>) => IHistoryManager
+export type FN_PIN_HASH_ALGORITHM = (PIN: string, salt: string) => Promise<string>
 
 export type TokenMapping = {
   [TOKENS.CRED_HELP_ACTION_OVERRIDES]: {
