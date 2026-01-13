@@ -110,6 +110,7 @@ export const FN_TOKENS = {
   COMPONENT_CRED_LIST_HEADER_RIGHT: 'fn.credListHeaderRight',
   COMPONENT_CRED_LIST_OPTIONS: 'fn.credListOptions',
   COMPONENT_CRED_LIST_FOOTER: 'fn.credListFooter',
+  FN_PIN_HASH_ALGORITHM: 'fn.pinHashAlgorithm',
 } as const
 
 export const HISTORY_TOKENS = {
@@ -253,6 +254,7 @@ export type TokenMapping = {
   [TOKENS.UTIL_AGENT_BRIDGE]: AgentBridge
   [TOKENS.UTIL_REFRESH_ORCHESTRATOR]: IRefreshOrchestrator
   [TOKENS.TRUST_REGISTRY_SERVICE]: unknown
+  [TOKENS.FN_PIN_HASH_ALGORITHM]: FN_PIN_HASH_ALGORITHM
 
   [TOKENS.TRUST_REGISTRY_CONFIG]: TrustRegistryConfig
   [TOKENS.COMPONENT_TRUST_REGISTRY_MODAL]: React.FC<any>

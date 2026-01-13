@@ -8365,6 +8365,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"babel-plugin-transform-typescript-metadata@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "babel-plugin-transform-typescript-metadata@npm:0.4.0"
+  dependencies:
+    "@babel/helper-plugin-utils": "npm:^7.0.0"
+  peerDependencies:
+    "@babel/core": ^7.0.0 || ^8.0.0-0
+  peerDependenciesMeta:
+    "@babel/core":
+      optional: false
+  checksum: 10c0/dddeaab66bc580684312b86e1bc4856f5943b9eee6515536fa60da005c3371a5a2b31d4224143e2f8195f2f55ed8c551658c1f3c15d44f2dcf402fd586a6be57
+  languageName: node
+  linkType: hard
+
 "babel-preset-current-node-syntax@npm:^1.0.0":
   version: 1.2.0
   resolution: "babel-preset-current-node-syntax@npm:1.2.0"
@@ -8607,6 +8621,7 @@ __metadata:
     "@types/react": "npm:~18.2.79"
     axios: "npm:~1.13.2"
     babel-plugin-module-resolver: "npm:~5.0.2"
+    babel-plugin-transform-typescript-metadata: "npm:^0.4.0"
     base-64: "npm:~1.0.0"
     bip39: "npm:^3.1.0"
     buffer: "npm:^6.0.3"

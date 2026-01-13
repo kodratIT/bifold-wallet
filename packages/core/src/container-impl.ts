@@ -252,6 +252,9 @@ export class MainContainer implements Container {
 
     this._container.registerInstance(TOKENS.UTIL_REFRESH_ORCHESTRATOR, orchestrator)
 
+    // Register default PIN hash algorithm using argon2
+    this._container.registerInstance(TOKENS.FN_PIN_HASH_ALGORITHM, hashPIN)
+
     // Register Trust Registry default config (disabled by default)
     this._container.registerInstance(TOKENS.TRUST_REGISTRY_CONFIG, {
       enabled: false,

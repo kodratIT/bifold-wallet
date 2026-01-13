@@ -11,6 +11,7 @@ const packageDirs = [
   path.resolve(__dirname, '../../packages/oca'),
   path.resolve(__dirname, '../../packages/trust-registry'),
   path.resolve(__dirname, '../../packages/verifier'),
+  path.resolve(__dirname, '../../packages/backup'),
 ]
 
 const watchFolders = [...packageDirs]
