@@ -21,6 +21,7 @@ import { testIdWithKey } from '../utils/testable'
 
 import { useDefaultStackOptions } from './defaultStackOptions'
 import { TOKENS, useServices } from '../container-api'
+import { BackupWalletScreen, RestoreWalletScreen } from '@bifold/backup'
 
 const SettingStack: React.FC = () => {
   const Stack = createStackNavigator<SettingStackParams>()
@@ -176,6 +177,22 @@ const SettingStack: React.FC = () => {
           title: t('Screens.HistorySettings'),
           headerBackTestID: testIdWithKey('Back'),
           ...ScreenOptionsDictionary[Screens.HistorySettings],
+        }}
+      />
+      <Stack.Screen
+        name={Screens.BackupWallet}
+        component={BackupWalletScreen}
+        options={{
+          title: 'Backup Wallet',
+          headerBackTestID: testIdWithKey('Back'),
+        }}
+      />
+      <Stack.Screen
+        name={Screens.RestoreWallet}
+        component={RestoreWalletScreen}
+        options={{
+          title: 'Restore Wallet',
+          headerBackTestID: testIdWithKey('Back'),
         }}
       />
     </Stack.Navigator>

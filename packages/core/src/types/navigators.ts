@@ -62,6 +62,8 @@ export enum Screens {
   AutoLock = 'AutoLock',
   UpdateAvailable = 'Update Available',
   ConfigureMediator = 'Configure Mediator',
+  BackupWallet = 'Backup Wallet',
+  RestoreWallet = 'Restore Wallet',
 }
 
 export enum Stacks {
@@ -178,6 +180,8 @@ export type SettingStackParams = {
   [Screens.HistorySettings]: undefined
   [Screens.AutoLock]: undefined
   [Screens.ConfigureMediator]: { scannedMediatorUri: string } | undefined
+  [Screens.BackupWallet]: undefined
+  [Screens.RestoreWallet]: undefined
 }
 
 export type NotificationStackParams = {

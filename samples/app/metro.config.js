@@ -17,7 +17,9 @@ const packageDirs = [
 const watchFolders = [...packageDirs]
 
 const extraExclusionlist = []
-const extraNodeModules = {}
+const extraNodeModules = {
+  '@bifold/backup': path.resolve(__dirname, '../../packages/backup'),
+}
 
 for (const packageDir of packageDirs) {
   const pak = require(path.join(packageDir, 'package.json'))

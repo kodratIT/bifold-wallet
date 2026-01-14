@@ -156,6 +156,26 @@ const Settings: React.FC<SettingsProps> = ({ navigation }) => {
         },
       ],
     },
+    {
+      header: {
+        icon: { name: 'backup' },
+        title: 'Backup & Restore',
+      },
+      data: [
+        {
+          title: 'Backup Wallet',
+          accessibilityLabel: 'Backup Wallet',
+          testID: testIdWithKey('BackupWallet'),
+          onPress: () => navigation.navigate(Screens.BackupWallet),
+        },
+        {
+          title: 'Restore Wallet',
+          accessibilityLabel: 'Restore Wallet',
+          testID: testIdWithKey('RestoreWallet'),
+          onPress: () => navigation.navigate(Screens.RestoreWallet),
+        },
+      ],
+    },
     ...(settings || []),
   ]
 
@@ -288,57 +308,57 @@ const Settings: React.FC<SettingsProps> = ({ navigation }) => {
     title: string
     titleTestID?: string
   }> = ({ icon, iconRight, title, titleTestID }) =>
-    // gate keep behind developer mode
-    store.preferences.useConnectionInviterCapability ? (
-      <View style={[styles.section, styles.sectionHeader, { justifyContent: iconRight ? 'space-between' : undefined }]}>
-        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+      // gate keep behind developer mode
+      store.preferences.useConnectionInviterCapability ? (
+        <View style={[styles.section, styles.sectionHeader, { justifyContent: iconRight ? 'space-between' : undefined }]}>
+          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+            <Icon
+              importantForAccessibility={'no-hide-descendants'}
+              accessible={false}
+              name={icon.name}
+              size={icon.size ?? defaultIconSize}
+              style={[{ marginRight: 10, color: SettingsTheme.iconColor }, icon.style]}
+            />
+            <ThemedText
+              variant="headingThree"
+              testID={titleTestID}
+              numberOfLines={1}
+              accessibilityRole={'header'}
+              style={{ flexShrink: 1 }}
+            >
+              {title}
+            </ThemedText>
+          </View>
+          {iconRight && (
+            <IconButton
+              buttonLocation={ButtonLocation.Right}
+              accessibilityLabel={iconRight.accessibilityLabel!}
+              testID={iconRight.testID!}
+              onPress={iconRight.action!}
+              icon={'pencil'}
+              iconTintColor={TextTheme.headingThree.color}
+            />
+          )}
+        </View>
+      ) : (
+        <View style={[styles.section, styles.sectionHeader]}>
           <Icon
             importantForAccessibility={'no-hide-descendants'}
             accessible={false}
             name={icon.name}
-            size={icon.size ?? defaultIconSize}
-            style={[{ marginRight: 10, color: SettingsTheme.iconColor }, icon.style]}
+            size={24}
+            style={{ marginRight: 10, color: SettingsTheme.iconColor }}
           />
           <ThemedText
+            maxFontSizeMultiplier={1.8}
             variant="headingThree"
-            testID={titleTestID}
-            numberOfLines={1}
             accessibilityRole={'header'}
             style={{ flexShrink: 1 }}
           >
             {title}
           </ThemedText>
         </View>
-        {iconRight && (
-          <IconButton
-            buttonLocation={ButtonLocation.Right}
-            accessibilityLabel={iconRight.accessibilityLabel!}
-            testID={iconRight.testID!}
-            onPress={iconRight.action!}
-            icon={'pencil'}
-            iconTintColor={TextTheme.headingThree.color}
-          />
-        )}
-      </View>
-    ) : (
-      <View style={[styles.section, styles.sectionHeader]}>
-        <Icon
-          importantForAccessibility={'no-hide-descendants'}
-          accessible={false}
-          name={icon.name}
-          size={24}
-          style={{ marginRight: 10, color: SettingsTheme.iconColor }}
-        />
-        <ThemedText
-          maxFontSizeMultiplier={1.8}
-          variant="headingThree"
-          accessibilityRole={'header'}
-          style={{ flexShrink: 1 }}
-        >
-          {title}
-        </ThemedText>
-      </View>
-    )
+      )
 
   const SectionRow: React.FC<{
     title: string

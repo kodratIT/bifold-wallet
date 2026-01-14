@@ -176,3 +176,8 @@ lib/
 **/.yarn/install-state.gz
 **/.xcode.env.local
 **/app/vendor/bundle/**
+
+# Build artifacts
+*.apk
+**/android/app/release/
+
