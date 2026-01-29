@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import { View, Text, Button, TextInput, ActivityIndicator, StyleSheet, ScrollView, Alert } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useAgent } from '@credo-ts/react-hooks'
 import { container } from 'tsyringe'
 import { WalletConfig } from '@credo-ts/core'
 import { BackupService, RestoreStatus } from '../services/BackupService'
-import { loadWalletSecret } from '../../../core/src/services/keychain'
+import { useAuth } from '../../../core/src/contexts/auth'
 import { walletId } from '../../../core/src/constants'
 
 interface RestoreWalletScreenProps {
@@ -26,6 +27,7 @@ interface RestoreWalletScreenProps {
 
 export const RestoreWalletScreen = ({ walletConfig, mediatorUrl, onRestoreSuccess }: RestoreWalletScreenProps) => {
   const { agent } = useAgent()
+  const { walletSecret } = useAuth()
   const [mnemonic, setMnemonic] = useState('')
   const [filePath, setFilePath] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -90,11 +92,14 @@ export const RestoreWalletScreen = ({ walletConfig, mediatorUrl, onRestoreSucces
       return
     }
 
-    // Check if user has existing wallet
-    // Load WITHOUT biometric prompt (pass empty strings to avoid fingerprint)
-    const currentSecret = await loadWalletSecret('', '')
-    if (!currentSecret) {
-      Alert.alert('Error', 'No wallet found. Please complete onboarding first.')
+    // Check if user has unlocked wallet (walletSecret is available from AuthContext)
+    // This avoids triggering biometric prompt since walletSecret is cached after PIN entry
+    if (!walletSecret) {
+      Alert.alert(
+        'Wallet Locked',
+        'Please unlock your wallet with PIN first before restoring.',
+        [{ text: 'OK' }]
+      )
       return
     }
 
@@ -103,7 +108,7 @@ export const RestoreWalletScreen = ({ walletConfig, mediatorUrl, onRestoreSucces
     // The backup file contains a wallet with profile id = 'walletId', so we must use the same ID during import
     const restoreWalletConfig: WalletConfig = walletConfig || {
       id: walletId,
-      key: currentSecret.key,
+      key: walletSecret.key,
     }
 
     // Show confirmation dialog
@@ -120,6 +125,7 @@ export const RestoreWalletScreen = ({ walletConfig, mediatorUrl, onRestoreSucces
               console.log('[Restore] Starting restore process...')
               console.log('[Restore] Backup file:', filePath)
               console.log('[Restore] Mnemonic length:', mnemonic.length)
+              console.log('[Restore] Using cached walletSecret from AuthContext')
               
               await backupService.restoreWalletComplete(
                 agent,
@@ -200,7 +206,7 @@ export const RestoreWalletScreen = ({ walletConfig, mediatorUrl, onRestoreSucces
           <Button
             title="Restore Wallet"
             onPress={handleRestore}
-            disabled={!agent || !filePath || !mnemonic}
+            disabled={!agent || !filePath || !mnemonic || !walletSecret}
           />
         )}
       </ScrollView>
