@@ -143,7 +143,22 @@ export const RestoreWalletScreen = ({ walletConfig, mediatorUrl, onRestoreSucces
               Alert.alert(
                 'Success',
                 'Wallet restored successfully! The app will now refresh.',
-                [{ text: 'OK', onPress: () => onRestoreSuccess?.() }]
+                [
+                  {
+                    text: 'OK',
+                    onPress: async () => {
+                      try {
+                        await AsyncStorage.setItem('post_restore', 'true')
+                        console.log('[Restore] Set post_restore flag')
+                        onRestoreSuccess?.()
+                      } catch (error) {
+                        console.error('[Restore] Failed to set post_restore flag:', error)
+                        // Still navigate even if flag set fails
+                        onRestoreSuccess?.()
+                      }
+                    }
+                  }
+                ]
               )
             } catch (error) {
               console.error('[Restore] Error occurred:', error)
