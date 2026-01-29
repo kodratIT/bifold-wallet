@@ -5,11 +5,13 @@ import { container } from 'tsyringe'
 import { WalletConfig } from '@credo-ts/core'
 import { BackupService, RestoreStatus } from '../services/BackupService'
 import { loadWalletSecret } from '../../../core/src/services/keychain'
+import { walletId } from '../../../core/src/constants'
 
 interface RestoreWalletScreenProps {
   /**
-   * Configuration for the new wallet to be created from import.
-   * If not provided, a default configuration with a random ID will be used.
+   * Configuration for the wallet to be restored.
+   * If not provided, will use the default walletId from constants.
+   * IMPORTANT: The walletConfig.id must match the wallet ID stored in the backup file.
    */
   walletConfig?: WalletConfig
   /**
@@ -72,6 +74,10 @@ export const RestoreWalletScreen = ({ walletConfig, mediatorUrl, onRestoreSucces
     if (message.includes('already exists')) {
       return 'Wallet already exists. Please contact support.'
     }
+    // Specific error for wallet ID mismatch
+    if (message.includes('walletconfig.id must match') || message.includes('default profile')) {
+      return 'Wallet ID mismatch. This backup file may be from a different app version. Please contact support.'
+    }
 
     // Generic error
     return `Failed to restore wallet: ${error.message}`
@@ -80,55 +86,85 @@ export const RestoreWalletScreen = ({ walletConfig, mediatorUrl, onRestoreSucces
   const handleRestore = async () => {
     if (!agent) return
     if (!filePath || !mnemonic) {
-      Alert.alert('Error', 'Please provide both backup file and mnemonic')
+      Alert.alert('Error', 'Please provide backup file and mnemonic')
       return
     }
 
-    setLoading(true)
-
-    try {
-      // Load existing wallet secret from keychain (reuse existing PIN)
-      const walletSecret = await loadWalletSecret()
-      
-      if (!walletSecret) {
-        Alert.alert('Error', 'Could not load wallet credentials. Please ensure you have set up your wallet.')
-        setLoading(false)
-        return
-      }
-
-      // Use wallet secret from keychain (same PIN as before)
-      const targetConfig: WalletConfig = walletConfig || {
-        id: walletSecret.id,      // 'walletId' from keychain
-        key: walletSecret.key,    // Hashed PIN from keychain (NOT mnemonic!)
-      }
-
-      // Use new complete restore method
-      await backupService.restoreWalletComplete(
-        agent,
-        filePath,
-        mnemonic,        // Used only for decrypting the backup file
-        targetConfig,    // Wallet config with hashed PIN from keychain
-        mediatorUrl,
-        (status) => {
-          setRestoreStatus(status)
-        }
-      )
-
-      Alert.alert('Success', 'Wallet restored successfully. You can now use your existing PIN to access the wallet.')
-      onRestoreSuccess?.()
-    } catch (error) {
-      const errorMessage = getErrorMessage(error as Error)
-      Alert.alert('Error', errorMessage)
-    } finally {
-      setLoading(false)
-      setRestoreStatus(null)
+    // Check if user has existing wallet
+    // Load WITHOUT biometric prompt (pass empty strings to avoid fingerprint)
+    const currentSecret = await loadWalletSecret('', '')
+    if (!currentSecret) {
+      Alert.alert('Error', 'No wallet found. Please complete onboarding first.')
+      return
     }
+
+    // Prepare wallet config for restore
+    // IMPORTANT: Use the same walletId constant that was used during wallet creation
+    // The backup file contains a wallet with profile id = 'walletId', so we must use the same ID during import
+    const restoreWalletConfig: WalletConfig = walletConfig || {
+      id: walletId,
+      key: currentSecret.key,
+    }
+
+    // Show confirmation dialog
+    Alert.alert(
+      'Confirm Restore',
+      'This will replace your current wallet data with the backup. Your PIN will stay the same. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Restore',
+          onPress: async () => {
+            setLoading(true)
+            try {
+              console.log('[Restore] Starting restore process...')
+              console.log('[Restore] Backup file:', filePath)
+              console.log('[Restore] Mnemonic length:', mnemonic.length)
+              
+              await backupService.restoreWalletComplete(
+                agent,
+                filePath,
+                mnemonic,
+                restoreWalletConfig,
+                mediatorUrl,
+                (status) => {
+                  console.log('[Restore] Status:', status)
+                  setRestoreStatus(status)
+                }
+              )
+              
+              console.log('[Restore] Restore completed successfully')
+              Alert.alert(
+                'Success',
+                'Wallet restored successfully! The app will now refresh.',
+                [{ text: 'OK', onPress: () => onRestoreSuccess?.() }]
+              )
+            } catch (error) {
+              console.error('[Restore] Error occurred:', error)
+              console.error('[Restore] Error message:', (error as Error).message)
+              console.error('[Restore] Error stack:', (error as Error).stack)
+              
+              Alert.alert('Error', getErrorMessage(error as Error))
+            } finally {
+              setLoading(false)
+              setRestoreStatus(null)
+            }
+          }
+        }
+      ]
+    )
   }
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>Restore Wallet</Text>
+
+        <View style={styles.warningBox}>
+          <Text style={styles.warningText}>
+            ⚠️ This will replace your current wallet data with the backup. Your PIN will stay the same.
+          </Text>
+        </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Backup File</Text>
@@ -161,7 +197,11 @@ export const RestoreWalletScreen = ({ walletConfig, mediatorUrl, onRestoreSucces
             )}
           </View>
         ) : (
-          <Button title="Restore Wallet" onPress={handleRestore} disabled={!agent || !filePath || !mnemonic} />
+          <Button
+            title="Restore Wallet"
+            onPress={handleRestore}
+            disabled={!agent || !filePath || !mnemonic}
+          />
         )}
       </ScrollView>
     </View>
@@ -183,6 +223,19 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     textAlign: 'center',
     color: '#000',
+  },
+  warningBox: {
+    backgroundColor: '#FFF3CD',
+    borderLeftWidth: 4,
+    borderLeftColor: '#FFC107',
+    padding: 15,
+    marginBottom: 20,
+    borderRadius: 8,
+  },
+  warningText: {
+    fontSize: 14,
+    color: '#856404',
+    lineHeight: 20,
   },
   inputGroup: {
     marginBottom: 20,
