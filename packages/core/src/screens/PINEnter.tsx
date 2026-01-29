@@ -232,6 +232,7 @@ const PINEnter: React.FC<PINEnterProps> = ({ setAuthenticated }) => {
           type: DispatchAction.LOCKOUT_UPDATED,
           payload: [{ displayNotification: false }],
         })
+        await clearPostRestoreFlag()
         setAuthenticated(true)
       } catch (err: unknown) {
         const error = new BifoldError(
