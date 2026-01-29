@@ -255,6 +255,7 @@ const PINEnter: React.FC<PINEnterProps> = ({ setAuthenticated }) => {
       attemptLockout,
       inlineMessages,
       thresholdRules.increment,
+      clearPostRestoreFlag,
     ]
   )
 
