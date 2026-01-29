@@ -86,6 +86,18 @@ const PINEnter: React.FC<PINEnterProps> = ({ setAuthenticated }) => {
     }
   }, [])
 
+  const clearPostRestoreFlag = useCallback(async () => {
+    try {
+      const flag = await AsyncStorage.getItem('post_restore')
+      if (flag === 'true') {
+        await AsyncStorage.removeItem('post_restore')
+        console.log('[PINEnter] Cleared post_restore flag after successful unlock')
+      }
+    } catch (error) {
+      console.error('[PINEnter] Failed to clear post_restore flag:', error)
+    }
+  }, [])
+
   const loadWalletCredentials = useCallback(async () => {
     const walletSecret = await getWalletSecret()
     if (walletSecret) {
@@ -99,21 +111,10 @@ const PINEnter: React.FC<PINEnterProps> = ({ setAuthenticated }) => {
         type: DispatchAction.ATTEMPT_UPDATED,
         payload: [{ loginAttempts: 0 }],
       })
+      await clearPostRestoreFlag()
       setAuthenticated(true)
     }
-  }, [getWalletSecret, dispatch, setAuthenticated])
-
-  const clearPostRestoreFlag = useCallback(async () => {
-    try {
-      const flag = await AsyncStorage.getItem('post_restore')
-      if (flag === 'true') {
-        await AsyncStorage.removeItem('post_restore')
-        console.log('[PINEnter] Cleared post_restore flag after successful unlock')
-      }
-    } catch (error) {
-      console.error('[PINEnter] Failed to clear post_restore flag:', error)
-    }
-  }, [])
+  }, [getWalletSecret, dispatch, setAuthenticated, clearPostRestoreFlag])
 
   useEffect(() => {
     // Only check biometrics if user has it enabled
