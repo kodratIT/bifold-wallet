@@ -196,12 +196,22 @@ const SettingStack: React.FC = () => {
           headerBackTestID: testIdWithKey('Back'),
         }}
       >
-        {(props) => (
-          <RestoreWalletScreen
-            {...props}
-            mediatorUrl={store.preferences.selectedMediator}
-          />
-        )}
+        {(props) => {
+          const handleRestoreSuccess = React.useCallback(() => {
+            props.navigation.reset({
+              index: 0,
+              routes: [{ name: Screens.EnterPIN }],
+            })
+          }, [props.navigation])
+
+          return (
+            <RestoreWalletScreen
+              {...props}
+              mediatorUrl={store.preferences.selectedMediator}
+              onRestoreSuccess={handleRestoreSuccess}
+            />
+          )
+        }}
       </Stack.Screen>
     </Stack.Navigator>
   )
