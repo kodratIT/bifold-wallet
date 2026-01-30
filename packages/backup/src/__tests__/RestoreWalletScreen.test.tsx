@@ -34,12 +34,26 @@ jest.mock('react-native-zip-archive', () => ({
   zip: jest.fn(),
   unzip: jest.fn(),
 }))
+jest.mock('../../../core/src/contexts/auth', () => ({
+  useAuth: jest.fn(),
+}))
+
+// Simple AsyncStorage mock
+const mockSetItem = jest.fn()
+const mockGetItem = jest.fn()
+const mockRemoveItem = jest.fn()
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  setItem: mockSetItem,
+  getItem: mockGetItem,
+  removeItem: mockRemoveItem,
+}))
 
 import React from 'react'
 import { create, act } from 'react-test-renderer'
 import { RestoreWalletScreen } from '../screens/RestoreWalletScreen'
 import { BackupService, RestoreStatus } from '../services/BackupService'
 import { useAgent } from '@credo-ts/react-hooks'
+import { useAuth } from '../../../core/src/contexts/auth'
 
 describe('RestoreWalletScreen', () => {
   let mockAgent: any
@@ -74,6 +88,13 @@ describe('RestoreWalletScreen', () => {
 
     // Setup useAgent mock
     ;(useAgent as jest.Mock).mockReturnValue({ agent: mockAgent })
+
+    // Setup useAuth mock with walletSecret
+    ;(useAuth as jest.Mock).mockReturnValue({
+      walletSecret: {
+        key: 'test-key',
+      },
+    })
 
     // Setup container.resolve mock
     const { container } = require('tsyringe')
@@ -526,6 +547,113 @@ describe('RestoreWalletScreen', () => {
 
       // Should still be called only once (useState initialization)
       expect(container.resolve).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('post_restore flag', () => {
+    it('sets post_restore flag when restore succeeds and OK is clicked', async () => {
+      const mockOnRestoreSuccess = jest.fn()
+      const Alert = require('react-native/Libraries/Alert/Alert')
+      const { alert } = Alert
+
+      mockBackupService.restoreWalletComplete.mockResolvedValue(undefined)
+      mockSetItem.mockResolvedValue(undefined)
+
+      let root: any
+      act(() => {
+        root = create(
+          <RestoreWalletScreen
+            mediatorUrl="http://mediator.example.com"
+            onRestoreSuccess={mockOnRestoreSuccess}
+          />
+        )
+      })
+
+      const instance = root.getInstance()
+
+      // Set up the component state with file path and mnemonic
+      await act(async () => {
+        instance.setState({ filePath: '/path/to/backup.zip', mnemonic: 'test mnemonic phrase' })
+      })
+
+      // Trigger restore by calling handleRestore
+      await act(async () => {
+        instance.handleRestore()
+      })
+
+      // Find the Alert.alert calls
+      expect(alert).toHaveBeenCalled()
+
+      // Get the last call (the success alert)
+      const calls = alert.mock.calls
+      const successAlertCall = calls.find((call: any) => call[0] === 'Success')
+
+      expect(successAlertCall).toBeDefined()
+
+      // Get the OK button callback from the success alert
+      const okButtonCallback = successAlertCall[2][0].onPress
+
+      // Trigger the OK button press
+      await act(async () => {
+        await okButtonCallback()
+      })
+
+      // Verify AsyncStorage.setItem was called with 'post_restore', 'true'
+      expect(mockSetItem).toHaveBeenCalledWith('post_restore', 'true')
+
+      // Verify onRestoreSuccess was called
+      expect(mockOnRestoreSuccess).toHaveBeenCalled()
+    })
+
+    it('navigates even if setting flag fails', async () => {
+      const mockOnRestoreSuccess = jest.fn()
+      const Alert = require('react-native/Libraries/Alert/Alert')
+      const { alert } = Alert
+
+      mockBackupService.restoreWalletComplete.mockResolvedValue(undefined)
+      mockSetItem.mockRejectedValue(new Error('Storage error'))
+
+      let root: any
+      act(() => {
+        root = create(
+          <RestoreWalletScreen
+            mediatorUrl="http://mediator.example.com"
+            onRestoreSuccess={mockOnRestoreSuccess}
+          />
+        )
+      })
+
+      const instance = root.getInstance()
+
+      // Set up the component state with file path and mnemonic
+      await act(async () => {
+        instance.setState({ filePath: '/path/to/backup.zip', mnemonic: 'test mnemonic phrase' })
+      })
+
+      // Trigger restore by calling handleRestore
+      await act(async () => {
+        instance.handleRestore()
+      })
+
+      // Get the success alert call
+      const calls = alert.mock.calls
+      const successAlertCall = calls.find((call: any) => call[0] === 'Success')
+
+      expect(successAlertCall).toBeDefined()
+
+      // Get the OK button callback
+      const okButtonCallback = successAlertCall[2][0].onPress
+
+      // Trigger the OK button press
+      await act(async () => {
+        await okButtonCallback()
+      })
+
+      // Verify AsyncStorage.setItem was called (even though it failed)
+      expect(mockSetItem).toHaveBeenCalledWith('post_restore', 'true')
+
+      // Verify onRestoreSuccess was still called despite the error
+      expect(mockOnRestoreSuccess).toHaveBeenCalled()
     })
   })
 })
