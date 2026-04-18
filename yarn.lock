@@ -2159,12 +2159,15 @@ __metadata:
     "@babel/core": "npm:~7.22.20"
     "@babel/plugin-proposal-decorators": "npm:^7.23.9"
     "@babel/runtime": "npm:~7.23.9"
+    "@bifold/core": "workspace:*"
     "@credo-ts/core": "npm:0.5.17"
+    "@react-native-async-storage/async-storage": "npm:~1.22.3"
     "@react-native-clipboard/clipboard": "npm:^1.16.3"
     "@react-native/babel-preset": "npm:~0.73.21"
     "@types/jest": "npm:^29.5.14"
     "@types/react": "npm:~18.2.79"
     "@types/react-native": "npm:0.73.0"
+    "@types/react-test-renderer": "npm:^18"
     bip39: "npm:^3.1.0"
     jest: "npm:^29.6.4"
     react: "npm:18.3.1"
@@ -2173,6 +2176,7 @@ __metadata:
     react-native-fs: "npm:^2.20.0"
     react-native-share: "npm:^10.0.2"
     react-native-zip-archive: "npm:^6.0.9"
+    react-test-renderer: "npm:18.3.1"
     tsyringe: "npm:~4.8.0"
     typescript: "npm:~5.5.4"
   peerDependencies:
@@ -6992,6 +6996,15 @@ __metadata:
   dependencies:
     "@types/react": "npm:*"
   checksum: 10c0/09a5191dd0f3b85abfa8939df585860ba11a666d888846c7fd7d8d5d1cd72a39224e154403f90a5b82f1dc6c896fa3447e4f5061b2d3e102d0ce798e559d7f13
+  languageName: node
+  linkType: hard
+
+"@types/react-test-renderer@npm:^18":
+  version: 18.3.1
+  resolution: "@types/react-test-renderer@npm:18.3.1"
+  dependencies:
+    "@types/react": "npm:^18"
+  checksum: 10c0/9fc8467ff1a3f14be6cc3498a75fc788d2c92c0fffa7bf21269ed5d9d82db9195bf2178ddc42ea16a0836995c1b77601c6be8abb27bd1864668c418c6d0e5a3b
   languageName: node
   linkType: hard
 
@@ -18429,6 +18442,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-test-renderer@npm:18.3.1, react-test-renderer@npm:~18.3.1":
+  version: 18.3.1
+  resolution: "react-test-renderer@npm:18.3.1"
+  dependencies:
+    react-is: "npm:^18.3.1"
+    react-shallow-renderer: "npm:^16.15.0"
+    scheduler: "npm:^0.23.2"
+  peerDependencies:
+    react: ^18.3.1
+  checksum: 10c0/c633558ef9af33bc68f0c4dbb5163a004c4fb9eade7bd0a7cfc0355fb367f36bd9d96533c90b7e85a146be6c525113a15f58683d269e0177ad77e2b04d4fe51c
+  languageName: node
+  linkType: hard
+
 "react-test-renderer@npm:~18.2.0":
   version: 18.2.0
   resolution: "react-test-renderer@npm:18.2.0"
@@ -18439,19 +18465,6 @@ __metadata:
   peerDependencies:
     react: ^18.2.0
   checksum: 10c0/53dfada1da1e8dd0498a5601e9eea3dc6ca23c6c2694d1cab9712faea869c11e4ce1c9a618d674cb668a668b41fb6bcf9a7b0a078cd853b1922f002fa22f42c8
-  languageName: node
-  linkType: hard
-
-"react-test-renderer@npm:~18.3.1":
-  version: 18.3.1
-  resolution: "react-test-renderer@npm:18.3.1"
-  dependencies:
-    react-is: "npm:^18.3.1"
-    react-shallow-renderer: "npm:^16.15.0"
-    scheduler: "npm:^0.23.2"
-  peerDependencies:
-    react: ^18.3.1
-  checksum: 10c0/c633558ef9af33bc68f0c4dbb5163a004c4fb9eade7bd0a7cfc0355fb367f36bd9d96533c90b7e85a146be6c525113a15f58683d269e0177ad77e2b04d4fe51c
   languageName: node
   linkType: hard
 

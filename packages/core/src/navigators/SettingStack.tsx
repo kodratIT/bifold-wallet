@@ -197,12 +197,13 @@ const SettingStack: React.FC = () => {
         }}
       >
         {(props) => {
+          const { lockOutUser } = require('../contexts/auth').useAuth()
+          const [, dispatch] = require('../contexts/store').useStore()
+
           const handleRestoreSuccess = React.useCallback(() => {
-            props.navigation.reset({
-              index: 0,
-              routes: [{ name: Screens.EnterPIN }],
-            })
-          }, [props.navigation])
+            // Lock user to trigger return to PIN entry via OnboardingStack
+            lockOutUser(require('../contexts/auth').LockoutReason.Logout)
+          }, [lockOutUser])
 
           return (
             <RestoreWalletScreen

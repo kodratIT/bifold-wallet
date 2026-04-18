@@ -90,7 +90,7 @@ export class TrustRegistryService implements ITrustRegistryService {
   private config: TrustRegistryConfig
   private cache: TrustRegistryCache
   private logger: Logger
-  private retryCount: number = 1
+  private retryCount: number = 3
 
   constructor(config: TrustRegistryConfig, logger?: Logger) {
     this.config = {
@@ -114,7 +114,7 @@ export class TrustRegistryService implements ITrustRegistryService {
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
 
         this.logger.info(`Outgoing Request`, {
           url,
@@ -194,6 +194,26 @@ export class TrustRegistryService implements ITrustRegistryService {
    * Get registry metadata
    */
   async getMetadata(): Promise<TrustRegistryMetadata> {
+    // Dev Mode: Return mock metadata
+    if (this.config.devMode) {
+      this.logger.info('Dev Mode enabled, returning mock metadata')
+      const mockMetadata: TrustRegistryMetadata = {
+        name: 'Dev Trust Registry',
+        version: '2.0.0',
+        protocol: 'TRQP',
+        status: 'operational',
+        supportedActions: ['issue', 'verify'],
+        supportedDIDMethods: ['did:sov'],
+        features: {
+          authorization: true,
+          recognition: true,
+          delegation: false,
+          publicTrustedList: false,
+        },
+      }
+      return mockMetadata
+    }
+
     const cacheKey = CacheKeys.metadata()
     const cached = this.cache.get<TrustRegistryMetadata>(cacheKey)
 
@@ -227,8 +247,23 @@ export class TrustRegistryService implements ITrustRegistryService {
     issuerDid: string,
     credentialType: string
   ): Promise<AuthorizationResponse> {
-    const normalizedIssuerDid = normalizeDid(issuerDid)
-    const normalizedAuthorityId = normalizeDid(this.config.ecosystemDid)
+    let normalizedIssuerDid = normalizeDid(issuerDid)
+    let normalizedAuthorityId = normalizeDid(this.config.ecosystemDid)
+
+    // Dev Mode: Return mock authorized response
+    if (this.config.devMode) {
+      this.logger.info('Dev Mode enabled, returning mock issuer authorization')
+      const mockResponse: AuthorizationResponse = {
+        authorized: true,
+        message: 'Authorized (Dev Mode)',
+        entity_id: normalizedIssuerDid,
+        authority_id: normalizedAuthorityId,
+        action: 'issue',
+        resource: credentialType,
+        time_evaluated: new Date().toISOString(),
+      }
+      return mockResponse
+    }
 
     const cacheKey = CacheKeys.authorization(normalizedIssuerDid, 'issue', credentialType)
     const cached = this.cache.get<AuthorizationResponse>(cacheKey)
@@ -267,8 +302,23 @@ export class TrustRegistryService implements ITrustRegistryService {
     verifierDid: string,
     credentialType: string
   ): Promise<AuthorizationResponse> {
-    const normalizedVerifierDid = normalizeDid(verifierDid)
-    const normalizedAuthorityId = normalizeDid(this.config.ecosystemDid)
+    let normalizedVerifierDid = normalizeDid(verifierDid)
+    let normalizedAuthorityId = normalizeDid(this.config.ecosystemDid)
+
+    // Dev Mode: Return mock authorized response
+    if (this.config.devMode) {
+      this.logger.info('Dev Mode enabled, returning mock verifier authorization')
+      const mockResponse: AuthorizationResponse = {
+        authorized: true,
+        message: 'Authorized (Dev Mode)',
+        entity_id: normalizedVerifierDid,
+        authority_id: normalizedAuthorityId,
+        action: 'verify',
+        resource: credentialType,
+        time_evaluated: new Date().toISOString(),
+      }
+      return mockResponse
+    }
 
     const cacheKey = CacheKeys.authorization(normalizedVerifierDid, 'verify', credentialType)
     const cached = this.cache.get<AuthorizationResponse>(cacheKey)
