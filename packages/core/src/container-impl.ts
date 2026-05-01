@@ -51,6 +51,7 @@ import { BifoldLogger } from './services/logger'
 import { PersistentStorage } from './services/storage'
 import { Config, HistoryEventsLoggerConfig } from './types/config'
 import { InlineErrorPosition } from './types/error'
+import { FederatedTrustResult, UseVerifierTrustResult } from './types/trust-registry'
 import {
   Migration as MigrationState,
   PersistentState,
@@ -108,6 +109,23 @@ export const defaultHistoryEventsLogger: HistoryEventsLoggerConfig = {
   logPinChanged: true,
   logToggleBiometry: true,
 }
+
+const EmptyTrustComponent: React.FC<any> = () => null
+
+const defaultUseFederatedTrust = (): FederatedTrustResult => ({
+  level: 'unknown',
+  authorized: true,
+  trustSource: 'unknown',
+  isLoading: true,
+})
+
+const defaultUseVerifierTrust = (): UseVerifierTrustResult => ({
+  trustResult: null,
+  authResponse: null,
+  isLoading: false,
+  error: null,
+  refresh: async () => {},
+})
 
 export class MainContainer implements Container {
   public static readonly TOKENS = TOKENS
@@ -260,7 +278,8 @@ export class MainContainer implements Container {
     // Register default PIN hash algorithm using argon2
     this._container.registerInstance(TOKENS.FN_PIN_HASH_ALGORITHM, hashPIN)
 
-    // Register Trust Registry default config (disabled by default)
+    // Register Trust Registry defaults (disabled by default). These no-op bindings keep
+    // core screens safe when an app does not install or configure @bifold/trust-registry.
     this._container.registerInstance(TOKENS.TRUST_REGISTRY_CONFIG, {
       enabled: false,
       url: '',
@@ -270,6 +289,12 @@ export class MainContainer implements Container {
       blockUntrustedIssuers: false,
       blockUntrustedVerifiers: false,
     })
+    this._container.registerInstance(TOKENS.TRUST_REGISTRY_SERVICE, false)
+    this._container.registerInstance(TOKENS.COMPONENT_TRUST_BADGE, EmptyTrustComponent)
+    this._container.registerInstance(TOKENS.COMPONENT_TRUST_REGISTRY_MODAL, EmptyTrustComponent)
+    this._container.registerInstance(TOKENS.COMPONENT_TRUST_CONFIRM_MODAL, EmptyTrustComponent)
+    this._container.registerInstance(TOKENS.HOOK_USE_FEDERATED_TRUST, defaultUseFederatedTrust)
+    this._container.registerInstance(TOKENS.HOOK_USE_VERIFIER_TRUST, defaultUseVerifierTrust)
 
     this._container.registerInstance(TOKENS.FN_ATTESTATION_GET_CHALLENGE, () => {})
     this._container.registerInstance(TOKENS.FN_ATTESTATION_GET_JWT, () => {})

@@ -1,5 +1,5 @@
 import { Agent, CredoError } from '@credo-ts/core'
-import { DidCommHttpOutboundTransport, DidCommWsOutboundTransport } from '@credo-ts/didcomm'
+import { DidCommHttpOutboundTransport, DidCommMediatorPickupStrategy, DidCommWsOutboundTransport } from '@credo-ts/didcomm'
 import { IndyVdrPoolService } from '@credo-ts/indy-vdr'
 import { agentDependencies } from '@credo-ts/react-native'
 import { GetCredentialDefinitionRequest, GetSchemaRequest } from '@hyperledger/indy-vdr-shared'
@@ -32,6 +32,61 @@ const useBifoldAgentSetup = (): AgentSetupReturnType => {
     TOKENS.UTIL_REFRESH_ORCHESTRATOR,
   ])
 
+  const startMessagePickup = useCallback(
+    async (agent: Agent): Promise<void> => {
+      const didcomm = agent.modules.didcomm
+
+      try {
+        await didcomm.mediationRecipient.stopMessagePickup()
+      } catch (error) {
+        logger.warn(`Agent message pickup could not be stopped before restart: ${error}`)
+      }
+
+      const mediator = await didcomm.mediationRecipient.findDefaultMediator()
+      if (!mediator) {
+        logger.warn('Agent message pickup could not be started: no default mediator found')
+        return
+      }
+
+      const startPickup = async (strategy: DidCommMediatorPickupStrategy, protocolVersion: 'v1' | 'v2') => {
+        // Fetch queued messages immediately. `initiateMessagePickup` starts an interval, so without
+        // this the user can open the app and still not see messages until the first polling tick.
+        await didcomm.messagePickup.pickupMessages({
+          connectionId: mediator.connectionId,
+          protocolVersion,
+          batchSize: 10,
+          awaitCompletion: true,
+          awaitCompletionTimeoutMs: 5000,
+        })
+
+        await didcomm.mediationRecipient.initiateMessagePickup(mediator, strategy)
+        logger.info(`Agent message pickup started using ${strategy}`)
+      }
+
+      try {
+        await startPickup(DidCommMediatorPickupStrategy.PickUpV2, 'v2')
+        return
+      } catch (error) {
+        logger.warn(`Message pickup v2 failed, trying v1: ${error}`)
+      }
+
+      try {
+        await startPickup(DidCommMediatorPickupStrategy.PickUpV1, 'v1')
+        return
+      } catch (error) {
+        logger.warn(`Message pickup v1 failed, falling back to implicit websocket pickup: ${error}`)
+      }
+
+      try {
+        await didcomm.mediationRecipient.initiateMessagePickup(mediator, DidCommMediatorPickupStrategy.Implicit)
+        logger.info('Agent message pickup started using implicit websocket pickup')
+      } catch (error) {
+        logger.warn(`Agent message pickup could not be started: ${error}`)
+      }
+    },
+    [logger]
+  )
+
   const restartExistingAgent = useCallback(
     async (agent: Agent): Promise<Agent | undefined> => {
       try {
@@ -43,9 +98,11 @@ const useBifoldAgentSetup = (): AgentSetupReturnType => {
         return
       }
 
+      await startMessagePickup(agent)
+
       return agent
     },
-    [logger]
+    [logger, startMessagePickup]
   )
 
   const createNewAgent = useCallback(
@@ -95,19 +152,34 @@ const useBifoldAgentSetup = (): AgentSetupReturnType => {
   const warmUpCache = useCallback(
     async (newAgent: Agent) => {
       const poolService: IndyVdrPoolService = newAgent.dependencyManager.resolve(IndyVdrPoolService) // Maybe should resolve differently
+
+      logger.info(`warmUpCache: warming up cache with ${cacheCredDefs.length} credDefs and ${cacheSchemas.length} schemas`)
+
       cacheCredDefs.forEach(async ({ did, id }) => {
-        const pool = await poolService.getPoolForDid(newAgent.context, did)
-        const credDefRequest = new GetCredentialDefinitionRequest({ credentialDefinitionId: id })
-        await pool.pool.submitRequest(credDefRequest)
+        try {
+          const poolResult = await poolService.getPoolForDid(newAgent.context, did)
+          logger.info(`warmUpCache: resolved pool for DID ${did}, pool indyNamespace=${poolResult.pool.indyNamespace}, isOpen=${poolResult.pool.isOpen}, submitting GetCredentialDefinitionRequest for ${id}`)
+          const credDefRequest = new GetCredentialDefinitionRequest({ credentialDefinitionId: id })
+          await poolResult.pool.submitRequest(credDefRequest)
+          logger.info(`warmUpCache: successfully submitted GetCredentialDefinitionRequest for ${id}`)
+        } catch (error) {
+          logger.error(`warmUpCache: failed to warm up credDef ${id} for DID ${did}: ${error}`)
+        }
       })
 
       cacheSchemas.forEach(async ({ did, id }) => {
-        const pool = await poolService.getPoolForDid(newAgent.context, did)
-        const schemaRequest = new GetSchemaRequest({ schemaId: id })
-        await pool.pool.submitRequest(schemaRequest)
+        try {
+          const poolResult = await poolService.getPoolForDid(newAgent.context, did)
+          logger.info(`warmUpCache: resolved pool for DID ${did}, pool indyNamespace=${poolResult.pool.indyNamespace}, isOpen=${poolResult.pool.isOpen}, submitting GetSchemaRequest for ${id}`)
+          const schemaRequest = new GetSchemaRequest({ schemaId: id })
+          await poolResult.pool.submitRequest(schemaRequest)
+          logger.info(`warmUpCache: successfully submitted GetSchemaRequest for ${id}`)
+        } catch (error) {
+          logger.error(`warmUpCache: failed to warm up schema ${id} for DID ${did}: ${error}`)
+        }
       })
     },
-    [cacheCredDefs, cacheSchemas]
+    [cacheCredDefs, cacheSchemas, logger]
   )
 
   const initializeAgent = useCallback(
@@ -145,6 +217,8 @@ const useBifoldAgentSetup = (): AgentSetupReturnType => {
       logger.info('Creating link secret if required...')
       await createLinkSecretIfRequired(newAgent)
 
+      await startMessagePickup(newAgent)
+
       logger.info('Warming up cache...')
       await warmUpCache(newAgent)
 
@@ -158,6 +232,7 @@ const useBifoldAgentSetup = (): AgentSetupReturnType => {
       restartExistingAgent,
       createNewAgent,
       migrateIfRequired,
+      startMessagePickup,
       warmUpCache,
       store.preferences.selectedMediator,
       bridge,

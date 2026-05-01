@@ -298,5 +298,14 @@ export const ContainerProvider = ContainerContext.Provider
 export const useContainer = () => useContext(ContainerContext)!
 
 export const useServices = <K extends keyof TokenMapping, T extends K[]>(tokens: [...T]) => {
-  return useContainer().resolveAll(tokens)
+  const container = useContainer()
+
+  return tokens.map((key) => {
+    try {
+      return container.resolve(key)!
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      throw new Error(`Failed to resolve service token "${String(key)}": ${message}`)
+    }
+  }) as { [I in keyof T]: TokenMapping[T[I]] }
 }
