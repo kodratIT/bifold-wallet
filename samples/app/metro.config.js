@@ -27,6 +27,7 @@ const packageDirs = [
   path.resolve(__dirname, '../../packages/oca'),
   path.resolve(__dirname, '../../packages/react-hooks'),
   path.resolve(__dirname, '../../packages/trust-registry'),
+  path.resolve(__dirname, '../../packages/ui'),
   path.resolve(__dirname, '../../packages/verifier'),
   path.resolve(__dirname, '../../packages/backup'),
 ]
@@ -37,9 +38,11 @@ const extraExclusionList = []
 const extraNodeModules = {
   '@bifold/backup': path.resolve(__dirname, '../../packages/backup'),
   '@bifold/trust-registry': path.resolve(__dirname, '../../packages/trust-registry'),
+  '@bifold/ui': path.resolve(__dirname, '../../packages/ui'),
 }
 const localPackageEntryPoints = {
   '@bifold/core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
+  '@bifold/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts'),
 }
 
 const fallbackResolveRequest = (context, moduleName, platform) => {

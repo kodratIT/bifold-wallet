@@ -67,6 +67,7 @@ export const SCREEN_TOKENS = {
   SCREEN_SCAN: 'screen.scan',
   SCREEN_BIOMETRY: 'screen.biometry',
   SCREEN_TOGGLE_BIOMETRY: 'screen.toggle-biometry',
+  SCREEN_PIN_CREATE: 'screen.pin-create',
   SCREEN_PIN_EXPLAINER: 'screen.pin-explainer',
 } as const
 
@@ -217,6 +218,7 @@ export type TokenMapping = {
   [TOKENS.SCREEN_BIOMETRY]: React.FC
   [TOKENS.SCREEN_TOGGLE_BIOMETRY]: React.FC
   [TOKENS.SCREEN_ONBOARDING]: typeof Onboarding
+  [TOKENS.SCREEN_PIN_CREATE]: React.FC<any>
   [TOKENS.SCREEN_PIN_EXPLAINER]: React.FC<PINExplainerProps>
   [TOKENS.HOOK_USE_AGENT_SETUP]: () => AgentSetupReturnType
   [TOKENS.HOOK_USE_FEDERATED_TRUST]: (

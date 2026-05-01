@@ -25,6 +25,7 @@
     "@bifold/oca": "3.0.2",
     "@bifold/react-hooks": "3.0.2",
     "@bifold/trust-registry": "workspace:*",
+    "@bifold/ui": "workspace:*",
     "@credo-ts/anoncreds": "0.6.3",
     "@credo-ts/askar": "0.6.3",
     "@credo-ts/core": "0.6.3",

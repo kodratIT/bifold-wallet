@@ -2697,6 +2697,44 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@bifold/ui@workspace:*, @bifold/ui@workspace:packages/ui":
+  version: 0.0.0-use.local
+  resolution: "@bifold/ui@workspace:packages/ui"
+  dependencies:
+    "@babel/core": "npm:~7.28.6"
+    "@babel/runtime": "npm:~7.28.6"
+    "@bifold/core": "workspace:*"
+    "@expo/app-integrity": "npm:^55.0.9"
+    "@react-navigation/native": "npm:~6.0.16"
+    "@react-navigation/stack": "npm:~6.3.29"
+    "@types/react": "npm:~19.1.9"
+    "@types/react-native-vector-icons": "npm:~6.4.18"
+    react: "npm:*"
+    react-i18next: "npm:~11.17.1"
+    react-native: "npm:*"
+    react-native-builder-bob: "npm:~0.21.3"
+    react-native-keychain: "npm:~10.0.0"
+    react-native-permissions: "npm:~5.4.1"
+    react-native-safe-area-context: "npm:~5.6.2"
+    react-native-uuid: "npm:~2.0.3"
+    react-native-vector-icons: "npm:~10.3.0"
+    rimraf: "npm:~5.0.10"
+    typescript: "npm:~5.9.2"
+  peerDependencies:
+    "@expo/app-integrity": ">=55.0.0"
+    "@react-navigation/native": ">=6.0.0"
+    "@react-navigation/stack": ">=6.0.0"
+    react: ">=18.0.0"
+    react-i18next: ">=11.0.0"
+    react-native: ">=0.70.0"
+    react-native-keychain: ">=9.0.0"
+    react-native-permissions: ">=5.0.0"
+    react-native-safe-area-context: ">=4.0.0"
+    react-native-uuid: ">=2.0.0"
+    react-native-vector-icons: ">=9.0.0"
+  languageName: unknown
+  linkType: soft
+
 "@bifold/verifier@npm:3.0.2, @bifold/verifier@workspace:packages/verifier":
   version: 0.0.0-use.local
   resolution: "@bifold/verifier@workspace:packages/verifier"
@@ -7780,6 +7818,7 @@ __metadata:
     "@bifold/oca": "npm:3.0.2"
     "@bifold/react-hooks": "npm:3.0.2"
     "@bifold/trust-registry": "workspace:*"
+    "@bifold/ui": "workspace:*"
     "@credo-ts/anoncreds": "npm:0.6.3"
     "@credo-ts/askar": "npm:0.6.3"
     "@credo-ts/core": "npm:0.6.3"

@@ -37,6 +37,7 @@ import Biometry from './screens/Biometry'
 import Developer from './screens/Developer'
 import Onboarding from './screens/Onboarding'
 import OnboardingPages from './screens/OnboardingPages'
+import PINCreate from './screens/PINCreate'
 import PINExplainer from './screens/PINExplainer'
 import Preface from './screens/Preface'
 import Scan from './screens/Scan'
@@ -158,6 +159,7 @@ export class MainContainer implements Container {
     this._container.registerInstance(TOKENS.SCREEN_SCAN, Scan)
     this._container.registerInstance(TOKENS.SCREEN_ONBOARDING_ITEM, Onboarding)
     this._container.registerInstance(TOKENS.SCREEN_ONBOARDING, Onboarding)
+    this._container.registerInstance(TOKENS.SCREEN_PIN_CREATE, PINCreate)
     this._container.registerInstance(TOKENS.SCREEN_PIN_EXPLAINER, PINExplainer)
     this._container.registerInstance(TOKENS.HOOK_USE_AGENT_SETUP, useBifoldAgentSetup)
     this._container.registerInstance(TOKENS.STACK_ONBOARDING, OnboardingStack)

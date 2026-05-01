@@ -15,7 +15,6 @@ import { useOnboardingState } from '../hooks/useOnboardingState'
 import AttemptLockout from '../screens/AttemptLockout'
 import NameWallet from '../screens/NameWallet'
 import { createCarouselStyle } from '../screens/OnboardingPages'
-import PINCreate from '../screens/PINCreate'
 import PINEnter from '../screens/PINEnter'
 import PushNotifications from '../screens/PushNotifications'
 import { Config } from '../types/config'
@@ -44,6 +43,7 @@ const OnboardingStack: React.FC<OnboardingStackProps> = ({ initializeAgent, agen
     pages,
     Biometry,
     Onboarding,
+    PINCreate,
     { screen: Terms, version: termsVersion },
     onTutorialCompletedCurried,
     ScreenOptionsDictionary,
@@ -57,6 +57,7 @@ const OnboardingStack: React.FC<OnboardingStackProps> = ({ initializeAgent, agen
     TOKENS.SCREEN_ONBOARDING_PAGES,
     TOKENS.SCREEN_BIOMETRY,
     TOKENS.SCREEN_ONBOARDING,
+    TOKENS.SCREEN_PIN_CREATE,
     TOKENS.SCREEN_TERMS,
     TOKENS.FN_ONBOARDING_DONE,
     TOKENS.OBJECT_SCREEN_CONFIG,

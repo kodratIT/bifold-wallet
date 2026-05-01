@@ -8,10 +8,10 @@ import {
   useFederatedTrust,
   useVerifierTrust,
 } from '@bifold/trust-registry'
+import { CustomBiometry, CustomOnboarding, CustomPinSetupFlow, CustomSplash, CustomTerms, TermsVersion } from '@bifold/ui'
 import { DependencyContainer } from 'tsyringe'
 import { getTrustRegistryConfig, isTrustRegistryConfigured } from './config/trustRegistry'
 import BackupStack from './navigators/BackupStack'
-import CustomSplash from './screens/CustomSplash'
 
 export class AppContainer implements Container {
   private _container: DependencyContainer
@@ -36,8 +36,12 @@ export class AppContainer implements Container {
     // Register Backup Stack
     this.container.registerInstance(TOKENS.CUSTOM_NAV_STACK_1, BackupStack)
 
-    // Override Splash screen with custom design
+    // Override onboarding and splash screens with custom UI package designs
+    this.container.registerInstance(TOKENS.SCREEN_BIOMETRY, CustomBiometry)
+    this.container.registerInstance(TOKENS.SCREEN_ONBOARDING, CustomOnboarding)
+    this.container.registerInstance(TOKENS.SCREEN_PIN_CREATE, CustomPinSetupFlow)
     this.container.registerInstance(TOKENS.SCREEN_SPLASH, CustomSplash)
+    this.container.registerInstance(TOKENS.SCREEN_TERMS, { screen: CustomTerms, version: TermsVersion })
 
     // Here you can register any component to override components in core package
     // Example: Replacing button in core with custom button
