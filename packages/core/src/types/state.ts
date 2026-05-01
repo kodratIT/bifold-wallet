@@ -32,7 +32,7 @@ export interface Preferences {
   preventAutoLock: boolean
   enableShareableLink: boolean
   alternateContactNames: Record<string, string>
-  autoLockTime: number
+  autoLockTime?: number
   theme?: string
   selectedMediator: string
   availableMediators: string[]
@@ -64,6 +64,10 @@ export interface Authentication {
   didAuthenticate: boolean
 }
 
+export interface Attestation {
+  isAttestationComplete: boolean
+}
+
 /**
  * Represents information about latest the
  * available version of the application.
@@ -86,6 +90,7 @@ export interface State {
   deepLink?: string
   migration: Migration
   versionInfo: VersionInfo
+  attestation: Attestation
 }
 
 export type PersistentState = {

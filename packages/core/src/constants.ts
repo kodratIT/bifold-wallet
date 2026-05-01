@@ -26,6 +26,8 @@ export enum LocalStorageKeys {
   Tours = 'ToursState',
   HistorySettingsOption = 'historySettingsOption',
   Language = 'language',
+  AttestationKey = 'AttestationKey',
+  AttestationConfigured = 'AttestationConfigured'
 }
 
 export enum KeychainServices {
@@ -41,6 +43,7 @@ export enum EventTypes {
   BIOMETRY_ERROR = 'BiometryError',
   DID_COMPLETE_ONBOARDING = 'DidCompleteOnboarding',
   OPENID_REFRESH_REQUEST = 'OPENID_REFRESH_REQUEST',
+  OPENID_CONNECTION_ERROR = 'OPENID_CONNECTION_ERROR',
 }
 
 export const second = 1000
@@ -97,6 +100,12 @@ export const PINRules: PINValidationRules = {
   no_even_or_odd_series_of_numbers: false,
   no_cross_pattern: false,
   most_used_pins: false,
+  unacceptable_pin_list: [
+    '123456',
+    '111111',
+    '000000',
+    '123123',
+  ]
 }
 
 export const domain = 'didcomm://invite'

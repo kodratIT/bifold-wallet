@@ -1,5 +1,115 @@
 # @bifold/core
 
+## 3.0.2
+
+### Patch Changes
+
+- 226ae62: Update oid4vc connection screen
+- 23c9d1e: New proof request UI for oid4vc flow
+- 4ee6a41: Added Expo App Integrity functionality and initialization on app start after auth
+- f445fa2: Orchestrator startup update
+  - @bifold/react-hooks@3.0.2
+
+## 3.0.1
+
+### Patch Changes
+
+- 1e57f76: Fix Wallet Key
+- fda1a41: Add separate accessibility label for tab bar buttons
+- b4c4ded: Fix for biometrics availability not refreshing after being enabled on android
+- a9428ed: Cleanup OpenID module
+- 6ff5dbb: updated credo ts packages to 0.6.3
+- Updated dependencies [6ff5dbb]
+  - @bifold/react-hooks@3.0.1
+
+## 3.0.0
+
+### Major Changes
+
+- c1df038: Updated all bifold packages for compatibility with credo-ts v0.6.x.
+  Compatibility with this credo-ts release is important as it has big enhancements across the board,
+  especially for OpenID related credentials such as mdoc.
+  This version of credo changes many type and method names, changes which types and methods are available from which exports,
+  and modifies the interfaces of many existing modules. Thus, changes are made across the project,
+  some of which may be breaking.
+
+### Patch Changes
+
+- 2aa1740: Fix Bifold/core bundling issue and enabling hot reload for sample app
+- cb1442e: Fix for improper autolock display
+- Updated dependencies [c1df038]
+  - @bifold/react-hooks@3.0.0
+
+## 2.12.8
+
+### Patch Changes
+
+- 4263767: Fix endless loop in notifications hook
+- c9ba746: Add config for custom app lockout time
+- fd2e7cd: Add connection screen for OpenID
+- 04a41bb: Fix for delay in hiding pin
+  - @bifold/react-hooks@2.12.8
+
+## 2.12.7
+
+### Patch Changes
+
+- 75cca52: Bump package versions for release
+- Updated dependencies [75cca52]
+  - @bifold/react-hooks@2.12.7
+
+## 2.12.6
+
+### Patch Changes
+
+- 90b964b: Bump package versions for release
+- Updated dependencies [90b964b]
+  - @bifold/react-hooks@2.12.6
+
+## 2.12.5
+
+### Patch Changes
+
+- 30b4754: force release to align all packages including new react-hooks package
+- c9b8621: adjust dependencies to pass 16kb requirement on Android, swap react-native-argon2 out for askar's argon2 implementation
+- 958987e: force publish
+
+## 2.12.4
+
+### Patch Changes
+
+- fecd99e: Updated bifold/core package exports to prevent metro warning
+
+## 2.12.3
+
+### Patch Changes
+
+- e26f1ff: Bumped i18next & react-i18next to latest
+
+## 2.12.2
+
+### Patch Changes
+
+- 8ba7a18: Fix terms screen back button functionality
+
+## 2.12.1
+
+## 2.12.0
+
+### Minor Changes
+
+- 43446f3: upgrade to React Native 0.81.5
+
+### Patch Changes
+
+- e718f5b: Allow unacceptable PIN list to be injected
+
+## 2.11.12
+
+### Patch Changes
+
+- 7fe30c1: styling fixes, better ScreenWrapper usage
+
 ## 2.11.11
 
 ### Patch Changes

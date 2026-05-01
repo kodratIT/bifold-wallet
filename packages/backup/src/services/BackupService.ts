@@ -1,4 +1,4 @@
-import { Agent, WalletConfig } from '@credo-ts/core'
+import { Agent } from '@credo-ts/core'
 import { generateMnemonic as bip39GenerateMnemonic } from 'bip39'
 import RNFS from 'react-native-fs'
 import Share from 'react-native-share'
@@ -8,6 +8,12 @@ import { Platform } from 'react-native'
 import { injectable } from 'tsyringe'
 // Import directly from the utils file since it's not exported from the main package
 import { setMediationToDefault } from '../../../core/src/utils/mediatorhelpers'
+
+export type WalletConfig = {
+  id: string
+  key?: string
+  [key: string]: unknown
+}
 
 /**
  * Status enum for wallet restore progress
@@ -66,7 +72,7 @@ export class BackupService {
       }
 
       // 2. Export database from agent
-      await agent.wallet.export({
+      await (agent as any).wallet.export({
         path: dbPath,
         key,
       })
@@ -138,7 +144,7 @@ export class BackupService {
         importPath = dbFile.path
       }
 
-      await agent.wallet.import(walletConfig, {
+      await (agent as any).wallet.import(walletConfig, {
         path: importPath,
         key,
       })
@@ -279,8 +285,8 @@ export class BackupService {
     onProgress?.(RestoreStatus.SHUTTING_DOWN)
     try {
       // Check if wallet is open before trying to close
-      if (agent.wallet.isInitialized) {
-        await agent.wallet.close()
+      if ((agent as any).wallet.isInitialized) {
+        await (agent as any).wallet.close()
       }
     } catch (error) {
       // If wallet is already closed or not initialized, that's fine
@@ -298,7 +304,7 @@ export class BackupService {
 
     // Step 5: Open the restored wallet
     onProgress?.(RestoreStatus.INITIALIZING)
-    await agent.wallet.open({
+    await (agent as any).wallet.open({
       id: walletId,
       key: walletKey,
     })

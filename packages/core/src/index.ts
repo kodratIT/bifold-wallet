@@ -2,7 +2,7 @@
 import type { OnboardingStyleSheet } from './screens/Onboarding'
 
 import { Agent } from '@credo-ts/core'
-import AgentProvider from '@credo-ts/react-hooks'
+import AgentProvider from '@bifold/react-hooks'
 
 import createApp from './App'
 import * as components from './components'
@@ -13,7 +13,6 @@ import CheckBoxRow from './components/inputs/CheckBoxRow'
 import LimitedTextInput from './components/inputs/LimitedTextInput'
 import NotificationListItem from './components/listItems/NotificationListItem'
 import ContentGradient from './components/misc/ContentGradient'
-import CredentialCard from './components/misc/CredentialCard'
 import ErrorBoundaryWrapper from './components/misc/ErrorBoundary'
 import FauxHeader from './components/misc/FauxHeader'
 import InfoBox, { InfoBoxType } from './components/misc/InfoBox'
@@ -172,6 +171,7 @@ export type { ScanCameraProps } from './components/misc/ScanCamera'
 export type { DismissiblePopupModalProps } from './components/modals/DismissiblePopupModal'
 export type { BannerSectionProps } from './components/views/Banner'
 export type { IRefreshOrchestrator } from './modules/openid/refresh/types'
+export { OpenIDCredentialRefreshFlowType } from './modules/openid/refresh/types'
 
 export {
   AbstractBifoldLogger,
@@ -197,7 +197,6 @@ export {
   ContentGradient,
   contexts,
   createApp,
-  CredentialCard,
   credentialOfferTourSteps,
   credentialsTourSteps,
   defaultConfig,

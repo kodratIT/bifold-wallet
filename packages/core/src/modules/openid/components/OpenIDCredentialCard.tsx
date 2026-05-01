@@ -17,7 +17,6 @@ import { testIdWithKey } from '../../../utils/testable'
 import { credentialTextColor, toImageSource } from '../../../utils/credential'
 import { useTheme } from '../../../contexts/theme'
 import { SvgUri } from 'react-native-svg'
-import { MdocRecord, SdJwtVcRecord, W3cCredentialRecord } from '@credo-ts/core'
 import { getCredentialForDisplay } from '../display'
 import { BifoldError } from '../../../types/error'
 import { EventTypes } from '../../../constants'
@@ -25,10 +24,11 @@ import { Attribute } from '@bifold/oca/build/legacy'
 import { getAttributeField } from '../../../utils/oca'
 import { useCredentialErrorsFromRegistry } from '../hooks/useCredentialErrorsFromRegistry'
 import { CredentialErrors } from '../../../types/credentials'
+import { OpenIDCredentialRecord } from '../credentialRecord'
 
 interface CredentialCardProps {
   credentialDisplay?: W3cCredentialDisplay
-  credentialRecord?: W3cCredentialRecord | SdJwtVcRecord | MdocRecord
+  credentialRecord?: OpenIDCredentialRecord
   onPress?: GenericFn
   style?: ViewStyle
 }
@@ -94,7 +94,7 @@ const OpenIDCredentialCard: React.FC<CredentialCardProps> = ({
       DeviceEventEmitter.emit(EventTypes.ERROR_ADDED, error)
       return
     }
-    const result = getCredentialForDisplay(credentialRecord as W3cCredentialRecord)
+    const result = getCredentialForDisplay(credentialRecord)
     return result.display
   }, [credentialDisplay, credentialRecord, t])
 
@@ -190,7 +190,7 @@ const OpenIDCredentialCard: React.FC<CredentialCardProps> = ({
   const logoContaineter = (logo: DisplayImage | undefined) => {
     const width = 64
     const height = 48
-    const src = logo?.url
+    const src = logo?.uri
     if (!src) {
       return <View />
     }
@@ -294,7 +294,7 @@ const OpenIDCredentialCard: React.FC<CredentialCardProps> = ({
         <View style={[styles.flexGrow, { overflow: 'hidden' }]} testID={testIdWithKey('CredentialCard')}>
           {display?.backgroundImage ? (
             <ImageBackground
-              source={toImageSource(display.backgroundImage.url)}
+              source={toImageSource(display.backgroundImage.uri)}
               style={styles.flexGrow}
               imageStyle={{ borderRadius }}
             >

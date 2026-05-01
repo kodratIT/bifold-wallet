@@ -1,4 +1,4 @@
-import { useAgent } from '@credo-ts/react-hooks'
+import { useAgent } from '@bifold/react-hooks'
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -17,7 +17,7 @@ import { HistoryBlockSelection, IHistoryManager } from '../types'
 import SingleSelectBlock from './components/SingleSelectBlock'
 import { ThemedText } from '../../../components/texts/ThemedText'
 
-interface HistorySettingsProps extends StackScreenProps<SettingStackParams, Screens.HistorySettings> {}
+type HistorySettingsProps = StackScreenProps<SettingStackParams, Screens.HistorySettings>
 
 const HistorySettings: React.FC<HistorySettingsProps> = () => {
   const [continueEnabled] = useState(true)
@@ -97,7 +97,7 @@ const HistorySettings: React.FC<HistorySettingsProps> = () => {
       //     animated: true,
       //   })
       // console.log('History option saved')
-    } catch (e: unknown) {
+    } catch {
       //TODO: Impliment Alert
       // console.log('Error:', e)
       //   log(`[${SettingsActivityHistory.name}]: Handle history save: ${e}`, LogLevel.error)

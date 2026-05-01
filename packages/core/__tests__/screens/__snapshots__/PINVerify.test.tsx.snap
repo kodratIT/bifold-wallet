@@ -49,9 +49,7 @@ exports[`PINVerify Screen Keyboard submits PIN on enter 1`] = `
         <View
           style={
             Array [
-              Object {
-                "padding": 16,
-              },
+              false,
               undefined,
             ]
           }
@@ -62,7 +60,7 @@ exports[`PINVerify Screen Keyboard submits PIN on enter 1`] = `
                 "backgroundColor": "#000000",
                 "flex": 1,
                 "justifyContent": "space-between",
-                "padding": 20,
+                "padding": 16,
               }
             }
           >
@@ -73,11 +71,11 @@ exports[`PINVerify Screen Keyboard submits PIN on enter 1`] = `
                   Array [
                     Object {
                       "color": "#FFFFFF",
-                      "fontSize": 32,
+                      "fontSize": 26,
                       "fontWeight": "bold",
                     },
                     Object {
-                      "marginBottom": 40,
+                      "marginBottom": 32,
                       "marginTop": 0,
                     },
                   ]
@@ -649,7 +647,7 @@ exports[`PINVerify Screen Keyboard submits PIN on enter 1`] = `
                 }
                 accessible={true}
                 collapsable={false}
-                focusable={true}
+                focusable={false}
                 onClick={[Function]}
                 onResponderGrant={[Function]}
                 onResponderMove={[Function]}
@@ -698,7 +696,6 @@ exports[`PINVerify Screen Keyboard submits PIN on enter 1`] = `
                             "fontWeight": "bold",
                             "textAlign": "center",
                           },
-                          false,
                           false,
                         ],
                       ]
@@ -766,9 +763,7 @@ exports[`PINVerify Screen PIN Verify renders correctly 1`] = `
         <View
           style={
             Array [
-              Object {
-                "padding": 16,
-              },
+              false,
               undefined,
             ]
           }
@@ -779,7 +774,7 @@ exports[`PINVerify Screen PIN Verify renders correctly 1`] = `
                 "backgroundColor": "#000000",
                 "flex": 1,
                 "justifyContent": "space-between",
-                "padding": 20,
+                "padding": 16,
               }
             }
           >
@@ -1332,7 +1327,7 @@ exports[`PINVerify Screen PIN Verify renders correctly 1`] = `
                 }
                 accessible={true}
                 collapsable={false}
-                focusable={true}
+                focusable={false}
                 onClick={[Function]}
                 onResponderGrant={[Function]}
                 onResponderMove={[Function]}
@@ -1381,7 +1376,6 @@ exports[`PINVerify Screen PIN Verify renders correctly 1`] = `
                             "fontWeight": "bold",
                             "textAlign": "center",
                           },
-                          false,
                           false,
                         ],
                       ]
@@ -1472,7 +1466,6 @@ exports[`PINVerify Screen PIN Verify renders correctly 1`] = `
                           },
                           false,
                           false,
-                          false,
                         ],
                       ]
                     }
@@ -1539,9 +1532,7 @@ exports[`PINVerify Screen PIN Verify renders correctly for biometrics change 1`]
         <View
           style={
             Array [
-              Object {
-                "padding": 16,
-              },
+              false,
               undefined,
             ]
           }
@@ -1552,7 +1543,7 @@ exports[`PINVerify Screen PIN Verify renders correctly for biometrics change 1`]
                 "backgroundColor": "#000000",
                 "flex": 1,
                 "justifyContent": "space-between",
-                "padding": 20,
+                "padding": 16,
               }
             }
           >
@@ -1563,11 +1554,11 @@ exports[`PINVerify Screen PIN Verify renders correctly for biometrics change 1`]
                   Array [
                     Object {
                       "color": "#FFFFFF",
-                      "fontSize": 32,
+                      "fontSize": 26,
                       "fontWeight": "bold",
                     },
                     Object {
-                      "marginBottom": 40,
+                      "marginBottom": 32,
                       "marginTop": 0,
                     },
                   ]
@@ -2139,7 +2130,7 @@ exports[`PINVerify Screen PIN Verify renders correctly for biometrics change 1`]
                 }
                 accessible={true}
                 collapsable={false}
-                focusable={true}
+                focusable={false}
                 onClick={[Function]}
                 onResponderGrant={[Function]}
                 onResponderMove={[Function]}
@@ -2188,7 +2179,6 @@ exports[`PINVerify Screen PIN Verify renders correctly for biometrics change 1`]
                             "fontWeight": "bold",
                             "textAlign": "center",
                           },
-                          false,
                           false,
                         ],
                       ]

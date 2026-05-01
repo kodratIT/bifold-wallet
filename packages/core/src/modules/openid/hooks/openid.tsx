@@ -1,5 +1,4 @@
-import { MdocRecord, SdJwtVcRecord, W3cCredentialRecord } from '@credo-ts/core'
-import { useAgent } from '@credo-ts/react-hooks'
+import { useAgent } from '@bifold/react-hooks'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DeviceEventEmitter } from 'react-native'
@@ -16,6 +15,7 @@ import { getCredentialConfigurationIds } from '../utils/utils'
 import { setRefreshCredentialMetadata } from '../metadata'
 import { RefreshStatus } from '../refresh/types'
 import { temporaryMetaVanillaObject } from '../metadata'
+import { OpenIDCredentialRecord } from '../credentialRecord'
 
 type OpenIDContextProps = {
   openIDUri?: string
@@ -25,10 +25,8 @@ type OpenIDContextProps = {
 export const useOpenID = ({
   openIDUri,
   openIDPresentationUri,
-}: OpenIDContextProps): SdJwtVcRecord | W3cCredentialRecord | MdocRecord | OpenId4VPRequestRecord | undefined => {
-  const [openIdRecord, setOpenIdRecord] = useState<
-    SdJwtVcRecord | W3cCredentialRecord | MdocRecord | OpenId4VPRequestRecord
-  >()
+}: OpenIDContextProps): OpenIDCredentialRecord | OpenId4VPRequestRecord | undefined => {
+  const [openIdRecord, setOpenIdRecord] = useState<OpenIDCredentialRecord | OpenId4VPRequestRecord>()
 
   const { agent } = useAgent()
   const { t } = useTranslation()
@@ -44,20 +42,16 @@ export const useOpenID = ({
           uri: uri,
         })
 
-        const authServers = resolvedCredentialOffer.metadata.credentialIssuerMetadata.authorization_servers
-        // const authServer = authServers?.[0]
-        const credentialIssuer = resolvedCredentialOffer.metadata.issuer
-        const authServer = credentialIssuer
+        const authServers = resolvedCredentialOffer.metadata.credentialIssuer.authorization_servers
+        const authServer = resolvedCredentialOffer.metadata.authorizationServers[0]
+        const credentialIssuer = authServer.issuer
+        const issuerMetadata = resolvedCredentialOffer.metadata.credentialIssuer
         const configID = getCredentialConfigurationIds(resolvedCredentialOffer)?.[0]
-        const tokenEndpoint = resolvedCredentialOffer.metadata.token_endpoint
-        const issuerMetadata = resolvedCredentialOffer.metadata.credentialIssuerMetadata
-        const credentialEndpoint = resolvedCredentialOffer.metadata.credential_endpoint
+        const tokenEndpoint = authServer?.token_endpoint
+        const credentialEndpoint = issuerMetadata.credential_endpoint
 
         if (!configID) {
           throw new Error('No credential configuration ID found in the credential offer metadata')
-        }
-        if (!authServer) {
-          throw new Error('No authorization server found in the credential offer metadata')
         }
         if (!credentialIssuer) {
           throw new Error('No credential issuer found in the credential offer metadata')
@@ -74,9 +68,8 @@ export const useOpenID = ({
           tokenResponse: tokenResponse,
         })
 
-        if (refreshToken && authServer) {
+        if (refreshToken) {
           setRefreshCredentialMetadata(credential, {
-            authServer: authServer,
             tokenEndpoint: tokenEndpoint,
             refreshToken: refreshToken,
             issuerMetadataCache: {
@@ -97,13 +90,14 @@ export const useOpenID = ({
 
         return credential
       } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : String(err)
         const error = new BifoldError(
           t('Error.Title1024'),
-          t('Error.Message1024'),
-          (err as Error)?.message ?? err,
+          errorMessage,
+          errorMessage,
           1043
         )
-        DeviceEventEmitter.emit(EventTypes.ERROR_ADDED, error)
+        DeviceEventEmitter.emit(EventTypes.OPENID_CONNECTION_ERROR, error)
       }
     },
     [agent, t]
@@ -117,17 +111,18 @@ export const useOpenID = ({
       try {
         const record = await getCredentialsForProofRequest({
           agent: agent,
-          uri: uri,
+          request: uri,
         })
         return record
       } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : String(err)
         const error = new BifoldError(
           t('Error.Title1043'),
-          t('Error.Message1043'),
-          (err as Error)?.message ?? err,
+          errorMessage,
+          errorMessage,
           1043
         )
-        DeviceEventEmitter.emit(EventTypes.ERROR_ADDED, error)
+        DeviceEventEmitter.emit(EventTypes.OPENID_CONNECTION_ERROR, error)
       }
     },
     [agent, t]

@@ -1,4 +1,4 @@
-import { useAgent } from '@credo-ts/react-hooks'
+import { useAgent } from '@bifold/react-hooks'
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -62,7 +62,7 @@ const PasteUrl: React.FC<PasteProps> = ({ navigation }) => {
         enableImplicitInvitations,
         enableReuseConnections
       )
-    } catch (err: unknown) {
+    } catch {
       setErrorMessage({ title: t('PasteUrl.ErrorInvalidUrl'), message: t('PasteUrl.ErrorInvalidUrlDescription') })
     }
   }

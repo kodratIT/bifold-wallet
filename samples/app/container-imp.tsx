@@ -76,8 +76,7 @@ export class AppContainer implements Container {
         throw new Error(`Error generating hash for PIN ${String((error as Error)?.message ?? error)}`)
       }
     })
-    */
-
+    */ 
     return this
   }
 

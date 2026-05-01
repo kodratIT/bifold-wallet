@@ -159,6 +159,8 @@
     "Message1048": "There was a problem with the proof request. (FR)",
     "Title1049": "Unable to change PIN. (FR)",
     "Message1049": "There was a problem while attempting to change your PIN. (FR)",
+    "Title1050": "Unable to access biometrics (FR)",
+    "Message1050": "There was a problem while attempting to access this device' biometrics (FR)",
     "GenericError": {
       "Title": "Something went wrong (FR)",
       "Message": "There was an unexpected error, please try again later. (FR)"
@@ -756,7 +758,10 @@
     "CredentialForProofIsRevoked": "revoked credential (FR)",
     "ProofRequestStateError": "The proof request received is in: {{state}}, decline this proof and try again. (FR)",
     "ProofRequestErrorMessage": "Something went wrong with the proof request. (FR)",
-    "PleaseAddress": " Please address them before continuing. (FR)"
+    "PleaseAddress": " Please address them before continuing. (FR)",
+    "DetailsHeader": "Information Requested (FR)",
+    "OID4VCTitle": "Information Request (FR)",
+    "UseDifferentCard": "Use different card (FR)"
   },
   "UnsatisfiedProofRequest": {
     "Title": "Information Request (FR)",
@@ -793,12 +798,18 @@
     "FiveMinutes": "Five Minutes (FR)",
     "ThreeMinutes": "Three Minutes (FR)",
     "OneMinute": "One Minute (FR)",
-    "Never": "Never (FR)"
+    "Never": "Never (FR)",
+    "Preview": "{{autoLockTime}} min (FR)"
   },
   "TabStack": {
     "Home": "Notifications",
     "Scan": "Numériser",
     "Credentials": "Justificatifs"
+  },
+  "TabStackAccessibility": {
+    "Home": "Notifications tab {{notifications}} notifications (FR)",
+    "Scan": "Scan tab (FR)",
+    "Credentials": "Credentials tab (FR)"
   },
   "RootStack": {
     "Contacts": "Contacts",

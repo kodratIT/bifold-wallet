@@ -1,4 +1,5 @@
-import { CredentialExchangeRecord, MdocRecord, SdJwtVcRecord, W3cCredentialRecord } from '@credo-ts/core'
+import { MdocRecord, SdJwtVcRecord, W3cCredentialRecord, W3cV2CredentialRecord } from '@credo-ts/core'
+import { DidCommCredentialExchangeRecord as CredentialExchangeRecord } from '@credo-ts/didcomm'
 import startCase from 'lodash.startcase'
 import {
   WalletCredentialCardData,
@@ -167,7 +168,7 @@ export function mapW3CToCard(input: W3CInput, id: string): WalletCredentialCardD
       key,
       label,
       value,
-      format: isDataUrl(val) ? 'image' : format ?? 'text',
+      format: isDataUrl(val) ? 'image' : (format ?? 'text'),
       isPII: input.piiKeys?.includes(key) ?? false,
     }
   })
@@ -210,7 +211,7 @@ export function mapW3CToCard(input: W3CInput, id: string): WalletCredentialCardD
  */
 
 const resolveBundleForW3CCredential = async (
-  credential: SdJwtVcRecord | W3cCredentialRecord | MdocRecord,
+  credential: SdJwtVcRecord | W3cCredentialRecord | W3cV2CredentialRecord | MdocRecord,
   bundleResolver: OCABundleResolverType
 ): Promise<CredentialOverlay<BrandingOverlay>> => {
   const credentialDisplay = getCredentialForDisplay(credential)
@@ -236,8 +237,8 @@ const resolveBundleForW3CCredential = async (
     capture_base: 'none',
     type: BrandingOverlayType.Branding10,
     primary_background_color: credentialDisplay.display.backgroundColor,
-    background_image: credentialDisplay.display.backgroundImage?.url,
-    logo: credentialDisplay.display.logo?.url,
+    background_image: credentialDisplay.display.backgroundImage?.uri,
+    logo: credentialDisplay.display.logo?.uri,
   })
   const ocaBundle: CredentialOverlay<BrandingOverlay> = {
     ..._bundle,
@@ -249,7 +250,7 @@ const resolveBundleForW3CCredential = async (
 }
 
 const mapW3CCredToCard = (
-  w3cCred: W3cCredentialRecord | SdJwtVcRecord | MdocRecord,
+  w3cCred: W3cCredentialRecord | W3cV2CredentialRecord | SdJwtVcRecord | MdocRecord,
   brandingOverlay: CredentialOverlay<BrandingOverlay>,
   brandingOverlayTypeString: string
 ): WalletCredentialCardData => {
@@ -260,7 +261,7 @@ const mapW3CCredToCard = (
 
   const input = {
     vc: {
-      issuer: credentialDisplay.display.description,
+      issuer: credentialDisplay.display.issuer,
       type: credentialDisplay.metadata.type ? [credentialDisplay.metadata.type] : ['VerifiableCredential'],
       credentialSubject: credentialDisplay.credentialSubject,
       name: credentialDisplay.display.name,
@@ -322,6 +323,7 @@ export async function mapCredentialTypeToCard({
   //W3C case
   if (
     credential instanceof W3cCredentialRecord ||
+    credential instanceof W3cV2CredentialRecord ||
     credential instanceof SdJwtVcRecord ||
     credential instanceof MdocRecord
   ) {
@@ -349,10 +351,14 @@ export async function mapCredentialTypeToCard({
   const overlay: CredentialOverlay<BrandingOverlay | BaseOverlay | LegacyBrandingOverlay> =
     await bundleResolver.resolveAllBundles(params)
 
+  const resolvedBundle = (overlay as any)?.bundle?.bundle ?? (overlay as any)?.bundle
+  const overlayBundle = resolvedBundle?.bundle ?? resolvedBundle
+  const flagged = overlayBundle?.flaggedAttributes ?? resolvedBundle?.captureBase?.flaggedAttributes ?? []
+
   const bundleLite = {
     labels: overlay?.bundle?.labelOverlay?.attributeLabels,
     formats: Object.fromEntries(((overlay.bundle as any)?.attributes ?? []).map((a: any) => [a.name, a.format])),
-    flaggedPII: (overlay as any).bundle.bundle.flaggedAttributes?.map((a: any) => a.name),
+    flaggedPII: flagged.map((a: any) => a.name),
     primaryAttributeKey: (overlay as CredentialOverlay<BrandingOverlay>)?.brandingOverlay?.primaryAttribute,
     secondaryAttributeKey: (overlay as CredentialOverlay<BrandingOverlay>)?.brandingOverlay?.secondaryAttribute,
     issuer: overlay?.metaOverlay?.issuer,

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 // Mock dependencies BEFORE any imports
-jest.mock('@credo-ts/react-hooks', () => ({
+jest.mock('@bifold/react-hooks', () => ({
   useAgent: jest.fn(),
 }))
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
@@ -52,7 +52,7 @@ import React from 'react'
 import { create, act } from 'react-test-renderer'
 import { RestoreWalletScreen } from '../screens/RestoreWalletScreen'
 import { BackupService, RestoreStatus } from '../services/BackupService'
-import { useAgent } from '@credo-ts/react-hooks'
+import { useAgent } from '@bifold/react-hooks'
 import { useAuth } from '../../../core/src/contexts/auth'
 
 describe('RestoreWalletScreen', () => {

@@ -2,9 +2,7 @@
 
 exports[`DismissiblePopupModal Component Renders correctly with call to action 1`] = `
 <Modal
-  hardwareAccelerated={false}
   transparent={true}
-  visible={true}
 >
   <View
     accessibilityState={
@@ -358,7 +356,6 @@ exports[`DismissiblePopupModal Component Renders correctly with call to action 1
                         },
                         false,
                         false,
-                        false,
                       ],
                     ]
                   }
@@ -377,9 +374,7 @@ exports[`DismissiblePopupModal Component Renders correctly with call to action 1
 
 exports[`DismissiblePopupModal Component Renders correctly without call to action 1`] = `
 <Modal
-  hardwareAccelerated={false}
   transparent={true}
-  visible={true}
 >
   <View
     accessibilityState={

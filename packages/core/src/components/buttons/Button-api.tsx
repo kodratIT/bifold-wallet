@@ -1,4 +1,5 @@
-import { TouchableOpacity } from 'react-native'
+import React from 'react'
+import { View } from 'react-native'
 
 export enum ButtonType {
   Critical,
@@ -20,6 +21,7 @@ export interface ButtonProps extends React.PropsWithChildren {
   testID?: string
   onPress?: (...args: any[]) => void
   disabled?: boolean
+  ref?: React.Ref<View>
 }
 
 export enum ButtonState {
@@ -43,4 +45,4 @@ const styles: stylesType = StyleSheet.create({
   [ButtonType.ModalSecondary]: {},
 })
 */
-export type Button = React.FC<ButtonProps & React.RefAttributes<TouchableOpacity>>
+export type Button = React.FC<ButtonProps>

@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
 import { View, Text, Button, TextInput, ActivityIndicator, StyleSheet, ScrollView, Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useAgent } from '@credo-ts/react-hooks'
+import { useAgent } from '@bifold/react-hooks'
 import { container } from 'tsyringe'
-import { WalletConfig } from '@credo-ts/core'
-import { BackupService, RestoreStatus } from '../services/BackupService'
+import { BackupService, RestoreStatus, WalletConfig } from '../services/BackupService'
 import { useAuth } from '../../../core/src/contexts/auth'
 import { walletId } from '../../../core/src/constants'
 

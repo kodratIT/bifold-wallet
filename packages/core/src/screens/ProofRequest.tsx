@@ -3,17 +3,21 @@ import {
   AnonCredsCredentialsForProofRequest,
   AnonCredsRequestedAttributeMatch,
   AnonCredsRequestedPredicateMatch,
-  V1RequestPresentationMessage,
+  DidCommRequestPresentationV1Message,
 } from '@credo-ts/anoncreds'
 import {
-  CredentialExchangeRecord,
-  CredentialRecordBinding,
   DifPexInputDescriptorToCredentials,
   CredoError,
-  V2RequestPresentationMessage,
-  ProofState,
+  SubmissionEntryCredential,
+  ClaimFormat,
 } from '@credo-ts/core'
-import { useConnectionById, useProofById } from '@credo-ts/react-hooks'
+import { useConnectionById, useProofById } from '@bifold/react-hooks'
+import {
+  DidCommCredentialExchangeRecord,
+  CredentialRecordBinding,
+  DidCommRequestPresentationV2Message,
+  DidCommProofState
+} from '@credo-ts/didcomm'
 import { Attribute, Predicate } from '@bifold/oca/build/legacy'
 import { useIsFocused } from '@react-navigation/native'
 import moment from 'moment'
@@ -31,7 +35,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import Button, { ButtonType } from '../components/buttons/Button'
-import { CredentialCard } from '../components/misc'
 import ConnectionImage from '../components/misc/ConnectionImage'
 import InfoBox, { InfoBoxType } from '../components/misc/InfoBox'
 import CommonRemoveModal from '../components/modals/CommonRemoveModal'
@@ -80,6 +83,7 @@ import { HistoryCardType, HistoryRecord } from '../modules/history/types'
 import { BaseTourID } from '../types/tour'
 import { ThemedText } from '../components/texts/ThemedText'
 import { CredentialErrors } from '../types/credentials'
+import CredentialCardGen from '../components/misc/CredentialCardGen'
 
 type ProofRequestProps = {
   navigation: any
@@ -87,8 +91,8 @@ type ProofRequestProps = {
 }
 
 type CredentialListProps = {
-  header?: JSX.Element
-  footer?: JSX.Element
+  header?: React.ReactElement | null
+  footer?: React.ReactElement | null
   items: ProofCredentialItems[]
   missing: boolean
 }
@@ -205,7 +209,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
   })
 
   useEffect(() => {
-    if (proof && proof?.state !== ProofState.RequestReceived) {
+    if (proof && proof?.state !== DidCommProofState.RequestReceived) {
       setShowErrorModal(true)
     }
   }, [t, proof])
@@ -263,7 +267,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
   }, [agent, proof, t])
 
   const containsRevokedCreds = (
-    credExRecords: CredentialExchangeRecord[],
+    credExRecords: DidCommCredentialExchangeRecord[],
     fields: {
       [key: string]: Attribute[] & Predicate[]
     }
@@ -308,6 +312,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
         value = await credProofPromise
 
         if (!value) {
+          setLoading(false)
           return
         }
       } catch (err) {
@@ -318,6 +323,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
           1026
         )
         DeviceEventEmitter.emit(EventTypes.ERROR_ADDED, error)
+        setLoading(false)
         return
       }
 
@@ -388,12 +394,12 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       const missingCredentials: ProofCredentialItems[] = []
       const schemaIds = new Set(
         fullCredentials
-          .map((fullCredential: CredentialExchangeRecord) => getCredentialSchemaIdForRecord(fullCredential))
+          .map((fullCredential: DidCommCredentialExchangeRecord) => getCredentialSchemaIdForRecord(fullCredential))
           .filter((id) => id !== null)
       )
       const credDefIds = new Set(
         fullCredentials
-          .map((fullCredential: CredentialExchangeRecord) => getCredentialDefinitionIdForRecord(fullCredential))
+          .map((fullCredential: DidCommCredentialExchangeRecord) => getCredentialDefinitionIdForRecord(fullCredential))
           .filter((id) => id !== null)
       )
       activeCreds.forEach((cred) => {
@@ -412,7 +418,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       setMissingCredentials(missingCredentials)
 
       // Check for revoked credentials
-      const records = fullCredentials.filter((record: CredentialExchangeRecord) =>
+      const records = fullCredentials.filter((record: DidCommCredentialExchangeRecord) =>
         record.credentials.some((cred: CredentialRecordBinding) => credList.includes(cred.credentialRecordId))
       )
       const foundRevocationOffense = containsRevokedCreds(records, unpackCredToField(activeCreds))
@@ -439,12 +445,20 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       if (!item || !(item.credDefId || item.schemaId)) {
         return false
       }
-      const labels = (item.attributes ?? []).map((field) => field.label ?? field.name ?? '')
+      const labels = (item.attributes ?? []).flatMap((field) => [field.label, field.name].filter(Boolean) as string[])
       const bundle = await bundleResolver.resolveAllBundles({
         identifiers: { credentialDefinitionId: item.credDefId, schemaId: item.schemaId },
       })
-      const flaggedAttributes: string[] = (bundle as any).bundle.bundle.flaggedAttributes.map((attr: any) => attr.name)
-      const foundPI = labels.some((label) => flaggedAttributes.includes(label))
+      const resolvedBundle = (bundle as any)?.bundle
+      const overlayBundle = resolvedBundle?.bundle ?? resolvedBundle
+      const flagged = overlayBundle?.flaggedAttributes ?? resolvedBundle?.captureBase?.flaggedAttributes
+      const flaggedNames =
+        Array.isArray(flagged) && flagged.every((item: unknown) => typeof item === 'string')
+          ? flagged
+          : Array.isArray(flagged)
+            ? flagged.map((attr: any) => attr?.name).filter(Boolean)
+            : []
+      const foundPI = labels.some((label) => flaggedNames.includes(label))
       setContainsPI(foundPI)
       return foundPI
     })
@@ -479,9 +493,9 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
           return
         }
 
-        let message: V2RequestPresentationMessage | V1RequestPresentationMessage | null | undefined
+        let message: DidCommRequestPresentationV2Message | DidCommRequestPresentationV1Message | null | undefined
         try {
-          message = await agent?.proofs.findRequestMessage(proofId)
+          message = await agent?.modules.didcomm.proofs.findRequestMessage(proofId)
         } catch (error) {
           logger.error('Error finding request message:', error as CredoError)
         }
@@ -509,7 +523,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       if (!retrievedCredentials) {
         throw new Error(t('ProofRequest.RequestedCredentialsCouldNotBeFound'))
       }
-      const format = await agent.proofs.getFormatData(proof!.id)
+      const format = await agent.modules.didcomm.proofs.getFormatData(proof!.id)
 
       if (format.request?.presentationExchange) {
         if (!descriptorMetadata) throw new Error(t('ProofRequest.PresentationMetadataNotFound'))
@@ -518,18 +532,24 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
           Object.entries(descriptorMetadata).map(([descriptorId, meta]) => {
             const activeCredentialIds = activeCreds.map((cred) => cred.credId)
             const selectedRecord = meta.find((item) => activeCredentialIds.includes(item.record.id))
-            if (!selectedRecord) throw new Error(t('ProofRequest.CredentialMetadataNotFound'))
-            return [descriptorId, [selectedRecord.record]]
+            if (!selectedRecord) { 
+              throw new Error(t('ProofRequest.CredentialMetadataNotFound'))
+            }
+            const recordReturn: SubmissionEntryCredential = {
+              claimFormat: ClaimFormat.JwtVc,
+              credentialRecord: selectedRecord.record
+            }
+            return [descriptorId, [recordReturn]]
           })
         )
 
-        await agent.proofs.acceptRequest({
-          proofRecordId: proof!.id,
+        await agent.modules.didcomm.proofs.acceptRequest({
+          proofExchangeRecordId: proof!.id,
           proofFormats: { presentationExchange: { credentials: selectedCredentials } },
         })
 
-        if (proof?.connectionId && goalCode?.endsWith('verify.once')) {
-          agent.connections.deleteById(proof!.connectionId)
+        if (proof!.connectionId && goalCode?.endsWith('verify.once')) {
+          agent.modules.didcomm.connections.deleteById(proof!.connectionId)
         }
         return
       }
@@ -570,12 +590,12 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
         throw new Error(t('ProofRequest.RequestedCredentialsCouldNotBeFound'))
       }
 
-      await agent.proofs.acceptRequest({
-        proofRecordId: proof!.id,
+      await agent.modules.didcomm.proofs.acceptRequest({
+        proofExchangeRecordId: proof!.id,
         proofFormats: automaticRequestedCreds.proofFormats,
       })
-      if (proof?.connectionId && goalCode?.endsWith('verify.once')) {
-        agent.connections.deleteById(proof!.connectionId)
+      if (proof!.connectionId && goalCode?.endsWith('verify.once')) {
+        agent.modules.didcomm.connections.deleteById(proof!.connectionId)
       }
 
       if (historyEventsLogger.logInformationSent) {
@@ -646,16 +666,16 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
     try {
       if (agent && proof) {
         const connectionId = proof.connectionId ?? ''
-        const connection = await agent.connections.findById(connectionId)
+        const connection = await agent.modules.didcomm.connections.findById(connectionId)
 
         if (connection) {
-          await agent.proofs.sendProblemReport({ proofRecordId: proof.id, description: t('ProofRequest.Declined') })
+          await agent.modules.didcomm.proofs.sendProblemReport({ proofExchangeRecordId: proof.id, description: t('ProofRequest.Declined') })
         }
 
-        await agent.proofs.declineRequest({ proofRecordId: proof.id })
+        await agent.modules.didcomm.proofs.declineRequest({ proofExchangeRecordId: proof.id })
 
         if (connectionId && goalCode?.endsWith('verify.once')) {
-          agent.connections.deleteById(connectionId)
+          agent.modules.didcomm.connections.deleteById(connectionId)
         }
       }
     } catch (err: unknown) {
@@ -685,11 +705,11 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       toggleCancelModalVisible()
 
       if (agent && proof) {
-        await agent.proofs.sendProblemReport({ proofRecordId: proof.id, description: t('ProofRequest.Declined') })
-        await agent.proofs.declineRequest({ proofRecordId: proof.id })
+        await agent.modules.didcomm.proofs.sendProblemReport({ proofExchangeRecordId: proof.id, description: t('ProofRequest.Declined') })
+        await agent.modules.didcomm.proofs.declineRequest({ proofExchangeRecordId: proof.id })
 
         if (proof.connectionId && goalCode?.endsWith('verify.once')) {
-          agent.connections.deleteById(proof.connectionId)
+          agent.modules.didcomm.connections.deleteById(proof.connectionId)
         }
       }
     } catch (err: unknown) {
@@ -720,7 +740,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       hasCredentialError: !hasAvailableCredentials,
       hasSatisfiedPredicateError: !hasSatisfiedPredicates(getCredentialsFields()),
       hasRevokedOffense: revocationOffense,
-      hasProofStateReceivedError: proof?.state !== ProofState.RequestReceived,
+      hasProofStateReceivedError: proof?.state !== DidCommProofState.RequestReceived,
     }
   }, [hasAvailableCredentials, hasSatisfiedPredicates, getCredentialsFields, revocationOffense, proof])
 
@@ -919,7 +939,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
               {loading || attestationLoading ? null : (
                 <View style={{ marginVertical: 10, marginHorizontal: 20 }}>
                   {/*  Use for new arch CredentialCardGen */}
-                  <CredentialCard
+                  <CredentialCardGen
                     credential={item.credExchangeRecord}
                     credDefId={item.credDefId}
                     schemaId={item.schemaId}

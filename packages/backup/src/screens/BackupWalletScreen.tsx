@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, Button, ActivityIndicator, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native'
-import { useAgent } from '@credo-ts/react-hooks'
+import { useAgent } from '@bifold/react-hooks'
 import { container } from 'tsyringe'
 import Clipboard from '@react-native-clipboard/clipboard'
 import { BackupService } from '../services/BackupService'

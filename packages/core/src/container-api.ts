@@ -110,7 +110,6 @@ export const FN_TOKENS = {
   COMPONENT_CRED_LIST_HEADER_RIGHT: 'fn.credListHeaderRight',
   COMPONENT_CRED_LIST_OPTIONS: 'fn.credListOptions',
   COMPONENT_CRED_LIST_FOOTER: 'fn.credListFooter',
-  FN_PIN_HASH_ALGORITHM: 'fn.pinHashAlgorithm',
 } as const
 
 export const HISTORY_TOKENS = {
@@ -163,6 +162,16 @@ export const TRUST_REGISTRY_TOKENS = {
   TRUST_REGISTRY_CONFIG: 'trust-registry.config',
 } as const
 
+export const CRYPTO_TOKENS = {
+  FN_PIN_HASH_ALGORITHM: 'fn.crypto.pin-hash-algorithm',
+} as const
+
+export const ATTESTATION_TOKENS = {
+  ATTESTATION_FUNCTIONS: 'attestation.functions',
+  FN_ATTESTATION_GET_CHALLENGE: 'attestation.get-challenge',
+  FN_ATTESTATION_GET_JWT: 'attestation.get-jwt',
+} as const
+
 export const TOKENS = {
   ...PROOF_TOKENS,
   ...COMPONENT_TOKENS,
@@ -181,10 +190,14 @@ export const TOKENS = {
   ...CONFIG_TOKENS,
   ...HISTORY_TOKENS,
   ...TRUST_REGISTRY_TOKENS,
+  ...CRYPTO_TOKENS,
+  ...ATTESTATION_TOKENS,
 } as const
 
 export type FN_HISTORY_MANAGER = (agent: Agent<any>) => IHistoryManager
 export type FN_PIN_HASH_ALGORITHM = (PIN: string, salt: string) => Promise<string>
+export type FN_ATTESTATION_GET_CHALLENGE = () => Promise<string>
+export type FN_ATTESTATION_GET_JWT = (attestationResult: string | string[], challenge: string, keyId: string) => Promise<any>
 
 export type TokenMapping = {
   [TOKENS.CRED_HELP_ACTION_OVERRIDES]: {
@@ -266,6 +279,8 @@ export type TokenMapping = {
     onClose: () => void
     message?: string
   }>
+  [TOKENS.FN_ATTESTATION_GET_CHALLENGE]: FN_ATTESTATION_GET_CHALLENGE
+  [TOKENS.FN_ATTESTATION_GET_JWT]: FN_ATTESTATION_GET_JWT
 }
 
 export interface Container {

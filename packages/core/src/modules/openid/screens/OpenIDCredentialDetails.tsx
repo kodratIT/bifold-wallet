@@ -10,7 +10,7 @@ import { testIdWithKey } from '../../../utils/testable'
 import { useTheme } from '../../../contexts/theme'
 import { BifoldError } from '../../../types/error'
 import { EventTypes } from '../../../constants'
-import { useAgent } from '@credo-ts/react-hooks'
+import { useAgent } from '@bifold/react-hooks'
 import RecordRemove from '../../../components/record/RecordRemove'
 import { useOpenIDCredentials } from '../context/OpenIDCredentialRecordProvider'
 import { CredentialOverlay } from '@bifold/oca/build/legacy'
@@ -18,13 +18,13 @@ import { OpenIDCredentialType, W3cCredentialDisplay } from '../types'
 import { TOKENS, useServices } from '../../../container-api'
 import { BrandingOverlay } from '@bifold/oca'
 import Record from '../../../components/record/Record'
-import { SdJwtVcRecord, W3cCredentialRecord } from '@credo-ts/core'
 import { buildOverlayFromW3cCredential } from '../../../utils/oca'
 import CredentialDetailSecondaryHeader from '../../../components/views/CredentialDetailSecondaryHeader'
 import CredentialCardLogo from '../../../components/views/CredentialCardLogo'
 import CredentialDetailPrimaryHeader from '../../../components/views/CredentialDetailPrimaryHeader'
 import ScreenLayout from '../../../layout/ScreenLayout'
 import OpenIDCredentialCard from '../components/OpenIDCredentialCard'
+import { OpenIDCredentialRecord } from '../credentialRecord'
 
 export enum OpenIDCredScreenMode {
   offer,
@@ -39,12 +39,13 @@ const paddingVertical = 16
 const OpenIDCredentialDetails: React.FC<OpenIDCredentialDetailsProps> = ({ navigation, route }) => {
   const { credentialId, type } = route.params
 
-  const [credential, setCredential] = useState<W3cCredentialRecord | SdJwtVcRecord | undefined>(undefined)
+  const [credential, setCredential] = useState<OpenIDCredentialRecord | undefined>(undefined)
   const [credentialDisplay, setCredentialDisplay] = useState<W3cCredentialDisplay>()
   const { t, i18n } = useTranslation()
   const { ColorPalette, TextTheme } = useTheme()
   const { agent } = useAgent()
-  const { removeCredential, getW3CCredentialById, getSdJwtCredentialById } = useOpenIDCredentials()
+  const { removeCredential, getW3CCredentialById, getSdJwtCredentialById, getMdocCredentialById } =
+    useOpenIDCredentials()
   const [bundleResolver] = useServices([TOKENS.UTIL_OCA_RESOLVER])
 
   const [isRemoveModalDisplayed, setIsRemoveModalDisplayed] = useState(false)
@@ -74,16 +75,18 @@ const OpenIDCredentialDetails: React.FC<OpenIDCredentialDetailsProps> = ({ navig
     const fetchCredential = async () => {
       if (credentialRemoved) return
       try {
-        let record: SdJwtVcRecord | W3cCredentialRecord | undefined
+        let record: OpenIDCredentialRecord | undefined
 
         if (type === OpenIDCredentialType.SdJwtVc) {
           record = await getSdJwtCredentialById(credentialId)
+        } else if (type === OpenIDCredentialType.Mdoc) {
+          record = await getMdocCredentialById(credentialId)
         } else {
           record = await getW3CCredentialById(credentialId)
         }
 
         setCredential(record)
-      } catch (error) {
+      } catch {
         // credential not found for id, display an error
         DeviceEventEmitter.emit(
           EventTypes.ERROR_ADDED,
@@ -92,7 +95,16 @@ const OpenIDCredentialDetails: React.FC<OpenIDCredentialDetailsProps> = ({ navig
       }
     }
     fetchCredential()
-  }, [credentialId, type, getSdJwtCredentialById, getW3CCredentialById, agent, t, credentialRemoved])
+  }, [
+    credentialId,
+    type,
+    getSdJwtCredentialById,
+    getMdocCredentialById,
+    getW3CCredentialById,
+    agent,
+    t,
+    credentialRemoved,
+  ])
 
   useEffect(() => {
     if (!credential) return
@@ -100,7 +112,7 @@ const OpenIDCredentialDetails: React.FC<OpenIDCredentialDetailsProps> = ({ navig
     try {
       const credDisplay = getCredentialForDisplay(credential)
       setCredentialDisplay(credDisplay)
-    } catch (error) {
+    } catch {
       DeviceEventEmitter.emit(
         EventTypes.ERROR_ADDED,
         new BifoldError(t('Error.Title1033'), t('Error.Message1033'), t('CredentialDetails.CredentialNotFound'), 1034)

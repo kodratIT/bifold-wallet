@@ -1,17 +1,10 @@
-import {
-  Agent,
-  JwaSignatureAlgorithm,
-  Mdoc,
-  MdocRecord,
-  SdJwtVcRecord,
-  W3cCredentialRecord,
-  W3cJsonLdVerifiableCredential,
-  W3cJwtVerifiableCredential,
-} from '@credo-ts/core'
+import { Agent } from '@credo-ts/core'
 import { RefreshResponse } from '../types'
 import {
   OpenId4VciCredentialBindingOptions,
-  OpenId4VciCredentialSupportedWithId,
+  OpenId4VciCredentialResponse,
+  OpenId4VciDeferredCredentialResponse,
+  OpenId4VciDpopRequestOptions,
   OpenId4VciResolvedCredentialOffer,
 } from '@credo-ts/openid4vc'
 import { customCredentialBindingResolver } from '../offerResolve'
@@ -23,16 +16,15 @@ import {
   setRefreshCredentialMetadata,
 } from '../metadata'
 import { RefreshStatus } from './types'
+import { OpenIDCredentialRecord } from '../credentialRecord'
 
 type ReissueWithAccessTokenInput = {
   agent: Agent
   logger: BifoldLogger
-  record?: SdJwtVcRecord | W3cCredentialRecord | MdocRecord
+  record?: OpenIDCredentialRecord
   tokenResponse: RefreshResponse
   resolvedOffer?: OpenId4VciResolvedCredentialOffer
   clientId?: string
-  // optional: pass to your resolver if you need PID schemes again
-  pidSchemes?: { sdJwtVcVcts: string[]; msoMdocDoctypes: string[] }
 }
 
 export async function reissueCredentialWithAccessToken({
@@ -41,8 +33,7 @@ export async function reissueCredentialWithAccessToken({
   record,
   tokenResponse,
   clientId,
-  pidSchemes,
-}: ReissueWithAccessTokenInput): Promise<W3cCredentialRecord | SdJwtVcRecord | MdocRecord | undefined> {
+}: ReissueWithAccessTokenInput): Promise<OpenIDCredentialRecord | undefined> {
   if (!record) {
     throw new Error('No credential record provided for re-issuance.')
   }
@@ -63,56 +54,60 @@ export async function reissueCredentialWithAccessToken({
 
   logger.info('*** Starting to get new credential via re-issuance flow ***')
   // Request a **new** credential using the *existing* configuration id
-  const creds = await agent.modules.openId4VcHolder.requestCredentials({
+  type credsRet = {
+    credentials: OpenId4VciCredentialResponse[]
+    deferredCredentials: OpenId4VciDeferredCredentialResponse[]
+    dpop?: OpenId4VciDpopRequestOptions
+    cNonce?: string
+  }
+
+  const creds: credsRet = await agent.openid4vc.holder.requestCredentials({
     resolvedCredentialOffer,
     accessToken: tokenResponse.access_token,
     tokenType: tokenResponse.token_type || 'Bearer',
     cNonce: tokenResponse.c_nonce,
     clientId,
-    credentialsToRequest: [credentialConfigurationId],
+    credentialConfigurationIds: [credentialConfigurationId],
     verifyCredentialStatus: false, // you’ll check after storing
-    allowedProofOfPossessionSignatureAlgorithms: [JwaSignatureAlgorithm.EdDSA, JwaSignatureAlgorithm.ES256],
+    allowedProofOfPossessionSignatureAlgorithms: ['EdDSA', 'ES256'],
     credentialBindingResolver: async (opts: OpenId4VciCredentialBindingOptions) =>
       customCredentialBindingResolver({
         agent,
         supportedDidMethods: opts.supportedDidMethods,
-        keyType: opts.keyType,
+        proofTypes: opts.proofTypes,
         supportsAllDidMethods: opts.supportsAllDidMethods,
         supportsJwk: opts.supportsJwk,
         credentialFormat: opts.credentialFormat,
-        supportedCredentialId: opts.supportedCredentialId,
-        resolvedCredentialOffer: resolvedCredentialOffer,
-        pidSchemes,
       }),
   })
 
   logger.info('*** New credential received via re-issuance flow ***.')
 
   // Normalize to your local record types
-  const [firstCredential] = creds
+  const [firstCredential] = creds.credentials
   if (!firstCredential || typeof firstCredential === 'string') {
     throw new Error('Issuer returned empty or malformed credential on re-issuance.')
   }
 
-  let newRecord: SdJwtVcRecord | W3cCredentialRecord | MdocRecord
-  if ('compact' in firstCredential.credential) {
-    newRecord = new SdJwtVcRecord({ compactSdJwtVc: firstCredential.credential.compact })
-  } else if ((firstCredential as any)?.credential instanceof Mdoc) {
-    newRecord = new MdocRecord({ mdoc: firstCredential.credential })
-  } else {
-    newRecord = new W3cCredentialRecord({
-      credential: firstCredential.credential as W3cJwtVerifiableCredential | W3cJsonLdVerifiableCredential,
-      tags: {},
-    })
-  }
+  const newRecord: OpenIDCredentialRecord = firstCredential.record
+  // if ('compact' in firstCredential) {
+  //   newRecord = new SdJwtVcRecord({ c })
+  // } else if ((firstCredential as any)?.credential instanceof Mdoc) {
+  //   newRecord = new MdocRecord({ mdoc: firstCredential.credential })
+  // } else {
+  //   newRecord = new W3cCredentialRecord({
+  //     credential: firstCredential.credential as W3cJwtVerifiableCredential | W3cJsonLdVerifiableCredential,
+  //     tags: {},
+  //   })
+  // }
 
-  const openId4VcMetadata = extractOpenId4VcCredentialMetadata(
-    resolvedCredentialOffer.offeredCredentials[0] as OpenId4VciCredentialSupportedWithId,
-    {
-      id: resolvedCredentialOffer.metadata.issuer,
-      display: resolvedCredentialOffer.metadata.credentialIssuerMetadata.display,
-    }
-  )
+  const requestedCredentialConfiguration =
+    resolvedCredentialOffer.offeredCredentialConfigurations[credentialConfigurationId]
+
+  const openId4VcMetadata = extractOpenId4VcCredentialMetadata(requestedCredentialConfiguration as any, {
+    id: resolvedCredentialOffer.metadata.credentialIssuer.credential_issuer,
+    display: resolvedCredentialOffer.metadata.credentialIssuer.display,
+  })
 
   setOpenId4VcCredentialMetadata(newRecord, openId4VcMetadata)
 

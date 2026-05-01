@@ -1,3 +1,4 @@
+import React from 'react'
 import { ParamListBase, RouteConfig, StackNavigationState } from '@react-navigation/native'
 import { StackNavigationOptions, TransitionPresets } from '@react-navigation/stack'
 import type { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types'
@@ -60,7 +61,7 @@ export const getOnboardingScreens = (
   },
   {
     name: Screens.Onboarding,
-    children: components.OnboardingScreen,
+    component: components.OnboardingScreen,
     options: () => ({
       ...TransitionPresets.SlideFromRightIOS,
       title: t('Screens.Onboarding'),
@@ -80,7 +81,7 @@ export const getOnboardingScreens = (
   },
   {
     name: Screens.CreatePIN,
-    children: components.CreatePINScreen,
+    component: components.CreatePINScreen,
     initialParams: {},
     options: () => ({
       ...TransitionPresets.SlideFromRightIOS,
@@ -120,7 +121,7 @@ export const getOnboardingScreens = (
   },
   {
     name: Screens.EnterPIN,
-    children: components.EnterPINScreen,
+    component: components.EnterPINScreen,
     options: () => ({
       title: t('Screens.EnterPIN'),
       headerShown: true,

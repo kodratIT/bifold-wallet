@@ -1,7 +1,6 @@
 import type { StackScreenProps } from '@react-navigation/stack'
-
-import { CredentialExchangeRecord } from '@credo-ts/core'
-import { useAgent } from '@credo-ts/react-hooks'
+import { useAgent } from '@bifold/react-hooks'
+import { DidCommCredentialExchangeRecord } from '@credo-ts/didcomm'
 import { BrandingOverlay } from '@bifold/oca'
 import { Attribute, BrandingOverlayType, CredentialOverlay } from '@bifold/oca/build/legacy'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -11,7 +10,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
 import { useStore } from '../contexts/store'
 
-import CredentialCard from '../components/misc/CredentialCard'
 import InfoBox, { InfoBoxType } from '../components/misc/InfoBox'
 import CommonRemoveModal from '../components/modals/CommonRemoveModal'
 import Record from '../components/record/Record'
@@ -40,6 +38,7 @@ import CredentialDetailPrimaryHeader from '../components/views/CredentialDetailP
 import CredentialDetailSecondaryHeader from '../components/views/CredentialDetailSecondaryHeader'
 import { ThemedText } from '../components/texts/ThemedText'
 import CardWatermark from '../components/misc/CardWatermark'
+import CredentialCardGen from '../components/misc/CredentialCardGen'
 
 type CredentialDetailsProps = StackScreenProps<
   RootStackParams & ContactStackParams & NotificationStackParams,
@@ -56,8 +55,9 @@ const CredentialDetails: React.FC<CredentialDetailsProps> = ({ navigation, route
 
   const { credentialId } = route.params
   const { width, height } = useWindowDimensions()
-  const [credential, setCredential] = useState<CredentialExchangeRecord | undefined>(undefined)
+  const [credential, setCredential] = useState<DidCommCredentialExchangeRecord | undefined>(undefined)
   const { agent } = useAgent()
+  const didcommCredentials = (agent as any)?.modules?.didcomm?.credentials ?? (agent as any)?.credentials
   const { t, i18n } = useTranslation()
   const { ColorPalette, Assets } = useTheme()
   const [bundleResolver, logger, historyManagerCurried, historyEnabled, historyEventsLogger] = useServices([
@@ -88,9 +88,12 @@ const CredentialDetails: React.FC<CredentialDetailsProps> = ({ navigation, route
     // fetch credential for ID
     const fetchCredential = async () => {
       try {
-        const credentialExchangeRecord = await agent?.credentials.getById(credentialId)
+        const credentialExchangeRecord = await didcommCredentials?.getById?.(credentialId)
+        if (!credentialExchangeRecord) {
+          throw new Error('Credential record not found')
+        }
         setCredential(credentialExchangeRecord)
-      } catch (error) {
+      } catch {
         // credential not found for id, display an error
         DeviceEventEmitter.emit(
           EventTypes.ERROR_ADDED,
@@ -99,7 +102,7 @@ const CredentialDetails: React.FC<CredentialDetailsProps> = ({ navigation, route
       }
     }
     fetchCredential()
-  }, [credentialId, agent, t])
+  }, [credentialId, didcommCredentials, t])
 
   const [overlay, setOverlay] = useState<CredentialOverlay<BrandingOverlay>>({
     bundle: undefined,
@@ -211,9 +214,9 @@ const CredentialDetails: React.FC<CredentialDetailsProps> = ({ navigation, route
     if (credential?.revocationNotification) {
       const meta = credential.metadata.get(CredentialMetadata.customMetadata)
       credential.metadata.set(CredentialMetadata.customMetadata, { ...meta, revoked_seen: true })
-      agent?.credentials.update(credential)
+      didcommCredentials?.update?.(credential)
     }
-  }, [credential, agent])
+  }, [credential, didcommCredentials])
 
   const callOnRemove = useCallback(() => {
     setIsRemoveModalDisplayed(true)
@@ -270,7 +273,7 @@ const CredentialDetails: React.FC<CredentialDetailsProps> = ({ navigation, route
         await logHistoryRecord()
       }
 
-      await agent.credentials.deleteById(credential.id)
+      await agent.modules.credentials.deleteById(credential.id)
 
       navigation.pop()
 
@@ -296,11 +299,11 @@ const CredentialDetails: React.FC<CredentialDetailsProps> = ({ navigation, route
     if (credential) {
       const meta = credential.metadata.get(CredentialMetadata.customMetadata)
       credential.metadata.set(CredentialMetadata.customMetadata, { ...meta, revoked_detail_dismissed: true })
-      agent?.credentials.update(credential)
+      didcommCredentials?.update?.(credential)
     }
-  }, [credential, agent])
+  }, [credential, didcommCredentials])
 
-  const CredentialRevocationMessage: React.FC<{ credential: CredentialExchangeRecord }> = ({ credential }) => {
+  const CredentialRevocationMessage: React.FC<{ credential: DidCommCredentialExchangeRecord }> = ({ credential }) => {
     return (
       <InfoBox
         notificationType={InfoBoxType.Error}
@@ -379,7 +382,7 @@ const CredentialDetails: React.FC<CredentialDetailsProps> = ({ navigation, route
             {credential && <CredentialRevocationMessage credential={credential} />}
           </View>
         ) : null}
-        {credential && <CredentialCard credential={credential} style={{ margin: 16 }} />}
+        {credential && <CredentialCardGen credential={credential} style={{ margin: 16 }} />}
       </View>
     ) : (
       <View style={styles.container}>

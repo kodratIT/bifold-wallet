@@ -1,25 +1,23 @@
-import React, { forwardRef, useState } from 'react'
+import React, { useState } from 'react'
 import { TouchableOpacity, View } from 'react-native'
 
 import { useTheme } from '../../contexts/theme'
 
-import { Button, ButtonType, ButtonProps } from './Button-api'
 import { ThemedText } from '../texts/ThemedText'
+import { Button, ButtonProps, ButtonType } from './Button-api'
 
-const ButtonImplComponent = (
-  {
-    title,
-    buttonType,
-    accessibilityLabel,
-    accessibilityHint,
-    testID,
-    onPress,
-    disabled = false,
-    maxfontSizeMultiplier,
-    children,
-  }: ButtonProps,
-  ref: React.LegacyRef<TouchableOpacity>
-) => {
+const ButtonImpl = ({
+  title,
+  buttonType,
+  accessibilityLabel,
+  accessibilityHint,
+  testID,
+  onPress,
+  disabled = false,
+  maxfontSizeMultiplier,
+  children,
+  ref,
+}: ButtonProps) => {
   const { Buttons, heavyOpacity } = useTheme()
   const buttonStyles = {
     [ButtonType.Critical]: {
@@ -83,14 +81,7 @@ const ButtonImplComponent = (
       onPressIn={() => setIsActive(!disabled && true)}
       onPressOut={() => setIsActive(false)}
       testID={testID}
-      style={[
-        buttonStyles[buttonType].color,
-        disabled && buttonStyles[buttonType].colorDisabled,
-        isActive &&
-          (buttonType === ButtonType.Secondary || buttonType === ButtonType.Tertiary) && {
-            backgroundColor: Buttons.primary.backgroundColor,
-          },
-      ]}
+      style={[buttonStyles[buttonType].color, disabled && buttonStyles[buttonType].colorDisabled]}
       disabled={disabled}
       activeOpacity={heavyOpacity}
       ref={ref}
@@ -109,7 +100,6 @@ const ButtonImplComponent = (
             buttonStyles[buttonType].text,
             disabled && buttonStyles[buttonType].textDisabled,
             isActive && { textDecorationLine: 'underline' },
-            isActive && buttonType === ButtonType.Secondary && { color: Buttons.primaryText.color },
           ]}
         >
           {title}
@@ -119,7 +109,7 @@ const ButtonImplComponent = (
   )
 }
 
-const ButtonImpl = forwardRef<TouchableOpacity, ButtonProps>(ButtonImplComponent)
 export default ButtonImpl
-export { ButtonType, ButtonImpl }
+export { ButtonType } from './Button-api'
+export { ButtonImpl }
 export type { Button, ButtonProps }

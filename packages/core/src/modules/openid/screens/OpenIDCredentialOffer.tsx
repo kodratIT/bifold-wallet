@@ -1,7 +1,7 @@
 import { BrandingOverlay } from '@bifold/oca'
 import { CredentialOverlay } from '@bifold/oca/build/legacy'
 import { W3cCredentialRecord } from '@credo-ts/core'
-import { useAgent } from '@credo-ts/react-hooks'
+import { useAgent } from '@bifold/react-hooks'
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -25,6 +25,7 @@ import { NotificationEventType, useOpenId4VciNotifications } from '../notificati
 import { temporaryMetaVanillaObject } from '../metadata'
 import { useAcceptReplacement } from '../hooks/useAcceptReplacement'
 import { useDeclineReplacement } from '../hooks/useDeclineReplacement'
+import uuid from 'react-native-uuid'
 
 type OpenIDCredentialDetailsProps = StackScreenProps<DeliveryStackParams, Screens.OpenIDCredentialOffer>
 
@@ -132,20 +133,22 @@ const OpenIDCredentialOffer: React.FC<OpenIDCredentialDetailsProps> = ({ navigat
   const handleSendNotification = async (notificationEventType: NotificationEventType) => {
     try {
       if (
-        temporaryMetaVanillaObject.notificationMetadata?.notificationId &&
-        temporaryMetaVanillaObject.notificationMetadata?.notificationEndpoint &&
+        temporaryMetaVanillaObject.notificationMetadata?.credentialIssuer.notification_endpoint &&
         temporaryMetaVanillaObject.tokenResponse?.accessToken
       ) {
         await sendOpenId4VciNotification({
           accessToken: temporaryMetaVanillaObject.tokenResponse?.accessToken,
           notificationEvent: notificationEventType,
+          notificationId: uuid.v4().toString(),
           notificationMetadata: {
-            notificationId: temporaryMetaVanillaObject?.notificationMetadata?.notificationId,
-            notificationEndpoint: temporaryMetaVanillaObject?.notificationMetadata?.notificationEndpoint,
+            originalDraftVersion: 'V1' as any,
+            credentialIssuer: temporaryMetaVanillaObject.notificationMetadata?.credentialIssuer,
+            authorizationServers: temporaryMetaVanillaObject.notificationMetadata?.authorizationServers,
+            knownCredentialConfigurations: temporaryMetaVanillaObject.notificationMetadata?.knownCredentialConfigurations,
           },
         })
       }
-    } catch (err) {
+    } catch {
       logger.error('[Credential Offer] error sending notification')
     }
   }

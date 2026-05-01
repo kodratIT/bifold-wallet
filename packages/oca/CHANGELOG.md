@@ -1,5 +1,60 @@
 # Change Log
 
+## 3.0.2
+
+## 3.0.1
+
+### Patch Changes
+
+- 6ff5dbb: updated credo ts packages to 0.6.3
+
+## 3.0.0
+
+### Major Changes
+
+- c1df038: Updated all bifold packages for compatibility with credo-ts v0.6.x.
+  Compatibility with this credo-ts release is important as it has big enhancements across the board,
+  especially for OpenID related credentials such as mdoc.
+  This version of credo changes many type and method names, changes which types and methods are available from which exports,
+  and modifies the interfaces of many existing modules. Thus, changes are made across the project,
+  some of which may be breaking.
+
+## 2.12.8
+
+## 2.12.7
+
+### Patch Changes
+
+- 75cca52: Bump package versions for release
+
+## 2.12.6
+
+### Patch Changes
+
+- 90b964b: Bump package versions for release
+
+## 2.12.5
+
+### Patch Changes
+
+- 30b4754: force release to align all packages including new react-hooks package
+
+## 2.12.4
+
+## 2.12.3
+
+## 2.12.2
+
+## 2.12.1
+
+## 2.12.0
+
+### Minor Changes
+
+- 43446f3: upgrade to React Native 0.81.5
+
+## 2.11.12
+
 ## 2.11.11
 
 ## 2.11.10

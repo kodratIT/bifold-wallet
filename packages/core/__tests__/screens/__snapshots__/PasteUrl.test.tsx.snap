@@ -127,7 +127,7 @@ exports[`PasteUrl Screen Paste URL renders correctly 1`] = `
             }
             accessible={true}
             collapsable={false}
-            focusable={true}
+            focusable={false}
             onClick={[Function]}
             onResponderGrant={[Function]}
             onResponderMove={[Function]}
@@ -176,7 +176,6 @@ exports[`PasteUrl Screen Paste URL renders correctly 1`] = `
                         "fontWeight": "bold",
                         "textAlign": "center",
                       },
-                      false,
                       false,
                     ],
                   ]
@@ -260,7 +259,6 @@ exports[`PasteUrl Screen Paste URL renders correctly 1`] = `
                         "fontWeight": "bold",
                         "textAlign": "center",
                       },
-                      false,
                       false,
                       false,
                     ],

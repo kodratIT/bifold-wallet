@@ -158,6 +158,8 @@
     "Message1048": "There was a problem with the proof request. (PT-BR)",
     "Title1049": "Unable to change PIN. (PT-BR)",
     "Message1049": "There was a problem while attempting to change your PIN. (PT-BR)",
+    "Title1050": "Unable to access biometrics (PR-BR)",
+    "Message1050": "There was a problem while attempting to access this device' biometrics (PT-BR)",
     "GenericError": {
       "Title": "Something went wrong (PT-BR)",
       "Message": "There was an unexpected error, please try again later. (PT-BR)"
@@ -733,7 +735,10 @@
     "CredentialForProofIsRevoked": "revoked credential (PT-BR)",
     "ProofRequestStateError": "The proof request received is in: {{state}}, decline this proof and try again. (PT-BR)",
     "ProofRequestErrorMessage": "Something went wrong with the proof request. (PT-BR)",
-    "PleaseAddress": " Please address them before continuing. (PT-BR)"
+    "PleaseAddress": " Please address them before continuing. (PT-BR)",
+    "DetailsHeader": "Information Requested (PT-BR)",
+    "OID4VCTitle": "Information Request (PT-BR)",
+    "UseDifferentCard": "Use different card (PT-BR)"
   },
   "UnsatisfiedProofRequest": {
     "Title": "Information Request (PT-BR)",
@@ -769,12 +774,18 @@
     "FiveMinutes": "Five Minutes (PT-BR)",
     "ThreeMinutes": "Three Minutes (PT-BR)",
     "OneMinute": "One Minute (PT-BR)",
-    "Never": "Never (PT-BR)"
+    "Never": "Never (PT-BR)",
+    "Preview": "{{autoLockTime}} min (PT-BR)"
   },
   "TabStack": {
     "Home": "Notificações",
     "Scan": "Scanear",
     "Credentials": "Credenciais"
+  },
+  "TabStackAccessibility": {
+    "Home": "Notifications tab {{notifications}} notifications (PT-BR)",
+    "Scan": "Scan tab (PT-BR)",
+    "Credentials": "Credentials tab (PT-BR)"
   },
   "RootStack": {
     "Contacts": "Contatos",

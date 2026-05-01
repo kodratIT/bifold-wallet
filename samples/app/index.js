@@ -15,7 +15,9 @@ import '@formatjs/intl-relativetimeformat/locale-data/en' // locale-data for en
 import '@formatjs/intl-datetimeformat/polyfill'
 import '@formatjs/intl-datetimeformat/locale-data/en' // locale-data for en
 import '@formatjs/intl-datetimeformat/add-all-tz' // Add ALL tz data
+import 'react-native-url-polyfill/auto'
 import 'reflect-metadata'
+import '@openwallet-foundation/askar-react-native'
 
 //Used to decode base64 in sub-modules like openID4Vp, or any other decoder
 import { decode, encode } from 'base-64'
@@ -37,14 +39,12 @@ if (typeof global.Buffer === 'undefined') {
 import { initLanguages, translationResources, createApp, MainContainer } from '@bifold/core'
 import { TrustRegistryProvider } from '@bifold/trust-registry'
 import React from 'react'
-import { AppRegistry, LogBox } from 'react-native'
+import { AppRegistry } from 'react-native'
 import { container } from 'tsyringe'
 
 import { name as appName } from './app.json'
 import { getTrustRegistryConfig } from './config/trustRegistry'
 import { AppContainer } from './container-imp'
-
-LogBox.ignoreAllLogs()
 
 initLanguages(translationResources)
 const bifoldContainer = new MainContainer(container.createChildContainer()).init()
