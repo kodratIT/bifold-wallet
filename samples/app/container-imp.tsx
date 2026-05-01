@@ -107,15 +107,24 @@ export class AppContainer implements Container {
 
       const service = new TrustRegistryService(config, this.log)
       this._container.registerInstance(TOKENS.TRUST_REGISTRY_SERVICE, service)
-    } else if (config.enabled) {
-      this.log?.warn('Trust Registry enabled but not properly configured - missing url or ecosystemDid')
+    } else {
+      this._container.registerInstance(TOKENS.TRUST_REGISTRY_SERVICE, false)
+
+      if (config.enabled) {
+        this.log?.warn('Trust Registry enabled but not properly configured - missing url or ecosystemDid')
+      }
     }
 
-    // Register UI components
-    this._container.registerInstance(TOKENS.COMPONENT_TRUST_BADGE, TrustBadgeWrapper)
-    this._container.registerInstance(TOKENS.COMPONENT_TRUST_REGISTRY_MODAL, TrustRegistryModal)
-    this._container.registerInstance(TOKENS.COMPONENT_TRUST_CONFIRM_MODAL, TrustConfirmModal)
-    this._container.registerInstance(TOKENS.HOOK_USE_FEDERATED_TRUST, useFederatedTrust)
-    this._container.registerInstance(TOKENS.HOOK_USE_VERIFIER_TRUST, useVerifierTrust)
+    // Register Trust Registry UI/hooks only when the feature is fully configured.
+    // Otherwise keep the safe no-op defaults from @bifold/core. Registering the real
+    // components while disabled/misconfigured makes CredentialOffer execute the trust
+    // registry hooks unnecessarily and can crash during render.
+    if (isTrustRegistryConfigured()) {
+      this._container.registerInstance(TOKENS.COMPONENT_TRUST_BADGE, TrustBadgeWrapper)
+      this._container.registerInstance(TOKENS.COMPONENT_TRUST_REGISTRY_MODAL, TrustRegistryModal)
+      this._container.registerInstance(TOKENS.COMPONENT_TRUST_CONFIRM_MODAL, TrustConfirmModal)
+      this._container.registerInstance(TOKENS.HOOK_USE_FEDERATED_TRUST, useFederatedTrust)
+      this._container.registerInstance(TOKENS.HOOK_USE_VERIFIER_TRUST, useVerifierTrust)
+    }
   }
 }

@@ -1,9 +1,9 @@
 import 'reflect-metadata'
-import { Agent, WalletConfig } from '@credo-ts/core'
-import { BackupService } from '../BackupService'
+import { Agent } from '@credo-ts/core'
+import { BackupService, WalletConfig } from '../BackupService'
 import RNFS from 'react-native-fs'
 import Share from 'react-native-share'
-import DocumentPicker from 'react-native-document-picker'
+import { errorCodes, isErrorWithCode, pick, types } from '@react-native-documents/picker'
 import { generateMnemonic } from 'bip39'
 
 // Mock dependencies
@@ -17,11 +17,15 @@ jest.mock('react-native-share', () => ({
   open: jest.fn(),
 }))
 
-jest.mock('react-native-document-picker', () => ({
-  pickSingle: jest.fn(),
-  isCancel: jest.fn(),
+jest.mock('@react-native-documents/picker', () => ({
+  pick: jest.fn(),
+  isErrorWithCode: jest.fn(),
+  errorCodes: {
+    OPERATION_CANCELED: 'OPERATION_CANCELED',
+  },
   types: {
     allFiles: 'public.item',
+    zip: 'public.zip-archive',
   },
 }))
 
@@ -89,22 +93,24 @@ describe('BackupService', () => {
 
   describe('pickBackupFile', () => {
     it('should pick a file and return uri', async () => {
-      const mockResult = { fileCopyUri: 'file:///picked/path' }
-      ;(DocumentPicker.pickSingle as jest.Mock).mockResolvedValue(mockResult)
+      const mockResult = { uri: 'file:///picked/path' }
+      ;(pick as jest.Mock).mockResolvedValue([mockResult])
 
       const result = await backupService.pickBackupFile()
 
       expect(result).toBe('file:///picked/path')
-      expect(DocumentPicker.pickSingle).toHaveBeenCalledWith({
-        type: ['public.item'],
-        copyTo: 'cachesDirectory',
+      expect(pick).toHaveBeenCalledWith({
+        type: [types.allFiles, types.zip],
       })
     })
 
     it('should return null if cancelled', async () => {
       const error = new Error('cancelled')
-      ;(DocumentPicker.pickSingle as jest.Mock).mockRejectedValue(error)
-      ;(DocumentPicker.isCancel as jest.Mock).mockReturnValue(true)
+      ;(pick as jest.Mock).mockRejectedValue(error)
+      ;(isErrorWithCode as unknown as jest.Mock).mockImplementation((err) => {
+        ;(err as { code?: string }).code = errorCodes.OPERATION_CANCELED
+        return true
+      })
 
       const result = await backupService.pickBackupFile()
 

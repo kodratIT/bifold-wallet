@@ -28,7 +28,6 @@ import {
   DidCommProofV2Protocol,
   DidCommDifPresentationExchangeProofFormatService,
   DidCommModule,
-  DidCommMediatorPickupStrategy,
 } from '@credo-ts/didcomm'
 
 import { IndyVdrAnonCredsRegistry, IndyVdrModule, IndyVdrPoolConfig } from '@credo-ts/indy-vdr'
@@ -126,7 +125,8 @@ export function getAgentModules({
       },
       mediationRecipient: {
         mediatorInvitationUrl: mediatorInvitationUrl,
-        mediatorPickupStrategy: DidCommMediatorPickupStrategy.Implicit,
+        // Leave pickup strategy undefined so Credo can discover whether the mediator
+        // supports pickup v2, pickup v1, or implicit websocket pickup.
       },
     }),
     dcql: new DcqlModule(),

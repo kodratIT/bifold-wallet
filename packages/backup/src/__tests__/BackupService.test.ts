@@ -1,7 +1,7 @@
-import { Agent, WalletConfig } from '@credo-ts/core'
+import { Agent } from '@credo-ts/core'
 import RNFS from 'react-native-fs'
 import { unzip } from 'react-native-zip-archive'
-import { BackupService, RestoreStatus } from '../services/BackupService'
+import { BackupService, RestoreStatus, WalletConfig } from '../services/BackupService'
 import { setMediationToDefault } from '../../../core/src/utils/mediatorhelpers'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -11,10 +11,11 @@ jest.mock('react-native-zip-archive')
 jest.mock('react-native-share', () => ({
   open: jest.fn(),
 }))
-jest.mock('react-native-document-picker', () => ({
-  pickSingle: jest.fn(),
-  types: { allFiles: 'allFiles' },
-  isCancel: jest.fn(),
+jest.mock('@react-native-documents/picker', () => ({
+  pick: jest.fn(),
+  types: { allFiles: 'allFiles', zip: 'zip' },
+  errorCodes: { OPERATION_CANCELED: 'OPERATION_CANCELED' },
+  isErrorWithCode: jest.fn(),
 }))
 jest.mock('../../../core/src/utils/mediatorhelpers', () => ({
   setMediationToDefault: jest.fn().mockResolvedValue(undefined),

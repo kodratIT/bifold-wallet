@@ -2,7 +2,7 @@ import { Agent } from '@credo-ts/core'
 import { generateMnemonic as bip39GenerateMnemonic } from 'bip39'
 import RNFS from 'react-native-fs'
 import Share from 'react-native-share'
-import DocumentPicker from 'react-native-document-picker'
+import { errorCodes, isErrorWithCode, pick, types } from '@react-native-documents/picker'
 import { zip, unzip } from 'react-native-zip-archive'
 import { Platform } from 'react-native'
 import { injectable } from 'tsyringe'
@@ -103,14 +103,13 @@ export class BackupService {
    */
   public async pickBackupFile(): Promise<string | null> {
     try {
-      const result = await DocumentPicker.pickSingle({
-        type: [DocumentPicker.types.allFiles, 'application/zip'],
-        copyTo: 'cachesDirectory',
+      const [result] = await pick({
+        type: [types.allFiles, types.zip],
       })
 
-      return result.fileCopyUri || null
+      return result?.uri || null
     } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
+      if (isErrorWithCode(err) && err.code === errorCodes.OPERATION_CANCELED) {
         return null
       }
       throw err

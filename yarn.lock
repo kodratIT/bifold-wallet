@@ -2334,6 +2334,7 @@ __metadata:
     "@credo-ts/core": "npm:0.5.17"
     "@react-native-async-storage/async-storage": "npm:~1.22.3"
     "@react-native-clipboard/clipboard": "npm:^1.16.3"
+    "@react-native-documents/picker": "npm:^12.0.1"
     "@react-native/babel-preset": "npm:~0.73.21"
     "@types/jest": "npm:^29.5.14"
     "@types/react": "npm:~18.2.79"
@@ -2343,7 +2344,6 @@ __metadata:
     jest: "npm:^29.6.4"
     react: "npm:18.3.1"
     react-native: "npm:0.73.11"
-    react-native-document-picker: "npm:^9.3.1"
     react-native-fs: "npm:^2.20.0"
     react-native-share: "npm:^10.0.2"
     react-native-zip-archive: "npm:^6.0.9"
@@ -2352,8 +2352,8 @@ __metadata:
     typescript: "npm:~5.5.4"
   peerDependencies:
     "@react-native-clipboard/clipboard": "*"
+    "@react-native-documents/picker": "*"
     bip39: "*"
-    react-native-document-picker: "*"
     react-native-fs: "*"
     react-native-get-random-values: "*"
     react-native-share: "*"
@@ -5158,6 +5158,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-documents/picker@npm:^12.0.1":
+  version: 12.0.1
+  resolution: "@react-native-documents/picker@npm:12.0.1"
+  peerDependencies:
+    react: "*"
+    react-native: ">=0.79.0"
+  checksum: 10c0/1077f80fdb76fcad283997f56a7f2eb263ace2a73da788e4b29dc926a78149c04a6eea1d4aeddef75c9f176fbbc9206a1c64c10c2d0c85c86cca85be023f7c00
+  languageName: node
+  linkType: hard
+
 "@react-native/assets-registry@npm:0.81.5":
   version: 0.81.5
   resolution: "@react-native/assets-registry@npm:0.81.5"
@@ -7797,6 +7807,7 @@ __metadata:
     "@react-native-community/cli-platform-android": "npm:20.0.0"
     "@react-native-community/cli-platform-ios": "npm:20.0.0"
     "@react-native-community/netinfo": "npm:~11.4.1"
+    "@react-native-documents/picker": "npm:^12.0.1"
     "@react-native/babel-preset": "npm:~0.81.5"
     "@react-native/eslint-config": "npm:~0.81.5"
     "@react-native/metro-babel-transformer": "npm:~0.81.5"
@@ -7838,7 +7849,6 @@ __metadata:
     react-native-config: "npm:~1.5.5"
     react-native-confirmation-code-field: "npm:~7.3.2"
     react-native-device-info: "npm:~8.7.1"
-    react-native-document-picker: "npm:^9.3.1"
     react-native-encrypted-storage: "npm:~4.0.3"
     react-native-fs: "npm:~2.20.0"
     react-native-gesture-handler: "npm:~2.28.0"
@@ -7866,7 +7876,7 @@ __metadata:
     react-native-uuid: "npm:~2.0.3"
     react-native-vector-icons: "npm:~10.3.0"
     react-native-vision-camera: "npm:*"
-    react-native-webview: "npm:~13.10.7"
+    react-native-webview: "npm:~13.16.1"
     react-native-zip-archive: "npm:^6.0.9"
     tsyringe: "npm:~4.8.0"
     typescript: "npm:~5.9.2"
@@ -9744,13 +9754,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"escape-string-regexp@npm:2.0.0, escape-string-regexp@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "escape-string-regexp@npm:2.0.0"
-  checksum: 10c0/2530479fe8db57eace5e8646c9c2a9c80fa279614986d16dcc6bcaceb63ae77f05a851ba6c43756d816c61d7f4534baf56e3c705e3e0d884818a46808811c507
-  languageName: node
-  linkType: hard
-
 "escape-string-regexp@npm:5.0.0":
   version: 5.0.0
   resolution: "escape-string-regexp@npm:5.0.0"
@@ -9762,6 +9765,13 @@ __metadata:
   version: 1.0.5
   resolution: "escape-string-regexp@npm:1.0.5"
   checksum: 10c0/a968ad453dd0c2724e14a4f20e177aaf32bb384ab41b674a8454afe9a41c5e6fe8903323e0a1052f56289d04bd600f81278edf140b0fcc02f5cac98d0f5b5371
+  languageName: node
+  linkType: hard
+
+"escape-string-regexp@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "escape-string-regexp@npm:2.0.0"
+  checksum: 10c0/2530479fe8db57eace5e8646c9c2a9c80fa279614986d16dcc6bcaceb63ae77f05a851ba6c43756d816c61d7f4534baf56e3c705e3e0d884818a46808811c507
   languageName: node
   linkType: hard
 
@@ -15617,22 +15627,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-document-picker@npm:^9.3.1":
-  version: 9.3.1
-  resolution: "react-native-document-picker@npm:9.3.1"
-  dependencies:
-    invariant: "npm:^2.2.4"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-    react-native-windows: "*"
-  peerDependenciesMeta:
-    react-native-windows:
-      optional: true
-  checksum: 10c0/62ac1c1567fb4aabd791c03768e51b0898de727e37bb695cca9fc72c31eb3f2d75faf5bc7fb4be86a3e2b96b77cf948558b496412ecf17687ca006eb52ef6dd8
-  languageName: node
-  linkType: hard
-
 "react-native-encrypted-storage@npm:~4.0.3":
   version: 4.0.3
   resolution: "react-native-encrypted-storage@npm:4.0.3"
@@ -16089,16 +16083,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-webview@npm:~13.10.7":
-  version: 13.10.7
-  resolution: "react-native-webview@npm:13.10.7"
+"react-native-webview@npm:~13.16.1":
+  version: 13.16.1
+  resolution: "react-native-webview@npm:13.16.1"
   dependencies:
-    escape-string-regexp: "npm:2.0.0"
+    escape-string-regexp: "npm:^4.0.0"
     invariant: "npm:2.2.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10c0/b815fa08f9c5dfdbb35f63476b55c82fa4f0989ae75be6739913f3268213447d5345f28afda08c29e318cf854bbf74f4010585523919b4c6e31dd9b8e019fb83
+  checksum: 10c0/8fdf14447bc430100d78030b8fdb60df223bd51cdb25c06d58757962fea8ad0cd9cdb13a7aa40ff795c671d2b04a561cbeb2b5795d95780d7f0d3734573ebeeb
   languageName: node
   linkType: hard
 

@@ -90,6 +90,14 @@ export const ActivityProvider: React.FC<PropsWithChildren> = ({ children }) => {
           Date.now() - lastActiveTimeRef.current >= timeoutInMilliseconds.current &&
           timeoutInMilliseconds.current > 0
         ) {
+          // Fetch any queued mediator messages before the wallet is locked and the agent is shut down.
+          try {
+            await agent.modules.didcomm.mediationRecipient.initiateMessagePickup()
+            logger.info('Fetched queued agent messages before lockout')
+          } catch (err) {
+            logger.error(`Error fetching queued agent messages before lockout, ${err}`)
+          }
+
           lockOutUser(LockoutReason.Timeout)
         } else {
           // otherwise restart message pickup

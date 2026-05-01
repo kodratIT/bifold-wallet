@@ -25,10 +25,11 @@ jest.mock('react-native-fs', () => ({
 jest.mock('react-native-share', () => ({
   open: jest.fn(),
 }))
-jest.mock('react-native-document-picker', () => ({
-  pickSingle: jest.fn(),
-  types: { allFiles: 'allFiles' },
-  isCancel: jest.fn(),
+jest.mock('@react-native-documents/picker', () => ({
+  pick: jest.fn(),
+  types: { allFiles: 'allFiles', zip: 'zip' },
+  errorCodes: { OPERATION_CANCELED: 'OPERATION_CANCELED' },
+  isErrorWithCode: jest.fn(),
 }))
 jest.mock('react-native-zip-archive', () => ({
   zip: jest.fn(),

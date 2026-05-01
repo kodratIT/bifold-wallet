@@ -173,16 +173,16 @@ const NotificationListItem: React.FC<NotificationListItemProps> = ({
 
       if (agent && proofRecord) {
         const connectionId = proofRecord.connectionId ?? ''
-        const connection = await agent.modules.connections.findById(connectionId)
+        const connection = await agent.modules.didcomm.connections.findById(connectionId)
 
         if (connection) {
-          await agent.modules.proofs.sendProblemReport({
-            proofRecordId: proofRecord.id,
+          await agent.modules.didcomm.proofs.sendProblemReport({
+            proofExchangeRecordId: proofRecord.id,
             description: t('ProofRequest.Declined'),
           })
         }
 
-        await agent.modules.proofs.declineRequest({ proofRecordId: proofRecord.id })
+        await agent.modules.didcomm.proofs.declineRequest({ proofExchangeRecordId: proofRecord.id })
       }
     } catch (err: unknown) {
       const error = new BifoldError(t('Error.Title1028'), t('Error.Message1028'), (err as Error)?.message ?? err, 1028)
@@ -208,7 +208,7 @@ const NotificationListItem: React.FC<NotificationListItemProps> = ({
     try {
       const credentialId = (notification as DidCommCredentialExchangeRecord).id
       if (agent) {
-        await agent.modules.credentials.declineOffer(credentialId)
+        await agent.modules.didcomm.credentials.declineOffer({ credentialExchangeRecordId: credentialId })
       }
     } catch (err: unknown) {
       const error = new BifoldError(t('Error.Title1028'), t('Error.Message1028'), (err as Error)?.message ?? err, 1028)
