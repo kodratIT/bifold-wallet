@@ -224,9 +224,14 @@ export type TokenMapping = {
   [TOKENS.HOOK_USE_FEDERATED_TRUST]: (
     issuerDid: string | undefined,
     credential?: any,
-    credentialType?: string
+    credentialType?: string,
+    forceRefresh?: boolean
   ) => FederatedTrustResult
-  [TOKENS.HOOK_USE_VERIFIER_TRUST]: (inputDid: string | undefined) => UseVerifierTrustResult
+  [TOKENS.HOOK_USE_VERIFIER_TRUST]: (
+    inputDid: string | undefined,
+    credentialType?: string,
+    forceRefresh?: boolean
+  ) => UseVerifierTrustResult
   [TOKENS.FN_ONBOARDING_DONE]: FN_ONBOARDING_DONE
   [TOKENS.LOAD_STATE]: LoadStateFn
   [TOKENS.COMP_BUTTON]: Button

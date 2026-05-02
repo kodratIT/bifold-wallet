@@ -1,4 +1,5 @@
 import { Agent } from '@credo-ts/core'
+import { AskarStoreManager } from '@credo-ts/askar'
 import { generateMnemonic as bip39GenerateMnemonic } from 'bip39'
 import RNFS from 'react-native-fs'
 import Share from 'react-native-share'
@@ -49,16 +50,22 @@ export class BackupService {
   }
 
   /**
-   * Exports the current wallet to a zip file and opens the share sheet
+   * Exports the current wallet to a zip file, saves to Downloads, and opens the share sheet
    * @param agent The agent instance
    * @param key The backup key (derived from pin/mnemonic)
    * @param fileName Optional filename (default: backup.zip)
+   * @returns The path to the saved backup file
    */
-  public async exportWallet(agent: Agent, key: string, fileName: string = 'backup.zip'): Promise<void> {
+  public async exportWallet(agent: Agent, key: string, fileName: string = 'backup.zip'): Promise<string> {
     const backupDir = `${RNFS.CachesDirectoryPath}/backup_export`
     const dbFileName = 'sqlite.db'
     const dbPath = `${backupDir}/${dbFileName}`
     const zipPath = `${RNFS.CachesDirectoryPath}/${fileName}`
+    
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+    const finalFileName = `wallet-backup-${timestamp}.zip`
+    const downloadPath = `${RNFS.DownloadDirectoryPath}/${finalFileName}`
 
     try {
       // 1. Prepare directory
@@ -71,23 +78,42 @@ export class BackupService {
         await RNFS.unlink(zipPath)
       }
 
-      // 2. Export database from agent
-      await (agent as any).wallet.export({
-        path: dbPath,
-        key,
+      // 2. Export database from agent using AskarStoreManager
+      const storeManager = agent.dependencyManager.resolve(AskarStoreManager)
+      
+      if (!storeManager.isStoreOpen(agent.context)) {
+        throw new Error('Store is not open. Please ensure the agent is initialized.')
+      }
+      
+      await storeManager.exportStore(agent.context, {
+        exportToStore: {
+          id: 'backup-export',
+          key,
+          database: {
+            type: 'sqlite',
+            config: {
+              path: dbPath,
+            },
+          },
+        },
       })
 
       // 3. Zip the exported file
       await zip(backupDir, zipPath)
 
-      // 4. Share the zip file
+      // 4. Copy to Downloads folder
+      await RNFS.copyFile(zipPath, downloadPath)
+
+      // 5. Share the zip file (optional - user can still share if needed)
       await Share.open({
-        url: `file://${zipPath}`,
+        url: Platform.OS === 'android' ? `file://${downloadPath}` : downloadPath,
         type: 'application/zip',
         failOnCancel: false,
       })
+      
+      return downloadPath
     } finally {
-      // Best effort cleanup
+      // Best effort cleanup of temporary files
       try {
         if (await RNFS.exists(backupDir)) await RNFS.unlink(backupDir)
         if (await RNFS.exists(zipPath)) await RNFS.unlink(zipPath)
@@ -143,9 +169,19 @@ export class BackupService {
         importPath = dbFile.path
       }
 
-      await (agent as any).wallet.import(walletConfig, {
-        path: importPath,
-        key,
+      const storeManager = agent.dependencyManager.resolve(AskarStoreManager)
+      
+      await storeManager.importStore(agent.context, {
+        importFromStore: {
+          id: walletConfig.id,
+          key,
+          database: {
+            type: 'sqlite',
+            config: {
+              path: importPath,
+            },
+          },
+        },
       })
     } finally {
       // Best effort cleanup of unzipped files
@@ -189,27 +225,47 @@ export class BackupService {
    * Validates a backup file before proceeding with restore
    * @param filePath Path to the backup file (should already be normalized)
    * @throws Error if validation fails
+   * @returns Normalized path that can be used for restore
    * @private
    */
-  private async validateBackupFile(filePath: string): Promise<void> {
+  private async validateBackupFile(filePath: string): Promise<string> {
+    // Normalize path for Android content:// URIs
+    let normalizedPath = filePath
+    
+    // Handle Android content:// URIs
+    if (Platform.OS === 'android') {
+      if (filePath.startsWith('content://')) {
+        // Content URIs need special handling - copy to temp location first
+        const tempPath = `${RNFS.CachesDirectoryPath}/temp_restore_${Date.now()}.zip`
+        try {
+          await RNFS.copyFile(filePath, tempPath)
+          normalizedPath = tempPath
+        } catch (error) {
+          throw new Error(`Failed to access backup file: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        }
+      } else if (filePath.startsWith('file://')) {
+        normalizedPath = decodeURIComponent(filePath.replace('file://', ''))
+      }
+    }
+    
     // Check file exists
-    if (!(await RNFS.exists(filePath))) {
-      throw new Error('Backup file not found')
+    if (!(await RNFS.exists(normalizedPath))) {
+      throw new Error(`Backup file not found at: ${normalizedPath}`)
     }
 
     // Check file size (should be > 0)
-    const stat = await RNFS.stat(filePath)
+    const stat = await RNFS.stat(normalizedPath)
     if (stat.size === 0) {
       throw new Error('Backup file is empty')
     }
 
     // If zip file, check it can be unzipped and contains a database
-    if (filePath.toLowerCase().endsWith('.zip')) {
+    if (normalizedPath.toLowerCase().endsWith('.zip')) {
       const testUnzipDir = `${RNFS.CachesDirectoryPath}/test_unzip_${Date.now()}`
       
       try {
         await RNFS.mkdir(testUnzipDir)
-        await unzip(filePath, testUnzipDir)
+        await unzip(normalizedPath, testUnzipDir)
 
         // Check for sqlite.db file
         const files = await RNFS.readDir(testUnzipDir)
@@ -234,6 +290,8 @@ export class BackupService {
         }
       }
     }
+    
+    return normalizedPath
   }
 
   /**
@@ -270,25 +328,21 @@ export class BackupService {
       throw new Error('Wallet key is required in walletConfig')
     }
     
-    // Normalize file path at the beginning
-    let normalizedPath = backupFilePath
-    if (Platform.OS === 'android') {
-      normalizedPath = decodeURIComponent(backupFilePath.replace('file://', ''))
-    }
-
-    // Step 1: Validate backup file
+    // Step 1: Validate backup file and get normalized path
     onProgress?.(RestoreStatus.VALIDATING)
-    await this.validateBackupFile(normalizedPath)
+    const normalizedPath = await this.validateBackupFile(backupFilePath)
 
     // Step 2: Close current wallet (but don't shutdown agent completely)
     onProgress?.(RestoreStatus.SHUTTING_DOWN)
     try {
-      // Check if wallet is open before trying to close
-      if ((agent as any).wallet.isInitialized) {
-        await (agent as any).wallet.close()
+      // Check if store is open before trying to close
+      const storeManager = agent.dependencyManager.resolve(AskarStoreManager)
+      
+      if (storeManager.isStoreOpen(agent.context)) {
+        await storeManager.closeStore(agent.context)
       }
     } catch (error) {
-      // If wallet is already closed or not initialized, that's fine
+      // If store is already closed, that's fine
       // Continue with the restore process
     }
 
@@ -301,12 +355,11 @@ export class BackupService {
     onProgress?.(RestoreStatus.IMPORTING)
     await this.importWallet(agent, normalizedPath, mnemonic, walletConfig)
 
-    // Step 5: Open the restored wallet
+    // Step 5: Open the restored store
     onProgress?.(RestoreStatus.INITIALIZING)
-    await (agent as any).wallet.open({
-      id: walletId,
-      key: walletKey,
-    })
+    const storeManager = agent.dependencyManager.resolve(AskarStoreManager)
+    
+    await storeManager.openStore(agent.context)
     
     // Initialize agent with the restored wallet (only if not already initialized)
     if (!agent.isInitialized) {

@@ -127,7 +127,7 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
   const credentialType = schemaId?.split(':')[2] || 'Credential'
 
   // Federation Trust Check - replaces old trust registry check
-  const federatedTrust = useFederatedTrust(issuerDid, credential, credentialType)
+  const federatedTrust = useFederatedTrust(issuerDid, credential, credentialType, screenIsFocused)
 
   const styles = StyleSheet.create({
     headerTextContainer: {

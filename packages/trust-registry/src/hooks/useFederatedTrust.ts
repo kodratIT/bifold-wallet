@@ -41,14 +41,16 @@ export interface FederatedTrustResult {
  * @param issuerDid - DID of the credential issuer
  * @param credential - The credential object (must contain termsOfUse for federation)
  * @param credentialType - Type of credential being verified
+ * @param forceRefresh - Force bypass cache and fetch fresh data (use when screen is focused)
  * @returns Federated trust verification result
  */
 export function useFederatedTrust(
     issuerDid: string | undefined,
     credential?: any,
-    credentialType: string = 'Credential'
+    credentialType: string = 'Credential',
+    forceRefresh: boolean = false
 ): FederatedTrustResult {
-    const { isEnabled, config, checkIssuerAuthorization, checkRecognition } = useTrustRegistry()
+    const { isEnabled, config, checkIssuerAuthorization, checkRecognition, clearCache } = useTrustRegistry()
 
     const [result, setResult] = useState<FederatedTrustResult>({
         level: 'unknown',
@@ -73,6 +75,12 @@ export function useFederatedTrust(
 
         const verify = async () => {
             try {
+                // Clear cache if forceRefresh is requested
+                if (forceRefresh && clearCache) {
+                    console.log(`[TrustRegistry] Force refresh requested, clearing cache`)
+                    clearCache()
+                }
+
                 console.log(`[TrustRegistry] Starting federated trust check for issuer: ${issuerDid}, type: ${credentialType}`)
                 setResult(prev => ({ ...prev, isLoading: true, error: undefined }))
 
@@ -180,7 +188,7 @@ export function useFederatedTrust(
         return () => {
             cancelled = true
         }
-    }, [isEnabled, config, issuerDid, credential, credentialType, checkIssuerAuthorization, checkRecognition])
+    }, [isEnabled, config, issuerDid, credential, credentialType, checkIssuerAuthorization, checkRecognition, forceRefresh, clearCache])
 
     return result
 }

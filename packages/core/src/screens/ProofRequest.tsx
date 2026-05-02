@@ -154,17 +154,22 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
     TOKENS.TRUST_REGISTRY_CONFIG,
   ])
 
+  const { start } = useTour()
+  const screenIsFocused = useIsFocused()
+
   // Trust Registry Verifier Check
   // Determine who the verifier is (from connection or maybe connectionless proof)
   const verifierDid = connection?.theirDid
-  const { trustResult, isLoading: isVerifierTrustLoading } = useVerifierTrustHook(verifierDid)
+  const { trustResult, isLoading: isVerifierTrustLoading } = useVerifierTrustHook(
+    verifierDid,
+    'Credential',
+    screenIsFocused
+  )
   const [trustConfirmVisible, setTrustConfirmVisible] = useState(false)
   const proofConnectionLabel = useMemo(
     () => getConnectionName(connection, store.preferences.alternateContactNames),
     [connection, store.preferences.alternateContactNames]
   )
-  const { start } = useTour()
-  const screenIsFocused = useIsFocused()
   const styles = StyleSheet.create({
     pageContainer: {
       flex: 1,

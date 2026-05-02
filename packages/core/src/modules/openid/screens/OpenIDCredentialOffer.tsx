@@ -3,6 +3,7 @@ import { CredentialOverlay } from '@bifold/oca/build/legacy'
 import { W3cCredentialRecord } from '@credo-ts/core'
 import { useAgent } from '@bifold/react-hooks'
 import { StackScreenProps } from '@react-navigation/stack'
+import { useIsFocused } from '@react-navigation/native'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DeviceEventEmitter, StyleSheet, Text, View } from 'react-native'
@@ -32,6 +33,7 @@ type OpenIDCredentialDetailsProps = StackScreenProps<DeliveryStackParams, Screen
 const OpenIDCredentialOffer: React.FC<OpenIDCredentialDetailsProps> = ({ navigation, route }) => {
   // FIXME: change params to accept credential id to avoid 'non-serializable' warnings
   const { credential } = route.params
+  const screenIsFocused = useIsFocused()
   const [
     logger,
     TrustBadge,
@@ -87,7 +89,8 @@ const OpenIDCredentialOffer: React.FC<OpenIDCredentialDetailsProps> = ({ navigat
   const federatedTrust = useFederatedTrust(
     issuerDid,
     discoveryCredential,
-    credentialType
+    credentialType,
+    screenIsFocused
   )
 
   useEffect(() => {

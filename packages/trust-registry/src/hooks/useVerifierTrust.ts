@@ -29,13 +29,15 @@ export interface UseVerifierTrustResult {
  * Hook to check verifier trust status via authorization
  * @param did - The DID of the verifier to check
  * @param credentialType - The credential type to check authorization for
+ * @param forceRefresh - Force bypass cache and fetch fresh data (use when screen is focused)
  * @returns Trust result, authorization response, loading state, and error
  */
 export function useVerifierTrust(
   did: string | undefined,
-  credentialType: string = 'Credential'
+  credentialType: string = 'Credential',
+  forceRefresh: boolean = false
 ): UseVerifierTrustResult {
-  const { isEnabled, config, checkVerifierAuthorization, checkRecognition } = useTrustRegistry()
+  const { isEnabled, config, checkVerifierAuthorization, checkRecognition, clearCache } = useTrustRegistry()
   const [trustResult, setTrustResult] = useState<TrustResult | null>(null)
   const [authResponse, setAuthResponse] = useState<AuthorizationResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -47,6 +49,12 @@ export function useVerifierTrust(
       setAuthResponse(null)
       setIsLoading(false)
       return
+    }
+
+    // Clear cache if forceRefresh is requested
+    if (forceRefresh && clearCache) {
+      console.log(`[TrustRegistry] Force refresh requested for verifier, clearing cache`)
+      clearCache()
     }
 
     setIsLoading(true)
@@ -118,7 +126,7 @@ export function useVerifierTrust(
     } finally {
       setIsLoading(false)
     }
-  }, [did, credentialType, isEnabled, config, checkVerifierAuthorization, checkRecognition])
+  }, [did, credentialType, isEnabled, config, checkVerifierAuthorization, checkRecognition, forceRefresh, clearCache])
 
   // Fetch trust status when DID or credentialType changes
   useEffect(() => {

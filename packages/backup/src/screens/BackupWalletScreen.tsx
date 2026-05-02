@@ -25,14 +25,20 @@ export const BackupWalletScreen = () => {
   }
 
   const handleBackup = async () => {
-    if (!agent) return
-    if (!mnemonic) return
+    if (!agent || !mnemonic) {
+      Alert.alert('Error', 'Agent or mnemonic not available')
+      return
+    }
 
     setLoading(true)
     try {
       // Using mnemonic as the key for backup encryption
-      await backupService.exportWallet(agent, mnemonic)
-      Alert.alert('Success', 'Wallet backup exported successfully')
+      const savedPath = await backupService.exportWallet(agent, mnemonic)
+      Alert.alert(
+        'Success', 
+        `Wallet backup saved successfully!\n\nLocation: ${savedPath}\n\nYou can also share it from the share dialog.`,
+        [{ text: 'OK' }]
+      )
     } catch (error) {
       Alert.alert('Error', (error as Error).message || 'Failed to export wallet')
     } finally {

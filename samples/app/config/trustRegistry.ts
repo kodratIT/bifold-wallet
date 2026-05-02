@@ -37,14 +37,15 @@ export const getTrustRegistryConfig = (): TrustRegistryConfig => ({
   blockUntrustedVerifiers: Config.TRUST_REGISTRY_BLOCK_UNTRUSTED_VERIFIERS === 'true',
 
   // Dev Mode Fallback configuration
-  devMode: Config.ENV === 'dev' || Config.DEV_MODE === 'true' || __DEV__,
+  // Only enable devMode if explicitly set in .env, not automatically from __DEV__
+  devMode: Config.DEV_MODE === 'true',
   fallbackAuthority: (Config.TRUST_REGISTRY_FALLBACK_DID && Config.TRUST_REGISTRY_FALLBACK_URL)
     ? {
       did: Config.TRUST_REGISTRY_FALLBACK_DID,
       url: Config.TRUST_REGISTRY_FALLBACK_URL,
       name: Config.TRUST_REGISTRY_FALLBACK_NAME || 'Development Authority'
     }
-    : (Config.ENV === 'dev' || Config.DEV_MODE === 'true' || __DEV__)
+    : (Config.DEV_MODE === 'true')
       ? {
         did: DevModeDids.ENTITY_ID,
         url: Config.TRUST_REGISTRY_URL || '', // Use the same TR URL
