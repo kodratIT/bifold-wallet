@@ -1,0 +1,13 @@
+diff --git a/RNZipArchive.podspec b/RNZipArchive.podspec
+index 8eebcdc4cb3a350fd3f9af5c02f6c86634f138c5..ba85bf5252435c38d696cc6878dcf5233105168a 100644
+--- a/RNZipArchive.podspec
++++ b/RNZipArchive.podspec
+@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
+ 
+   s.dependency 'React-Core'
+   s.dependency 'SSZipArchive', '~>2.2'
+-  s.compiler_flags = '-GCC_PREPROCESSOR_DEFINITIONS="HAVE_INTTYPES_H HAVE_PKCRYPT HAVE_STDINT_H HAVE_WZAES HAVE_ZLIB MZ_ZIP_NO_SIGNING $(inherited)"'
++  s.pod_target_xcconfig = { 'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) HAVE_INTTYPES_H HAVE_PKCRYPT HAVE_STDINT_H HAVE_WZAES HAVE_ZLIB MZ_ZIP_NO_SIGNING' }
+ 
+   s.subspec 'Core' do |ss|
+     ss.source_files = 'ios/*.{h,m}'

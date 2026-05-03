@@ -105,7 +105,7 @@
     "react-native-vector-icons": "~10.3.0",
     "react-native-vision-camera": "*",
     "react-native-webview": "~13.16.1",
-    "react-native-zip-archive": "^6.0.9",
+    "react-native-zip-archive": "patch:react-native-zip-archive@npm%3A6.1.2#~/.yarn/patches/react-native-zip-archive-npm-6.1.2-ae3545b671.patch",
     "tsyringe": "~4.8.0",
     "uuid": "~9.0.1",
     "zustand": "~4.5.4"

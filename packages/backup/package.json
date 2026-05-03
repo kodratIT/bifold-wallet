@@ -40,7 +40,7 @@
     "jest": "^29.6.4",
     "react-native-fs": "^2.20.0",
     "react-native-share": "^10.0.2",
-    "react-native-zip-archive": "^6.0.9",
+    "react-native-zip-archive": "patch:react-native-zip-archive@npm%3A6.1.2#~/.yarn/patches/react-native-zip-archive-npm-6.1.2-ae3545b671.patch",
     "react-test-renderer": "18.3.1",
     "typescript": "~5.5.4"
   }

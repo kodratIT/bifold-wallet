@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DeviceEventEmitter } from 'react-native'
 import { EventTypes } from '../../../constants'
+import { TOKENS, useServices } from '../../../container-api'
 import { BifoldError } from '../../../types/error'
 import {
   acquirePreAuthorizedAccessToken,
@@ -29,6 +30,7 @@ export const useOpenID = ({
   const [openIdRecord, setOpenIdRecord] = useState<OpenIDCredentialRecord | OpenId4VPRequestRecord>()
 
   const { agent } = useAgent()
+  const [logger] = useServices([TOKENS.UTIL_LOGGER])
   const { t } = useTranslation()
 
   const resolveOpenIDCredential = useCallback(
@@ -37,15 +39,17 @@ export const useOpenID = ({
         return
       }
       try {
+        logger?.info(`[OpenID] Resolving credential offer: ${uri}`)
         const resolvedCredentialOffer = await resolveOpenId4VciOffer({
           agent: agent,
           uri: uri,
         })
+        logger?.info('[OpenID] Credential offer resolved')
 
-        const authServers = resolvedCredentialOffer.metadata.credentialIssuer.authorization_servers
-        const authServer = resolvedCredentialOffer.metadata.authorizationServers[0]
-        const credentialIssuer = authServer.issuer
         const issuerMetadata = resolvedCredentialOffer.metadata.credentialIssuer
+        const authServers = issuerMetadata.authorization_servers
+        const authServer = resolvedCredentialOffer.metadata.authorizationServers?.[0]
+        const credentialIssuer = authServer?.issuer ?? issuerMetadata.credential_issuer
         const configID = getCredentialConfigurationIds(resolvedCredentialOffer)?.[0]
         const tokenEndpoint = authServer?.token_endpoint
         const credentialEndpoint = issuerMetadata.credential_endpoint
@@ -57,16 +61,19 @@ export const useOpenID = ({
           throw new Error('No credential issuer found in the credential offer metadata')
         }
 
+        logger?.info('[OpenID] Requesting pre-authorized access token')
         const tokenResponse = await acquirePreAuthorizedAccessToken({ agent, resolvedCredentialOffer })
         const refreshToken = tokenResponse.refreshToken
 
         temporaryMetaVanillaObject.tokenResponse = tokenResponse
 
+        logger?.info(`[OpenID] Requesting credential for configuration: ${configID}`)
         const credential = await receiveCredentialFromOpenId4VciOffer({
           agent,
           resolvedCredentialOffer,
           tokenResponse: tokenResponse,
         })
+        logger?.info(`[OpenID] Credential received: ${credential.id}`)
 
         if (refreshToken) {
           setRefreshCredentialMetadata(credential, {
@@ -91,6 +98,7 @@ export const useOpenID = ({
         return credential
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : String(err)
+        logger?.error(`[OpenID] Credential offer failed: ${errorMessage}`, err instanceof Error ? err : undefined)
         const error = new BifoldError(
           t('Error.Title1024'),
           errorMessage,
@@ -100,7 +108,7 @@ export const useOpenID = ({
         DeviceEventEmitter.emit(EventTypes.OPENID_CONNECTION_ERROR, error)
       }
     },
-    [agent, t]
+    [agent, logger, t]
   )
 
   const resolveOpenIDPresentationRequest = useCallback(

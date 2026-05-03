@@ -2347,7 +2347,7 @@ __metadata:
     react-native: "npm:0.73.11"
     react-native-fs: "npm:^2.20.0"
     react-native-share: "npm:^10.0.2"
-    react-native-zip-archive: "npm:^6.0.9"
+    react-native-zip-archive: "patch:react-native-zip-archive@npm%3A6.1.2#~/.yarn/patches/react-native-zip-archive-npm-6.1.2-ae3545b671.patch"
     react-test-renderer: "npm:18.3.1"
     tsyringe: "npm:~4.8.0"
     typescript: "npm:~5.5.4"
@@ -7917,7 +7917,7 @@ __metadata:
     react-native-vector-icons: "npm:~10.3.0"
     react-native-vision-camera: "npm:*"
     react-native-webview: "npm:~13.16.1"
-    react-native-zip-archive: "npm:^6.0.9"
+    react-native-zip-archive: "patch:react-native-zip-archive@npm%3A6.1.2#~/.yarn/patches/react-native-zip-archive-npm-6.1.2-ae3545b671.patch"
     tsyringe: "npm:~4.8.0"
     typescript: "npm:~5.9.2"
     uuid: "npm:~9.0.1"
@@ -16136,13 +16136,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-zip-archive@npm:^6.0.9":
+"react-native-zip-archive@npm:6.1.2":
   version: 6.1.2
   resolution: "react-native-zip-archive@npm:6.1.2"
   peerDependencies:
     react: ">=16.8.6"
     react-native: ">=0.60.0"
   checksum: 10c0/e2cd9f10f6a49fc4432dbbae9dd9db975e7207573773b28f946dc593c96d5d5223445fd805705a2e4de703336c68216425b9d705e7dcaf192e1b9a339e4d25ba
+  languageName: node
+  linkType: hard
+
+"react-native-zip-archive@patch:react-native-zip-archive@npm%3A6.1.2#~/.yarn/patches/react-native-zip-archive-npm-6.1.2-ae3545b671.patch":
+  version: 6.1.2
+  resolution: "react-native-zip-archive@patch:react-native-zip-archive@npm%3A6.1.2#~/.yarn/patches/react-native-zip-archive-npm-6.1.2-ae3545b671.patch::version=6.1.2&hash=9e3789"
+  peerDependencies:
+    react: ">=16.8.6"
+    react-native: ">=0.60.0"
+  checksum: 10c0/61954c17fa5ebb27ec5830a82df1232b5c7487521d4b539ddf03f9fd6a995591d52145ebc6b0c977d8e1a7efe4c13cb98a6cef54011ec160f2fd3b44e2ea1241
   languageName: node
   linkType: hard
 
