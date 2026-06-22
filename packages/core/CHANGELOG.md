@@ -1,5 +1,223 @@
 # @bifold/core
 
+## 3.0.16
+
+### Patch Changes
+
+- 282bb4e: Update OID4VC Notification UI and functionality
+  - @bifold/react-hooks@3.0.16
+
+## 3.0.15
+
+### Patch Changes
+
+- 9ed3b0f: Fix DPop
+- fc4eeb1: Export `FileCache` and `CacheDataFile` from `@bifold/core` so downstream packages can subclass `FileCache` without duplicating the implementation.
+
+  Also corrects `CacheDataFile.updatedAt` from `Date` to `string` — `JSON.parse` returns a string and the previous type was inaccurate.
+
+- 7fce466: Fix incorrect pin error not appearing in new pin design on Android
+  - @bifold/react-hooks@3.0.15
+
+## 3.0.14
+
+### Patch Changes
+
+- c70df9d: fix: add prop for displaying proof request header in record component
+- 4704ce3: Fix header icon on onboarding screens set to white
+  - @bifold/react-hooks@3.0.14
+
+## 3.0.13
+
+### Patch Changes
+
+- f813512: fix watermark missing
+  - @bifold/react-hooks@3.0.13
+
+## 3.0.12
+
+### Patch Changes
+
+- dd22c43: Added new monitor system for proof requests
+  - @bifold/react-hooks@3.0.12
+
+## 3.0.11
+
+### Patch Changes
+
+- Updated dependencies [e99b6d9]
+  - @bifold/react-hooks@3.0.11
+
+## 3.0.10
+
+### Patch Changes
+
+- e3d82d0: fix text color on proof request
+  - @bifold/react-hooks@3.0.10
+
+## 3.0.9
+
+### Patch Changes
+
+- 0944c44: Update contacts chat screen, with fix for input scroll, text color and spacing.
+  - @bifold/react-hooks@3.0.9
+
+## 3.0.8
+
+### Patch Changes
+
+- 75e0535: updated spacing for svg overlay
+  - @bifold/react-hooks@3.0.8
+
+## 3.0.7
+
+### Patch Changes
+
+- 7cb7ff0: added stroke width to svg overlay
+  - @bifold/react-hooks@3.0.7
+
+## 3.0.6
+
+### Patch Changes
+
+- 8d27002: Export `Connection` screen and URL classifiers (`isDidCommInvitation`, `isOpenIdCredentialOffer`, `isOpenIdPresentationRequest`, `isMediatorInvitation`) for consumer-side reuse — no behavior change.
+  - @bifold/react-hooks@3.0.6
+
+## 3.0.5
+
+### Patch Changes
+
+- 4be9c48: update issuer name helper function
+- cc8ce46: fix camera scan
+- 21d6689: fix proof request screen error handling
+- becac32: additional exports - no behavior change
+  - @bifold/react-hooks@3.0.5
+
+## 3.0.4
+
+### Patch Changes
+
+- d0f1003: added exports for wallet work
+  - @bifold/react-hooks@3.0.4
+
+## 3.0.3
+
+### Patch Changes
+
+- 25146c1: add some additional exports
+- c7b866a: Fix proof screen
+  - @bifold/react-hooks@3.0.3
+
+## 3.0.2
+
+### Patch Changes
+
+- 226ae62: Update oid4vc connection screen
+- 23c9d1e: New proof request UI for oid4vc flow
+- 4ee6a41: Added Expo App Integrity functionality and initialization on app start after auth
+- f445fa2: Orchestrator startup update
+  - @bifold/react-hooks@3.0.2
+
+## 3.0.1
+
+### Patch Changes
+
+- 1e57f76: Fix Wallet Key
+- fda1a41: Add separate accessibility label for tab bar buttons
+- b4c4ded: Fix for biometrics availability not refreshing after being enabled on android
+- a9428ed: Cleanup OpenID module
+- 6ff5dbb: updated credo ts packages to 0.6.3
+- Updated dependencies [6ff5dbb]
+  - @bifold/react-hooks@3.0.1
+
+## 3.0.0
+
+### Major Changes
+
+- c1df038: Updated all bifold packages for compatibility with credo-ts v0.6.x.
+  Compatibility with this credo-ts release is important as it has big enhancements across the board,
+  especially for OpenID related credentials such as mdoc.
+  This version of credo changes many type and method names, changes which types and methods are available from which exports,
+  and modifies the interfaces of many existing modules. Thus, changes are made across the project,
+  some of which may be breaking.
+
+### Patch Changes
+
+- 2aa1740: Fix Bifold/core bundling issue and enabling hot reload for sample app
+- cb1442e: Fix for improper autolock display
+- Updated dependencies [c1df038]
+  - @bifold/react-hooks@3.0.0
+
+## 2.12.8
+
+### Patch Changes
+
+- 4263767: Fix endless loop in notifications hook
+- c9ba746: Add config for custom app lockout time
+- fd2e7cd: Add connection screen for OpenID
+- 04a41bb: Fix for delay in hiding pin
+  - @bifold/react-hooks@2.12.8
+
+## 2.12.7
+
+### Patch Changes
+
+- 75cca52: Bump package versions for release
+- Updated dependencies [75cca52]
+  - @bifold/react-hooks@2.12.7
+
+## 2.12.6
+
+### Patch Changes
+
+- 90b964b: Bump package versions for release
+- Updated dependencies [90b964b]
+  - @bifold/react-hooks@2.12.6
+
+## 2.12.5
+
+### Patch Changes
+
+- 30b4754: force release to align all packages including new react-hooks package
+- c9b8621: adjust dependencies to pass 16kb requirement on Android, swap react-native-argon2 out for askar's argon2 implementation
+- 958987e: force publish
+
+## 2.12.4
+
+### Patch Changes
+
+- fecd99e: Updated bifold/core package exports to prevent metro warning
+
+## 2.12.3
+
+### Patch Changes
+
+- e26f1ff: Bumped i18next & react-i18next to latest
+
+## 2.12.2
+
+### Patch Changes
+
+- 8ba7a18: Fix terms screen back button functionality
+
+## 2.12.1
+
+## 2.12.0
+
+### Minor Changes
+
+- 43446f3: upgrade to React Native 0.81.5
+
+### Patch Changes
+
+- e718f5b: Allow unacceptable PIN list to be injected
+
+## 2.11.12
+
+### Patch Changes
+
+- 7fe30c1: styling fixes, better ScreenWrapper usage
+
 ## 2.11.11
 
 ### Patch Changes

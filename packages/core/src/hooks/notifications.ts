@@ -1,16 +1,19 @@
 import {
-  BasicMessageRecord,
-  CredentialExchangeRecord as CredentialRecord,
-  CredentialState,
   MdocRecord,
-  ProofExchangeRecord,
-  ProofState,
   SdJwtVcRecord,
   W3cCredentialRecord,
+  W3cV2CredentialRecord,
 } from '@credo-ts/core'
-import { useBasicMessages, useCredentialByState, useProofByState } from '@credo-ts/react-hooks'
+import { useBasicMessages, useCredentialByState, useProofByState } from '@bifold/react-hooks'
+import {
+  DidCommBasicMessageRecord,
+  DidCommCredentialExchangeRecord as CredentialRecord,
+  DidCommCredentialState,
+  DidCommProofExchangeRecord,
+  DidCommProofState,
+} from '@credo-ts/didcomm'
 import { ProofCustomMetadata, ProofMetadata } from '@bifold/verifier'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   BasicMessageMetadata,
@@ -20,8 +23,11 @@ import {
 } from '../types/metadata'
 import { useOpenID } from '../modules/openid/hooks/openid'
 import { CustomNotification } from '../types/notification'
+import { OpenIDNotificationData } from '../modules/openid/features/notifications/types'
 import { OpenId4VPRequestRecord } from '../modules/openid/types'
 import { useExpiredNotifications } from '../modules/openid/hooks/useExpiredNotifications'
+import { useReplacementNotifications } from '../modules/openid/hooks/useReplacementNotifications'
+import { OpenIDCredentialRecord } from '../modules/openid/credentialRecord'
 
 export type NotificationsInputProps = {
   openIDUri?: string
@@ -29,14 +35,16 @@ export type NotificationsInputProps = {
 }
 
 export type NotificationItemType =
-  | BasicMessageRecord
+  | DidCommBasicMessageRecord
   | CredentialRecord
-  | ProofExchangeRecord
+  | DidCommProofExchangeRecord
   | CustomNotification
   | SdJwtVcRecord
   | W3cCredentialRecord
+  | W3cV2CredentialRecord
   | MdocRecord
   | OpenId4VPRequestRecord
+  | OpenIDNotificationData
 
 export type NotificationReturnType = Array<NotificationItemType>
 
@@ -44,26 +52,28 @@ export const useNotifications = ({
   openIDUri,
   openIDPresentationUri,
 }: NotificationsInputProps): NotificationReturnType => {
+  const doneStates = useMemo(() => [DidCommProofState.Done, DidCommProofState.PresentationReceived] as DidCommProofState[], [])
+
   const [notifications, setNotifications] = useState<NotificationReturnType>([])
   const { records: basicMessages } = useBasicMessages()
-  const offers = useCredentialByState(CredentialState.OfferReceived)
-  const proofsRequested = useProofByState(ProofState.RequestReceived)
-  const credsReceived = useCredentialByState(CredentialState.CredentialReceived)
-  const credsDone = useCredentialByState(CredentialState.Done)
-  const proofsDone = useProofByState([ProofState.Done, ProofState.PresentationReceived])
+  const offers = useCredentialByState(DidCommCredentialState.OfferReceived)
+  const proofsRequested = useProofByState(DidCommProofState.RequestReceived)
+  const credsReceived = useCredentialByState(DidCommCredentialState.CredentialReceived)
+  const credsDone = useCredentialByState(DidCommCredentialState.Done)
+  const proofsDone = useProofByState(doneStates)
   const openIDCredRecieved = useOpenID({ openIDUri: openIDUri, openIDPresentationUri: openIDPresentationUri })
   const openIDExpiredNotifs = useExpiredNotifications()
-
+  const openIDReplacementNotifs = useReplacementNotifications()
   useEffect(() => {
     // get all unseen messages
-    const unseenMessages: BasicMessageRecord[] = basicMessages.filter((msg) => {
+    const unseenMessages: DidCommBasicMessageRecord[] = basicMessages.filter((msg) => {
       const meta = msg.metadata.get(BasicMessageMetadata.customMetadata) as basicMessageCustomMetadata
       return !meta?.seen
     })
 
     // add one unseen message per contact to notifications
     const contactsWithUnseenMessages: string[] = []
-    const messagesToShow: BasicMessageRecord[] = []
+    const messagesToShow: DidCommBasicMessageRecord[] = []
 
     unseenMessages.forEach((msg) => {
       if (!contactsWithUnseenMessages.includes(msg.connectionId)) {
@@ -72,7 +82,7 @@ export const useNotifications = ({
       }
     })
 
-    const validProofsDone = proofsDone.filter((proof: ProofExchangeRecord) => {
+    const validProofsDone = proofsDone.filter((proof: DidCommProofExchangeRecord) => {
       if (proof.isVerified === undefined) {
         return false
       }
@@ -90,7 +100,7 @@ export const useNotifications = ({
       }
     })
 
-    const openIDCreds: Array<SdJwtVcRecord | W3cCredentialRecord | MdocRecord | OpenId4VPRequestRecord> = []
+    const openIDCreds: Array<OpenIDCredentialRecord | OpenId4VPRequestRecord> = []
     if (openIDCredRecieved) {
       openIDCreds.push(openIDCredRecieved)
     }
@@ -102,6 +112,7 @@ export const useNotifications = ({
       ...validProofsDone,
       ...revoked,
       ...openIDCreds,
+      ...openIDReplacementNotifs,
       ...openIDExpiredNotifs,
     ].sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
 
@@ -114,6 +125,7 @@ export const useNotifications = ({
     offers,
     credsDone,
     openIDCredRecieved,
+    openIDReplacementNotifs,
     openIDExpiredNotifs,
   ])
 

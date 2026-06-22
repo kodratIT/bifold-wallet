@@ -128,8 +128,7 @@ exports[`Developer Screen acceptDevCredentials can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -229,8 +228,7 @@ exports[`Developer Screen acceptDevCredentials can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -330,8 +328,7 @@ exports[`Developer Screen acceptDevCredentials can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -431,8 +428,7 @@ exports[`Developer Screen acceptDevCredentials can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -532,8 +528,7 @@ exports[`Developer Screen acceptDevCredentials can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -633,8 +628,7 @@ exports[`Developer Screen acceptDevCredentials can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -734,8 +728,7 @@ exports[`Developer Screen acceptDevCredentials can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -835,8 +828,7 @@ exports[`Developer Screen acceptDevCredentials can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -934,7 +926,6 @@ exports[`Developer Screen acceptDevCredentials can be toggled 1`] = `
                         "fontWeight": "bold",
                         "textAlign": "center",
                       },
-                      false,
                       false,
                       false,
                     ],
@@ -1080,8 +1071,7 @@ exports[`Developer Screen enableWalletNaming can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -1181,8 +1171,7 @@ exports[`Developer Screen enableWalletNaming can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -1282,8 +1271,7 @@ exports[`Developer Screen enableWalletNaming can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -1383,8 +1371,7 @@ exports[`Developer Screen enableWalletNaming can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -1484,8 +1471,7 @@ exports[`Developer Screen enableWalletNaming can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -1585,8 +1571,7 @@ exports[`Developer Screen enableWalletNaming can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -1686,8 +1671,7 @@ exports[`Developer Screen enableWalletNaming can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -1787,8 +1771,7 @@ exports[`Developer Screen enableWalletNaming can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -1886,7 +1869,6 @@ exports[`Developer Screen enableWalletNaming can be toggled 1`] = `
                         "fontWeight": "bold",
                         "textAlign": "center",
                       },
-                      false,
                       false,
                       false,
                     ],
@@ -2032,8 +2014,7 @@ exports[`Developer Screen preventAutoLock can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -2133,8 +2114,7 @@ exports[`Developer Screen preventAutoLock can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -2234,8 +2214,7 @@ exports[`Developer Screen preventAutoLock can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -2335,8 +2314,7 @@ exports[`Developer Screen preventAutoLock can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -2436,8 +2414,7 @@ exports[`Developer Screen preventAutoLock can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -2537,8 +2514,7 @@ exports[`Developer Screen preventAutoLock can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -2638,8 +2614,7 @@ exports[`Developer Screen preventAutoLock can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -2739,8 +2714,7 @@ exports[`Developer Screen preventAutoLock can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -2838,7 +2812,6 @@ exports[`Developer Screen preventAutoLock can be toggled 1`] = `
                         "fontWeight": "bold",
                         "textAlign": "center",
                       },
-                      false,
                       false,
                       false,
                     ],
@@ -2984,8 +2957,7 @@ exports[`Developer Screen screen renders correctly 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -3085,8 +3057,7 @@ exports[`Developer Screen screen renders correctly 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -3186,8 +3157,7 @@ exports[`Developer Screen screen renders correctly 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -3287,8 +3257,7 @@ exports[`Developer Screen screen renders correctly 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -3388,8 +3357,7 @@ exports[`Developer Screen screen renders correctly 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -3489,8 +3457,7 @@ exports[`Developer Screen screen renders correctly 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -3590,8 +3557,7 @@ exports[`Developer Screen screen renders correctly 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -3691,8 +3657,7 @@ exports[`Developer Screen screen renders correctly 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -3790,7 +3755,6 @@ exports[`Developer Screen screen renders correctly 1`] = `
                         "fontWeight": "bold",
                         "textAlign": "center",
                       },
-                      false,
                       false,
                       false,
                     ],
@@ -3936,8 +3900,7 @@ exports[`Developer Screen useConnectionInviterCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -4037,8 +4000,7 @@ exports[`Developer Screen useConnectionInviterCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -4138,8 +4100,7 @@ exports[`Developer Screen useConnectionInviterCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -4239,8 +4200,7 @@ exports[`Developer Screen useConnectionInviterCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -4340,8 +4300,7 @@ exports[`Developer Screen useConnectionInviterCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -4441,8 +4400,7 @@ exports[`Developer Screen useConnectionInviterCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -4542,8 +4500,7 @@ exports[`Developer Screen useConnectionInviterCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -4643,8 +4600,7 @@ exports[`Developer Screen useConnectionInviterCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -4742,7 +4698,6 @@ exports[`Developer Screen useConnectionInviterCapability can be toggled 1`] = `
                         "fontWeight": "bold",
                         "textAlign": "center",
                       },
-                      false,
                       false,
                       false,
                     ],
@@ -4888,8 +4843,7 @@ exports[`Developer Screen useDevVerifierTemplates can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -4989,8 +4943,7 @@ exports[`Developer Screen useDevVerifierTemplates can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -5090,8 +5043,7 @@ exports[`Developer Screen useDevVerifierTemplates can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -5191,8 +5143,7 @@ exports[`Developer Screen useDevVerifierTemplates can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -5292,8 +5243,7 @@ exports[`Developer Screen useDevVerifierTemplates can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -5393,8 +5343,7 @@ exports[`Developer Screen useDevVerifierTemplates can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -5494,8 +5443,7 @@ exports[`Developer Screen useDevVerifierTemplates can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -5595,8 +5543,7 @@ exports[`Developer Screen useDevVerifierTemplates can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -5694,7 +5641,6 @@ exports[`Developer Screen useDevVerifierTemplates can be toggled 1`] = `
                         "fontWeight": "bold",
                         "textAlign": "center",
                       },
-                      false,
                       false,
                       false,
                     ],
@@ -5840,8 +5786,7 @@ exports[`Developer Screen useVerifierCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -5941,8 +5886,7 @@ exports[`Developer Screen useVerifierCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -6042,8 +5986,7 @@ exports[`Developer Screen useVerifierCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -6143,8 +6086,7 @@ exports[`Developer Screen useVerifierCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -6244,8 +6186,7 @@ exports[`Developer Screen useVerifierCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -6345,8 +6286,7 @@ exports[`Developer Screen useVerifierCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -6446,8 +6386,7 @@ exports[`Developer Screen useVerifierCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -6547,8 +6486,7 @@ exports[`Developer Screen useVerifierCapability can be toggled 1`] = `
             style={
               Array [
                 Object {
-                  "height": 31,
-                  "width": 51,
+                  "alignSelf": "flex-start",
                 },
                 Object {
                   "backgroundColor": "#D3D3D3",
@@ -6646,7 +6584,6 @@ exports[`Developer Screen useVerifierCapability can be toggled 1`] = `
                         "fontWeight": "bold",
                         "textAlign": "center",
                       },
-                      false,
                       false,
                       false,
                     ],

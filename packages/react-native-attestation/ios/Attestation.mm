@@ -269,8 +269,9 @@ RCT_EXPORT_METHOD(appleAttestation:(NSString *)keyId
 }
 
 RCT_EXPORT_METHOD(getAppStoreReceipt:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
+                  reject:(RCTPromiseRejectBlock)reject) {
     NSURL *appStoreReceiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
+    NSString *missingReceiptMessage = @"No App Store receipt is available.";
     
     if (appStoreReceiptURL && [[NSFileManager defaultManager] fileExistsAtPath:[appStoreReceiptURL path]]) {
         NSError *error;
@@ -281,10 +282,11 @@ RCT_EXPORT_METHOD(getAppStoreReceipt:(RCTPromiseResolveBlock)resolve
             NSString *receiptString = [receiptData base64EncodedStringWithOptions:0];
             resolve(receiptString);
         } else {
-            reject(@"receipt_error", @"Failed to read App Store receipt", error);
+            NSString *readErrorMessage = @"Failed to read App Store receipt.";
+            reject(@"receipt_error", readErrorMessage, errorWithReason(readErrorMessage, 24));
         }
     } else {
-        resolve([NSNull null]); // No receipt available
+        reject(@"receipt_missing", missingReceiptMessage, errorWithReason(missingReceiptMessage, 23));
     }
 }
 

@@ -1,38 +1,38 @@
+import { OCABundleResolverType } from '@bifold/oca/build/legacy'
+import { ProofRequestTemplate } from '@bifold/verifier'
 import { Agent } from '@credo-ts/core'
 import { IndyVdrPoolConfig } from '@credo-ts/indy-vdr'
-import { ProofRequestTemplate } from '@bifold/verifier'
-import { OCABundleResolverType } from '@bifold/oca/build/legacy'
 import { StackNavigationProp } from '@react-navigation/stack'
 import React, { createContext, useContext } from 'react'
 import { DependencyContainer } from 'tsyringe'
 
 import { Button } from './components/buttons/Button-api'
-import { ReducerAction } from './contexts/reducers/store'
-import { IHistoryManager } from './modules/history'
-import Onboarding from './screens/Onboarding'
-import { SplashProps } from './screens/Splash'
-import UpdateAvailable from './screens/UpdateAvailable'
-import { AttestationMonitor } from './types/attestation'
-import { IVersionCheckService } from './types/version-check'
-import { GenericFn } from './types/fn'
-import { OnboardingStackParams, ScreenLayoutConfig, ScreenOptionsType, OnboardingTask } from './types/navigators'
-import { CustomNotification } from './types/notification'
-import { Config, HistoryEventsLoggerConfig } from './types/config'
-import { State } from './types/state'
-import { NotificationReturnType, NotificationsInputProps } from './hooks/notifications'
+import { ContactCredentialListItemProps } from './components/listItems/ContactCredentialListItem'
+import { ContactListItemProps } from './components/listItems/ContactListItem'
 import { NotificationListItemProps } from './components/listItems/NotificationListItem'
 import { PINHeaderProps } from './components/misc/PINHeader'
-import { PINExplainerProps } from './screens/PINExplainer'
-import { CredentialListFooterProps } from './types/credential-list-footer'
-import { ContactListItemProps } from './components/listItems/ContactListItem'
-import { ContactCredentialListItemProps } from './components/listItems/ContactCredentialListItem'
-import { InlineErrorConfig } from './types/error'
-import { BifoldLogger } from './services/logger'
+import { ReducerAction } from './contexts/reducers/store'
+import { NotificationReturnType, NotificationsInputProps } from './hooks/notifications'
 import { AgentSetupReturnType } from './hooks/useBifoldAgentSetup'
-import { OnboardingStackProps } from './navigators/OnboardingStack'
-import { AgentBridge } from './services/AgentBridge'
+import { IHistoryManager } from './modules/history'
 import { IRefreshOrchestrator } from './modules/openid/refresh/types'
-import { FederatedTrustResult, TrustRegistryConfig, UseVerifierTrustResult } from './types/trust-registry'
+import { OnboardingStackProps } from './navigators/OnboardingStack'
+import Onboarding from './screens/Onboarding'
+import { PINExplainerProps } from './screens/PINExplainer'
+import { SplashProps } from './screens/Splash'
+import UpdateAvailable from './screens/UpdateAvailable'
+import { AgentBridge } from './services/AgentBridge'
+import { BifoldLogger } from './services/logger'
+import { AttestationMonitor } from './types/attestation'
+import { CredentialProvisioningMonitor } from './types/auto-credential'
+import { Config, HistoryEventsLoggerConfig } from './types/config'
+import { CredentialListFooterProps } from './types/credential-list-footer'
+import { InlineErrorConfig } from './types/error'
+import { GenericFn } from './types/fn'
+import { OnboardingStackParams, OnboardingTask, ScreenLayoutConfig, ScreenOptionsType } from './types/navigators'
+import { CustomNotification } from './types/notification'
+import { State } from './types/state'
+import { IVersionCheckService } from './types/version-check'
 
 export type FN_ONBOARDING_DONE = (
   dispatch: React.Dispatch<ReducerAction<unknown>>,
@@ -147,6 +147,7 @@ export const UTILITY_TOKENS = {
   UTIL_LEDGERS: 'utility.ledgers',
   UTIL_PROOF_TEMPLATE: 'utility.proof-template',
   UTIL_ATTESTATION_MONITOR: 'utility.attestation-monitor',
+  UTIL_CREDENTIAL_PROVISIONING_MONITOR: 'utility.credential-provisioning-monitor',
   UTIL_APP_VERSION_MONITOR: 'utility.app-version-monitor',
   UTIL_AGENT_BRIDGE: 'utility.agent-bridge',
   UTIL_REFRESH_ORCHESTRATOR: 'utility.refresh-orchestrator',
@@ -158,9 +159,14 @@ export const CONFIG_TOKENS = {
   ONBOARDING: 'utility.onboarding',
 } as const
 
-export const TRUST_REGISTRY_TOKENS = {
-  TRUST_REGISTRY_SERVICE: 'trust-registry.service',
-  TRUST_REGISTRY_CONFIG: 'trust-registry.config',
+export const CRYPTO_TOKENS = {
+  FN_PIN_HASH_ALGORITHM: 'fn.crypto.pin-hash-algorithm',
+} as const
+
+export const ATTESTATION_TOKENS = {
+  ATTESTATION_FUNCTIONS: 'attestation.functions',
+  FN_ATTESTATION_GET_CHALLENGE: 'attestation.get-challenge',
+  FN_ATTESTATION_GET_JWT: 'attestation.get-jwt',
 } as const
 
 export const TOKENS = {
@@ -180,11 +186,18 @@ export const TOKENS = {
   ...UTILITY_TOKENS,
   ...CONFIG_TOKENS,
   ...HISTORY_TOKENS,
-  ...TRUST_REGISTRY_TOKENS,
+  ...CRYPTO_TOKENS,
+  ...ATTESTATION_TOKENS,
 } as const
 
 export type FN_HISTORY_MANAGER = (agent: Agent<any>) => IHistoryManager
 export type FN_PIN_HASH_ALGORITHM = (PIN: string, salt: string) => Promise<string>
+export type FN_ATTESTATION_GET_CHALLENGE = () => Promise<string>
+export type FN_ATTESTATION_GET_JWT = (
+  attestationResult: string | string[],
+  challenge: string,
+  keyId: string
+) => Promise<any>
 
 export type TokenMapping = {
   [TOKENS.CRED_HELP_ACTION_OVERRIDES]: {
@@ -230,6 +243,7 @@ export type TokenMapping = {
   [TOKENS.UTIL_LEDGERS]: IndyVdrPoolConfig[]
   [TOKENS.UTIL_PROOF_TEMPLATE]: ProofRequestTemplateFn | undefined
   [TOKENS.UTIL_ATTESTATION_MONITOR]: AttestationMonitor
+  [TOKENS.UTIL_CREDENTIAL_PROVISIONING_MONITOR]: CredentialProvisioningMonitor | undefined
   [TOKENS.UTIL_APP_VERSION_MONITOR]: IVersionCheckService
   [TOKENS.FN_LOAD_HISTORY]: FN_HISTORY_MANAGER
   [TOKENS.HISTORY_ENABLED]: boolean
@@ -255,17 +269,8 @@ export type TokenMapping = {
   [TOKENS.UTIL_REFRESH_ORCHESTRATOR]: IRefreshOrchestrator
   [TOKENS.TRUST_REGISTRY_SERVICE]: unknown
   [TOKENS.FN_PIN_HASH_ALGORITHM]: FN_PIN_HASH_ALGORITHM
-
-  [TOKENS.TRUST_REGISTRY_CONFIG]: TrustRegistryConfig
-  [TOKENS.COMPONENT_TRUST_REGISTRY_MODAL]: React.FC<any>
-  [TOKENS.COMPONENT_TRUST_CONFIRM_MODAL]: React.FC<{
-    visible: boolean
-    isAuthorized: boolean
-    onAccept: () => void
-    onDecline: () => void
-    onClose: () => void
-    message?: string
-  }>
+  [TOKENS.FN_ATTESTATION_GET_CHALLENGE]: FN_ATTESTATION_GET_CHALLENGE
+  [TOKENS.FN_ATTESTATION_GET_JWT]: FN_ATTESTATION_GET_JWT
 }
 
 export interface Container {

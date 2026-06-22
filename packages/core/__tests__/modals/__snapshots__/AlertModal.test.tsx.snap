@@ -20,9 +20,7 @@ exports[`AlertModal Component Renders correctly 1`] = `
   }
 >
   <Modal
-    hardwareAccelerated={false}
     transparent={true}
-    visible={true}
   >
     <View
       style={
@@ -218,7 +216,6 @@ exports[`AlertModal Component Renders correctly 1`] = `
                             "fontWeight": "bold",
                             "textAlign": "center",
                           },
-                          false,
                           false,
                           false,
                         ],

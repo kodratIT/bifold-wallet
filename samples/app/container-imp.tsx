@@ -9,8 +9,6 @@ import {
   useVerifierTrust,
 } from '@bifold/trust-registry'
 import { DependencyContainer } from 'tsyringe'
-import { getTrustRegistryConfig, isTrustRegistryConfigured } from './config/trustRegistry'
-import BackupStack from './navigators/BackupStack'
 
 export class AppContainer implements Container {
   private _container: DependencyContainer
@@ -76,8 +74,7 @@ export class AppContainer implements Container {
         throw new Error(`Error generating hash for PIN ${String((error as Error)?.message ?? error)}`)
       }
     })
-    */
-
+    */ 
     return this
   }
 

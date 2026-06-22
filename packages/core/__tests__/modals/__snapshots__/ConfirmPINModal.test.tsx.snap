@@ -3,7 +3,6 @@
 exports[`ConfirmPINModal Component Renders correctly for PIN change 1`] = `
 <Modal
   animationType="none"
-  hardwareAccelerated={false}
   presentationStyle="fullScreen"
   statusBarTranslucent={true}
   style={
@@ -236,7 +235,6 @@ exports[`ConfirmPINModal Component Renders correctly for PIN change 1`] = `
                 Object {
                   "backgroundColor": "#000000",
                   "flex": 1,
-                  "padding": 20,
                 }
               }
             >
@@ -786,7 +784,6 @@ exports[`ConfirmPINModal Component Renders correctly for PIN change 1`] = `
 exports[`ConfirmPINModal Component Renders correctly for PIN create 1`] = `
 <Modal
   animationType="none"
-  hardwareAccelerated={false}
   presentationStyle="fullScreen"
   statusBarTranslucent={true}
   style={
@@ -1019,7 +1016,6 @@ exports[`ConfirmPINModal Component Renders correctly for PIN create 1`] = `
                 Object {
                   "backgroundColor": "#000000",
                   "flex": 1,
-                  "padding": 20,
                 }
               }
             >
@@ -1054,10 +1050,10 @@ exports[`ConfirmPINModal Component Renders correctly for PIN create 1`] = `
                     Array [
                       Object {
                         "color": "#FFFFFF",
-                        "fontSize": 28,
+                        "fontSize": 18,
                         "fontWeight": "bold",
                       },
-                      Object {},
+                      undefined,
                     ]
                   }
                 >

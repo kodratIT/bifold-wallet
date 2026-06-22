@@ -261,7 +261,6 @@ exports[`Preface Screen Button enabled by checkbox being checked 1`] = `
                         },
                         false,
                         false,
-                        false,
                       ],
                     ]
                   }
@@ -494,7 +493,7 @@ exports[`Preface Screen Renders correctly 1`] = `
               }
               accessible={true}
               collapsable={false}
-              focusable={true}
+              focusable={false}
               onClick={[Function]}
               onResponderGrant={[Function]}
               onResponderMove={[Function]}
@@ -543,7 +542,6 @@ exports[`Preface Screen Renders correctly 1`] = `
                           "fontWeight": "bold",
                           "textAlign": "center",
                         },
-                        false,
                         false,
                       ],
                     ]

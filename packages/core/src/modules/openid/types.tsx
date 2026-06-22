@@ -1,19 +1,20 @@
 import {
-  OpenId4VciCredentialSupported,
-  OpenId4VciIssuerMetadataDisplay,
-  OpenId4VcSiopResolvedAuthorizationRequest,
+  OpenId4VciCredentialIssuerMetadataDisplay,
+  OpenId4VciDpopRequestOptions,
+  OpenId4VpResolvedAuthorizationRequest,
 } from '@credo-ts/openid4vc'
 import { CredentialMetadata } from './display'
-import { ClaimFormat, DifPexCredentialsForRequest, DifPresentationExchangeDefinition } from '@credo-ts/core'
+import { ClaimFormat } from '@credo-ts/core'
 
 export type CredentialForDisplayId = `w3c-credential-${string}` | `sd-jwt-vc-${string}` | `mdoc-${string}`
 export interface OpenId4VcCredentialMetadata {
   credential: {
-    display?: OpenId4VciCredentialSupported['display']
-    order?: OpenId4VciCredentialSupported['order']
+    display?: CredentialDisplay[]
+    order?: string[]
+    credential_subject?: CredentialSubjectRecord
   }
   issuer: {
-    display?: OpenId4VciIssuerMetadataDisplay[]
+    display?: OpenId4VciCredentialIssuerMetadataDisplay[]
     id: string
   }
 }
@@ -53,7 +54,7 @@ export type JffW3cCredentialJson = W3cCredentialJson & {
 }
 
 export interface DisplayImage {
-  url?: string
+  uri?: string
   altText?: string
 }
 
@@ -87,14 +88,43 @@ export interface W3cCredentialDisplay {
   validUntil: Date | undefined
   validFrom: Date | undefined
   credentialSubject: CredentialSubjectRecord | undefined
+  attributeOrder?: string[]
 }
 
-export interface OpenId4VPRequestRecord extends OpenId4VcSiopResolvedAuthorizationRequest {
-  definition: DifPresentationExchangeDefinition
+export interface OpenId4VPRequestRecord extends OpenId4VpResolvedAuthorizationRequest {
   verifierHostName: string | undefined
   createdAt: string | Date
-  credentialsForRequest: DifPexCredentialsForRequest | undefined
-  type: string
+  type: 'OpenId4VPRequestRecord'
+}
+
+export type FormattedSelectedCredentialEntry = {
+  id: string
+  credentialName: string
+  issuerName?: string
+  requestedAttributes?: string[]
+  metadata?: CredentialMetadata
+  backgroundColor?: string
+  backgroundImage?: DisplayImage
+  textColor?: string
+  claimFormat: ClaimFormat | 'AnonCreds'
+}
+
+export interface FormattedSubmissionEntry {
+  /** can be either AnonCreds groupName, PEX inputDescriptorId, or DCQL credential query id */
+  inputDescriptorId: string
+  isSatisfied: boolean
+  name: string
+  purpose?: string
+  description?: string
+
+  credentials: Array<FormattedSelectedCredentialEntry>
+}
+
+export interface FormattedSubmission {
+  name: string
+  purpose?: string
+  areAllSatisfied: boolean
+  entries: FormattedSubmissionEntry[]
 }
 
 interface DisplayInfo {
@@ -142,4 +172,14 @@ export interface RefreshResponse {
   /** Some ASs return a DPoP nonce (different naming conventions) */
   dpop_nonce?: string
   dpopNonce?: string
+
+  /** DPoP options used to bind the access token, if the issuer requires DPoP */
+  dpop?: OpenId4VciDpopRequestOptions
+}
+
+export interface SelectedCredentialsFormat {
+  [inputDescriptorId: string]: {
+    id: string
+    claimFormat: string
+  }
 }

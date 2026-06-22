@@ -18,6 +18,7 @@ interface AppUpdateConfig {
   appleAppStoreUrl: string
   googlePlayStoreUrl: string
 }
+
 export interface Config {
   PINSecurity: PINSecurityParams
   proofTemplateBaseUrl?: string
@@ -51,6 +52,17 @@ export interface Config {
   PINScreensConfig: PINScreensConfig
   showGenericErrors?: boolean
   enableFullScreenErrorModal?: boolean
+  enableHardwareBackedHolderBinding?: boolean
+  customAutoLockTimes?: {
+    default: AutoLockTimer
+    values: [AutoLockTimer, ...AutoLockTimer[]]
+  }
+  enableAttestation: boolean
+}
+
+export interface AutoLockTimer {
+  time: number
+  title: string
 }
 
 export interface PINScreensConfig {

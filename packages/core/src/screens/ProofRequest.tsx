@@ -1,42 +1,32 @@
-
+import { Attribute, Predicate } from '@bifold/oca/build/legacy'
+import { useConnectionById, useProofById } from '@bifold/react-hooks'
 import {
   AnonCredsCredentialsForProofRequest,
   AnonCredsRequestedAttributeMatch,
   AnonCredsRequestedPredicateMatch,
-  V1RequestPresentationMessage,
+  DidCommRequestPresentationV1Message,
 } from '@credo-ts/anoncreds'
+import { ClaimFormat, CredoError, DifPexInputDescriptorToCredentials, SubmissionEntryCredential } from '@credo-ts/core'
 import {
-  CredentialExchangeRecord,
   CredentialRecordBinding,
-  DifPexInputDescriptorToCredentials,
-  CredoError,
-  V2RequestPresentationMessage,
-  ProofState,
-} from '@credo-ts/core'
-import { useConnectionById, useProofById } from '@credo-ts/react-hooks'
-import { Attribute, Predicate } from '@bifold/oca/build/legacy'
+  DidCommCredentialExchangeRecord,
+  DidCommProofState,
+  DidCommRequestPresentationV2Message,
+} from '@credo-ts/didcomm'
 import { useIsFocused } from '@react-navigation/native'
 import moment from 'moment'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  DeviceEventEmitter,
-  EmitterSubscription,
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from 'react-native'
+import { DeviceEventEmitter, FlatList, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import Button, { ButtonType } from '../components/buttons/Button'
-import { CredentialCard } from '../components/misc'
 import ConnectionImage from '../components/misc/ConnectionImage'
 import InfoBox, { InfoBoxType } from '../components/misc/InfoBox'
 import CommonRemoveModal from '../components/modals/CommonRemoveModal'
 import ProofCancelModal from '../components/modals/ProofCancelModal'
 import InfoTextBox from '../components/texts/InfoTextBox'
+import LoadingPlaceholder, { LoadingPlaceholderWorkflowType } from '../components/views/LoadingPlaceholder'
 import { EventTypes } from '../constants'
 import { TOKENS, useServices } from '../container-api'
 // We should import useVerifierTrust directly from its source if possible, OR if it's injected, we use useServices correctly.
@@ -54,6 +44,7 @@ import { useOutOfBandByConnectionId } from '../hooks/connections'
 import { useOutOfBandByReceivedInvitationId } from '../hooks/oob'
 import { useAllCredentialsForProof } from '../hooks/proofs'
 import { AttestationEventTypes } from '../types/attestation'
+import { CredentialProvisioningEventTypes } from '../types/auto-credential'
 import { BifoldError } from '../types/error'
 import { Screens, Stacks, TabStacks } from '../types/navigators'
 import {
@@ -66,20 +57,20 @@ import { ModalUsage } from '../types/remove'
 import { useAppAgent } from '../utils/agent'
 import { DescriptorMetadata } from '../utils/anonCredsProofRequestMapper'
 import {
-  Fields,
   evaluatePredicates,
+  Fields,
   getConnectionName,
   getCredentialDefinitionIdForRecord,
   getCredentialSchemaIdForRecord,
 } from '../utils/helpers'
 import { testIdWithKey } from '../utils/testable'
-import LoadingPlaceholder, { LoadingPlaceholderWorkflowType } from '../components/views/LoadingPlaceholder'
 
-import ProofRequestAccept from './ProofRequestAccept'
-import { HistoryCardType, HistoryRecord } from '../modules/history/types'
-import { BaseTourID } from '../types/tour'
+import CredentialCardGen from '../components/misc/CredentialCardGen'
 import { ThemedText } from '../components/texts/ThemedText'
+import { HistoryCardType, HistoryRecord } from '../modules/history/types'
 import { CredentialErrors } from '../types/credentials'
+import { BaseTourID } from '../types/tour'
+import ProofRequestAccept from './ProofRequestAccept'
 
 type ProofRequestProps = {
   navigation: any
@@ -87,8 +78,8 @@ type ProofRequestProps = {
 }
 
 type CredentialListProps = {
-  header?: JSX.Element
-  footer?: JSX.Element
+  header?: React.ReactElement | null
+  footer?: React.ReactElement | null
   items: ProofCredentialItems[]
   missing: boolean
 }
@@ -117,14 +108,17 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
   const [activeCreds, setActiveCreds] = useState<ProofCredentialItems[]>([])
   const [selectedCredentials, setSelectedCredentials] = useState<string[]>([])
   const [attestationLoading, setAttestationLoading] = useState(false)
+  const [credentialProvisioningLoading, setCredentialProvisioningLoading] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showErrorModal, setShowErrorModal] = useState(false)
+  const isHandlingLocalProofExit = useRef(false)
 
   const [store, dispatch] = useStore()
   const credProofPromise = useAllCredentialsForProof(proofId)
   const [
     bundleResolver,
     attestationMonitor,
+    credentialProvisioningMonitor,
     { enableTours: enableToursConfig },
     logger,
     historyManagerCurried,
@@ -138,6 +132,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
   ] = useServices([
     TOKENS.UTIL_OCA_RESOLVER,
     TOKENS.UTIL_ATTESTATION_MONITOR,
+    TOKENS.UTIL_CREDENTIAL_PROVISIONING_MONITOR,
     TOKENS.CONFIG,
     TOKENS.UTIL_LOGGER,
     TOKENS.FN_LOAD_HISTORY,
@@ -205,10 +200,24 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
   })
 
   useEffect(() => {
-    if (proof && proof?.state !== ProofState.RequestReceived) {
-      setShowErrorModal(true)
+    if (!proof) {
+      return
     }
-  }, [t, proof])
+    if (proof.state === DidCommProofState.RequestReceived) {
+      setShowErrorModal(false)
+      isHandlingLocalProofExit.current = false
+      return
+    }
+
+    if (proof.state === DidCommProofState.Declined || proof.state === DidCommProofState.Abandoned) {
+      if (!isHandlingLocalProofExit.current) {
+        navigation.getParent()?.navigate(TabStacks.HomeStack, { screen: Screens.Home })
+      }
+      return
+    }
+
+    setShowErrorModal(true)
+  }, [navigation, proof])
 
   useEffect(() => {
     if (!attestationMonitor) {
@@ -227,19 +236,49 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       DeviceEventEmitter.emit(EventTypes.ERROR_ADDED, error)
     }
 
-    const subscriptions = Array<EmitterSubscription>()
-    subscriptions.push(DeviceEventEmitter.addListener(AttestationEventTypes.Started, handleStartedAttestation))
-    subscriptions.push(DeviceEventEmitter.addListener(AttestationEventTypes.Completed, handleStartedCompleted))
-    subscriptions.push(DeviceEventEmitter.addListener(AttestationEventTypes.FailedHandleProof, handleFailedAttestation))
-    subscriptions.push(DeviceEventEmitter.addListener(AttestationEventTypes.FailedHandleOffer, handleFailedAttestation))
-    subscriptions.push(
-      DeviceEventEmitter.addListener(AttestationEventTypes.FailedRequestCredential, handleFailedAttestation)
-    )
+    const subscriptions = [
+      DeviceEventEmitter.addListener(AttestationEventTypes.Started, handleStartedAttestation),
+      DeviceEventEmitter.addListener(AttestationEventTypes.Completed, handleStartedCompleted),
+      DeviceEventEmitter.addListener(AttestationEventTypes.FailedHandleProof, handleFailedAttestation),
+      DeviceEventEmitter.addListener(AttestationEventTypes.FailedHandleOffer, handleFailedAttestation),
+      DeviceEventEmitter.addListener(AttestationEventTypes.FailedRequestCredential, handleFailedAttestation),
+    ]
 
     return () => {
       subscriptions.forEach((subscription) => subscription.remove())
     }
   }, [attestationMonitor])
+
+  useEffect(() => {
+    if (!credentialProvisioningMonitor) {
+      return
+    }
+
+    const handleStarted = () => {
+      setCredentialProvisioningLoading(true)
+    }
+
+    const handleCompleted = () => {
+      setCredentialProvisioningLoading(false)
+    }
+
+    const handleFailed = (error: BifoldError) => {
+      setCredentialProvisioningLoading(false)
+      DeviceEventEmitter.emit(EventTypes.ERROR_ADDED, error)
+    }
+    const subscriptions = [
+      DeviceEventEmitter.addListener(CredentialProvisioningEventTypes.Started, handleStarted),
+      DeviceEventEmitter.addListener(CredentialProvisioningEventTypes.Completed, handleCompleted),
+      DeviceEventEmitter.addListener(CredentialProvisioningEventTypes.FailedHandleProof, handleFailed),
+      DeviceEventEmitter.addListener(CredentialProvisioningEventTypes.FailedHandleOffer, handleFailed),
+      DeviceEventEmitter.addListener(CredentialProvisioningEventTypes.FailedRequestCredential, handleFailed),
+    ]
+
+    // clean up
+    return () => {
+      subscriptions.forEach((subscription) => subscription.remove())
+    }
+  }, [credentialProvisioningMonitor])
 
   useEffect(() => {
     const shouldShowTour = enableToursConfig && store.tours.enableTours && !store.tours.seenProofRequestTour
@@ -263,7 +302,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
   }, [agent, proof, t])
 
   const containsRevokedCreds = (
-    credExRecords: CredentialExchangeRecord[],
+    credExRecords: DidCommCredentialExchangeRecord[],
     fields: {
       [key: string]: Attribute[] & Predicate[]
     }
@@ -308,6 +347,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
         value = await credProofPromise
 
         if (!value) {
+          setLoading(false)
           return
         }
       } catch (err) {
@@ -318,6 +358,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
           1026
         )
         DeviceEventEmitter.emit(EventTypes.ERROR_ADDED, error)
+        setLoading(false)
         return
       }
 
@@ -388,12 +429,12 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       const missingCredentials: ProofCredentialItems[] = []
       const schemaIds = new Set(
         fullCredentials
-          .map((fullCredential: CredentialExchangeRecord) => getCredentialSchemaIdForRecord(fullCredential))
+          .map((fullCredential: DidCommCredentialExchangeRecord) => getCredentialSchemaIdForRecord(fullCredential))
           .filter((id) => id !== null)
       )
       const credDefIds = new Set(
         fullCredentials
-          .map((fullCredential: CredentialExchangeRecord) => getCredentialDefinitionIdForRecord(fullCredential))
+          .map((fullCredential: DidCommCredentialExchangeRecord) => getCredentialDefinitionIdForRecord(fullCredential))
           .filter((id) => id !== null)
       )
       activeCreds.forEach((cred) => {
@@ -412,7 +453,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       setMissingCredentials(missingCredentials)
 
       // Check for revoked credentials
-      const records = fullCredentials.filter((record: CredentialExchangeRecord) =>
+      const records = fullCredentials.filter((record: DidCommCredentialExchangeRecord) =>
         record.credentials.some((cred: CredentialRecordBinding) => credList.includes(cred.credentialRecordId))
       )
       const foundRevocationOffense = containsRevokedCreds(records, unpackCredToField(activeCreds))
@@ -439,12 +480,20 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       if (!item || !(item.credDefId || item.schemaId)) {
         return false
       }
-      const labels = (item.attributes ?? []).map((field) => field.label ?? field.name ?? '')
+      const labels = (item.attributes ?? []).flatMap((field) => [field.label, field.name].filter(Boolean) as string[])
       const bundle = await bundleResolver.resolveAllBundles({
         identifiers: { credentialDefinitionId: item.credDefId, schemaId: item.schemaId },
       })
-      const flaggedAttributes: string[] = (bundle as any).bundle.bundle.flaggedAttributes.map((attr: any) => attr.name)
-      const foundPI = labels.some((label) => flaggedAttributes.includes(label))
+      const resolvedBundle = (bundle as any)?.bundle
+      const overlayBundle = resolvedBundle?.bundle ?? resolvedBundle
+      const flagged = overlayBundle?.flaggedAttributes ?? resolvedBundle?.captureBase?.flaggedAttributes
+      const flaggedNames =
+        Array.isArray(flagged) && flagged.every((item: unknown) => typeof item === 'string')
+          ? flagged
+          : Array.isArray(flagged)
+            ? flagged.map((attr: any) => attr?.name).filter(Boolean)
+            : []
+      const foundPI = labels.some((label) => flaggedNames.includes(label))
       setContainsPI(foundPI)
       return foundPI
     })
@@ -479,9 +528,9 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
           return
         }
 
-        let message: V2RequestPresentationMessage | V1RequestPresentationMessage | null | undefined
+        let message: DidCommRequestPresentationV2Message | DidCommRequestPresentationV1Message | null | undefined
         try {
-          message = await agent?.proofs.findRequestMessage(proofId)
+          message = await agent?.modules.didcomm.proofs.findRequestMessage(proofId)
         } catch (error) {
           logger.error('Error finding request message:', error as CredoError)
         }
@@ -509,7 +558,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       if (!retrievedCredentials) {
         throw new Error(t('ProofRequest.RequestedCredentialsCouldNotBeFound'))
       }
-      const format = await agent.proofs.getFormatData(proof!.id)
+      const format = await agent.modules.didcomm.proofs.getFormatData(proof.id)
 
       if (format.request?.presentationExchange) {
         if (!descriptorMetadata) throw new Error(t('ProofRequest.PresentationMetadataNotFound'))
@@ -518,18 +567,24 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
           Object.entries(descriptorMetadata).map(([descriptorId, meta]) => {
             const activeCredentialIds = activeCreds.map((cred) => cred.credId)
             const selectedRecord = meta.find((item) => activeCredentialIds.includes(item.record.id))
-            if (!selectedRecord) throw new Error(t('ProofRequest.CredentialMetadataNotFound'))
-            return [descriptorId, [selectedRecord.record]]
+            if (!selectedRecord) {
+              throw new Error(t('ProofRequest.CredentialMetadataNotFound'))
+            }
+            const recordReturn: SubmissionEntryCredential = {
+              claimFormat: ClaimFormat.JwtVc,
+              credentialRecord: selectedRecord.record,
+            }
+            return [descriptorId, [recordReturn]]
           })
         )
 
-        await agent.proofs.acceptRequest({
-          proofRecordId: proof!.id,
+        await agent.modules.didcomm.proofs.acceptRequest({
+          proofExchangeRecordId: proof.id,
           proofFormats: { presentationExchange: { credentials: selectedCredentials } },
         })
 
-        if (proof?.connectionId && goalCode?.endsWith('verify.once')) {
-          agent.connections.deleteById(proof!.connectionId)
+        if (proof.connectionId && goalCode?.endsWith('verify.once')) {
+          agent.modules.didcomm.connections.deleteById(proof.connectionId)
         }
         return
       }
@@ -570,12 +625,12 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
         throw new Error(t('ProofRequest.RequestedCredentialsCouldNotBeFound'))
       }
 
-      await agent.proofs.acceptRequest({
-        proofRecordId: proof!.id,
+      await agent.modules.didcomm.proofs.acceptRequest({
+        proofExchangeRecordId: proof.id,
         proofFormats: automaticRequestedCreds.proofFormats,
       })
-      if (proof?.connectionId && goalCode?.endsWith('verify.once')) {
-        agent.connections.deleteById(proof!.connectionId)
+      if (proof.connectionId && goalCode?.endsWith('verify.once')) {
+        agent.modules.didcomm.connections.deleteById(proof.connectionId)
       }
 
       if (historyEventsLogger.logInformationSent) {
@@ -643,19 +698,23 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
   ])
 
   const handleDeclineTouched = useCallback(async () => {
+    isHandlingLocalProofExit.current = true
     try {
       if (agent && proof) {
         const connectionId = proof.connectionId ?? ''
-        const connection = await agent.connections.findById(connectionId)
+        const connection = await agent.modules.didcomm.connections.findById(connectionId)
 
         if (connection) {
-          await agent.proofs.sendProblemReport({ proofRecordId: proof.id, description: t('ProofRequest.Declined') })
+          await agent.modules.didcomm.proofs.sendProblemReport({
+            proofExchangeRecordId: proof.id,
+            description: t('ProofRequest.Declined'),
+          })
         }
 
-        await agent.proofs.declineRequest({ proofRecordId: proof.id })
+        await agent.modules.didcomm.proofs.declineRequest({ proofExchangeRecordId: proof.id })
 
         if (connectionId && goalCode?.endsWith('verify.once')) {
-          agent.connections.deleteById(connectionId)
+          agent.modules.didcomm.connections.deleteById(connectionId)
         }
       }
     } catch (err: unknown) {
@@ -681,15 +740,19 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
   ])
 
   const handleCancelTouched = useCallback(async () => {
+    isHandlingLocalProofExit.current = true
     try {
       toggleCancelModalVisible()
 
       if (agent && proof) {
-        await agent.proofs.sendProblemReport({ proofRecordId: proof.id, description: t('ProofRequest.Declined') })
-        await agent.proofs.declineRequest({ proofRecordId: proof.id })
+        await agent.modules.didcomm.proofs.sendProblemReport({
+          proofExchangeRecordId: proof.id,
+          description: t('ProofRequest.Declined'),
+        })
+        await agent.modules.didcomm.proofs.declineRequest({ proofExchangeRecordId: proof.id })
 
         if (proof.connectionId && goalCode?.endsWith('verify.once')) {
-          agent.connections.deleteById(proof.connectionId)
+          agent.modules.didcomm.connections.deleteById(proof.connectionId)
         }
       }
     } catch (err: unknown) {
@@ -720,7 +783,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
       hasCredentialError: !hasAvailableCredentials,
       hasSatisfiedPredicateError: !hasSatisfiedPredicates(getCredentialsFields()),
       hasRevokedOffense: revocationOffense,
-      hasProofStateReceivedError: proof?.state !== ProofState.RequestReceived,
+      hasProofStateReceivedError: proof?.state !== DidCommProofState.RequestReceived,
     }
   }, [hasAvailableCredentials, hasSatisfiedPredicates, getCredentialsFields, revocationOffense, proof])
 
@@ -728,15 +791,20 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
     return Object.values(shareDisabledErrors).some((value) => value)
   }, [shareDisabledErrors])
 
+  // True while any background credential workflow (attestation or just-in-time
+  // provisioning) is in progress — used to show the loading overlay and hide
+  // interactive UI elements that require credentials to be ready.
+  const isCredentialLoading = attestationLoading || credentialProvisioningLoading
+
   const proofPageHeader = () => {
     return (
       <>
-        {attestationLoading && (
+        {isCredentialLoading && (
           <View style={{ padding: 20 }}>
             <InfoTextBox>{t('ProofRequest.JustAMoment')}</InfoTextBox>
           </View>
         )}
-        {loading || attestationLoading ? (
+        {loading || isCredentialLoading ? (
           <LoadingPlaceholder
             workflowType={LoadingPlaceholderWorkflowType.ProofRequested}
             timeoutDurationInMs={10000}
@@ -916,10 +984,10 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
           !hasSatisfiedPredicates(getCredentialsFields(), item.credId) && errors.push(CredentialErrors.PredicateError)
           return (
             <View>
-              {loading || attestationLoading ? null : (
+              {loading || isCredentialLoading ? null : (
                 <View style={{ marginVertical: 10, marginHorizontal: 20 }}>
                   {/*  Use for new arch CredentialCardGen */}
-                  <CredentialCard
+                  <CredentialCardGen
                     credential={item.credExchangeRecord}
                     credDefId={item.credDefId}
                     schemaId={item.schemaId}
@@ -951,7 +1019,7 @@ const ProofRequest: React.FC<ProofRequestProps> = ({ navigation, proofId }) => {
   const credentialListHeader = (headerText: string) => {
     return (
       <View style={styles.pageMargin}>
-        {!(loading || attestationLoading) && (
+        {!(loading || isCredentialLoading) && (
           <ThemedText
             variant="title"
             testID={testIdWithKey('ProofRequestHeaderText')}

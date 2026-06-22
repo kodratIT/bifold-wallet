@@ -1,7 +1,7 @@
 // packages/core/src/components/misc/CredentialCard.tsx
 import React, { useEffect, useState } from 'react'
 import type { ViewStyle } from 'react-native'
-import { CredentialExchangeRecord } from '@credo-ts/core'
+import { DidCommCredentialExchangeRecord } from '@credo-ts/didcomm'
 import { BrandingOverlay } from '@bifold/oca'
 import { Attribute, BrandingOverlayType, CredentialOverlay, Predicate } from '@bifold/oca/build/legacy'
 
@@ -17,6 +17,7 @@ import { brandingOverlayTypeString, mapCredentialTypeToCard } from '../../wallet
 
 import { useTranslation } from 'react-i18next'
 import { useCredentialConnectionLabel } from '../../utils/helpers'
+import { useCredentialErrorsFromRegistry } from '../../modules/openid/hooks/useCredentialErrorsFromRegistry'
 
 export interface CredentialCardProps {
   credential?: GenericCredentialExchangeRecord
@@ -47,7 +48,8 @@ const CredentialCardGen: React.FC<CredentialCardProps> = ({
   const [bundleResolver] = useServices([TOKENS.UTIL_OCA_RESOLVER])
   const { ColorPalette } = useTheme()
   const { t } = useTranslation()
-  const credentialConnectionLabel = useCredentialConnectionLabel(credential as CredentialExchangeRecord)
+  const credentialConnectionLabel = useCredentialConnectionLabel(credential as DidCommCredentialExchangeRecord)
+  const computedCredentialErrors = useCredentialErrorsFromRegistry(credential, credentialErrors)
 
   // unified card data
   const [cardData, setCardData] = useState<WalletCredentialCardData | undefined>(undefined)
@@ -62,7 +64,7 @@ const CredentialCardGen: React.FC<CredentialCardProps> = ({
         unknownIssuerName: t('Contacts.UnknownContact'),
         brandingOverlay,
         proof,
-        credentialErrors,
+        credentialErrors: computedCredentialErrors,
         credName,
         credentialConnectionLabel,
         displayItems,
@@ -78,7 +80,7 @@ const CredentialCardGen: React.FC<CredentialCardProps> = ({
     ColorPalette,
     brandingOverlay,
     proof,
-    credentialErrors,
+    computedCredentialErrors,
     t,
     credName,
     credentialConnectionLabel,

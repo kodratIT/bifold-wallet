@@ -1,8 +1,8 @@
 import type { StackScreenProps } from '@react-navigation/stack'
 
 import { ProofCustomMetadata, ProofMetadata, linkProofWithTemplate, sendProofRequest } from '@bifold/verifier'
-import { DidExchangeState, ProofState } from '@credo-ts/core'
-import { useAgent, useProofById } from '@credo-ts/react-hooks'
+import { useAgent, useProofById } from '@bifold/react-hooks'
+import { DidCommDidExchangeState, DidCommProofState } from '@credo-ts/didcomm'
 import { useFocusEffect, useIsFocused } from '@react-navigation/native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -145,9 +145,9 @@ const ProofRequesting: React.FC<ProofRequestingProps> = ({ route, navigation }) 
         return true
       }
 
-      BackHandler.addEventListener('hardwareBackPress', onBackPress)
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress)
 
-      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress)
+      return () => subscription.remove()
     }, [navigation])
   )
 
@@ -181,7 +181,7 @@ const ProofRequesting: React.FC<ProofRequestingProps> = ({ route, navigation }) 
     }
 
     const sendAsyncProof = async () => {
-      if (record && record.state === DidExchangeState.Completed) {
+      if (record && record.state === DidCommDidExchangeState.Completed) {
         //send haptic feedback to verifier that connection is completed
         Vibration.vibrate()
 
@@ -204,7 +204,7 @@ const ProofRequesting: React.FC<ProofRequestingProps> = ({ route, navigation }) 
   }, [template, record, agent, predicateValues, templateId, logger])
 
   useEffect(() => {
-    if (proofRecord && proofRecord.state === ProofState.RequestSent) {
+    if (proofRecord && proofRecord.state === DidCommProofState.RequestSent) {
       navigation.navigate(Screens.MobileVerifierLoading, { proofId: proofRecord.id, connectionId: record?.id ?? '' })
 
       setProofRecordId(undefined)

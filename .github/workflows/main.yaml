@@ -34,7 +34,9 @@ jobs:
       - name: Configure ruby
         uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 # v1.268.0
         with:
+          ruby-version: 3.3.6
           working-directory: ./samples/app
+          bundler-cache: true
 
       - name: What XCode are we using?
         run: |
@@ -47,9 +49,7 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: samples/app/ios/Pods
-          key: ${{ runner.os }}-pods-${{ env.cacheId }}-${{ hashFiles('**/Podfile.lock ') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-${{ env.cacheId }}-
+          key: ${{ runner.os }}-pods-${{ env.cacheId }}-${{ hashFiles('samples/app/ios/Podfile.lock') }}
 
       # Watch for changes to the `src` and `iOS` paths, use
       # git for cache keys.
@@ -113,8 +113,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        compile-sdk: [33]
-        build-tools: [33.0.2]
+        compile-sdk: [36]
+        build-tools: [36.0.0]
         sdk-tools: [4333796]
     env:
       GRADLE_USER_HOME: /mnt/gradle-cache
@@ -152,6 +152,8 @@ jobs:
           echo y | sdkmanager "platforms;android-${{ matrix.compile-sdk }}" >/dev/null
           echo y | sdkmanager "platform-tools" >/dev/null
           echo y | sdkmanager "build-tools;${{ matrix.build-tools }}" >/dev/null
+          echo y | sdkmanager "ndk;27.1.12297006" >/dev/null
+          echo y | sdkmanager "cmake;3.22.1" >/dev/null
           find $ANDROID_HOME -type f -executable -print
 
           chmod +x ./gradlew

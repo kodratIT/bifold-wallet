@@ -1,5 +1,5 @@
-import { ConnectionRecord } from '@credo-ts/core'
-import { useAgent } from '@credo-ts/react-hooks'
+import { useAgent } from '@bifold/react-hooks'
+import { DidCommConnectionRecord } from '@credo-ts/didcomm'
 import fs from 'fs'
 import path from 'path'
 
@@ -10,6 +10,7 @@ import {
   credentialSortFn,
   formatIfDate,
   formatTime,
+  getAttributeFormats,
   getConnectionName,
   removeExistingInvitationsById,
   schemaIdFromRestrictions,
@@ -122,7 +123,7 @@ describe('createConnectionInvitation', () => {
         toUrl: jest.fn().mockReturnValueOnce(Promise.resolve('cat')),
       },
     }
-    agent!.oob.createInvitation = jest.fn().mockReturnValueOnce(Promise.resolve(invitation))
+    agent!.modules.oob.createInvitation = jest.fn().mockReturnValueOnce(Promise.resolve(invitation))
 
     const result = await createConnectionInvitation(agent, 'aries.foo')
 
@@ -140,9 +141,9 @@ describe('removeExistingInvitationsById', () => {
   const invitationId = '1'
   const { agent } = useAgent()
   const findAllByQueryMock = jest.fn()
-  agent!.oob.findAllByQuery = findAllByQueryMock
+  agent!.modules.oob.findAllByQuery = findAllByQueryMock
   const deleteByIdMock = jest.fn()
-  agent!.oob.deleteById = deleteByIdMock
+  agent!.modules.oob.deleteById = deleteByIdMock
 
   test('without an existing invitation', async () => {
     await removeExistingInvitationsById(agent, invitationId)
@@ -180,9 +181,9 @@ describe('connectFromInvitation', () => {
     }
     const uri = 'http://foo.com?c_i=abc123'
     const parseInvitation = jest.fn().mockReturnValueOnce(Promise.resolve({ id: '123' }))
-    agent!.oob.parseInvitation = parseInvitation
+    agent!.modules.oob.parseInvitation = parseInvitation
     const receiveInvitation = jest.fn().mockReturnValueOnce(Promise.resolve(record))
-    agent!.oob.receiveInvitation = receiveInvitation
+    agent!.modules.oob.receiveInvitation = receiveInvitation
 
     const result = await connectFromInvitation(uri, agent)
 
@@ -197,35 +198,35 @@ describe('getConnectionName', () => {
     const connection = { id: '1', theirLabel: 'Mike', alias: 'Mikey' }
     const alternateContactNames = { '1': 'Mikeroni' }
 
-    const result = getConnectionName(connection as ConnectionRecord, alternateContactNames)
+    const result = getConnectionName(connection as DidCommConnectionRecord, alternateContactNames)
     expect(result).toBe('Mikeroni')
   })
   test('With all properties and no alternate name', async () => {
     const connection = { id: '1', theirLabel: 'Mike', alias: 'Mikey' }
     const alternateContactNames = {}
 
-    const result = getConnectionName(connection as ConnectionRecord, alternateContactNames)
+    const result = getConnectionName(connection as DidCommConnectionRecord, alternateContactNames)
     expect(result).toBe('Mike')
   })
   test('With no theirLabel but an alias', async () => {
     const connection = { id: '1', alias: 'Mikey' }
     const alternateContactNames = {}
 
-    const result = getConnectionName(connection as ConnectionRecord, alternateContactNames)
+    const result = getConnectionName(connection as DidCommConnectionRecord, alternateContactNames)
     expect(result).toBe('Mikey')
   })
   test('With no theirLabel or alias', async () => {
     const connection = { id: '1' }
     const alternateContactNames = {}
 
-    const result = getConnectionName(connection as ConnectionRecord, alternateContactNames)
+    const result = getConnectionName(connection as DidCommConnectionRecord, alternateContactNames)
     expect(result).toBe('1')
   })
   test('With undefined connection', async () => {
     const connection = undefined
     const alternateContactNames = {}
 
-    const result = getConnectionName(connection as unknown as ConnectionRecord, alternateContactNames)
+    const result = getConnectionName(connection as unknown as DidCommConnectionRecord, alternateContactNames)
     expect(result).toBe('')
   })
 })
@@ -287,5 +288,63 @@ describe('schemaIdFromRestrictions', () => {
 
     const result = schemaIdFromRestrictions(restrictions)
     expect(result).toBe(expected)
+  })
+})
+
+describe('getAttributeFormats', () => {
+  test('returns empty object when bundle is undefined', () => {
+    const result = getAttributeFormats(undefined)
+    expect(result).toEqual({})
+  })
+
+  test('returns empty object when bundle is null', () => {
+    const result = getAttributeFormats(null)
+    expect(result).toEqual({})
+  })
+
+  test('returns empty object when attributes is not an array', () => {
+    const bundle = { attributes: 'not-an-array' }
+    const result = getAttributeFormats(bundle)
+    expect(result).toEqual({})
+  })
+
+  test('returns empty object when attributes array is empty', () => {
+    const bundle = { attributes: [] }
+    const result = getAttributeFormats(bundle)
+    expect(result).toEqual({})
+  })
+
+  test('skips attributes without name property', () => {
+    const bundle = {
+      attributes: [{ format: 'YYYYMMDD' }, { name: 'validAttr', format: 'text' }],
+    }
+    const result = getAttributeFormats(bundle)
+    expect(result).toEqual({ validAttr: 'text' })
+  })
+
+  test('extracts formats from attributes with names', () => {
+    const bundle = {
+      attributes: [
+        { name: 'birthdate', format: 'YYYYMMDD' },
+        { name: 'email', format: 'email' },
+        { name: 'noFormat' },
+      ],
+    }
+    const result = getAttributeFormats(bundle)
+    expect(result).toEqual({
+      birthdate: 'YYYYMMDD',
+      email: 'email',
+      noFormat: undefined,
+    })
+  })
+
+  test('handles nested bundle structure', () => {
+    const bundle = {
+      bundle: {
+        attributes: [{ name: 'nested', format: 'text' }],
+      },
+    }
+    const result = getAttributeFormats(bundle)
+    expect(result).toEqual({ nested: 'text' })
   })
 })

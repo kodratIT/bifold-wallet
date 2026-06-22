@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Keyboard, StyleSheet, View } from 'react-native'
 
@@ -37,15 +37,11 @@ const PINVerify: React.FC<PINVerifyProps> = ({ setAuthenticated, usage = PINEntr
   const [continueDisabled, setContinueDisabled] = useState(false)
   const [loading, setLoading] = useState(false)
   const [alertModalVisible, setAlertModalVisible] = useState<boolean>(false)
-  const { ColorPalette } = useTheme()
+  const { ColorPalette, Spacing } = useTheme()
   const { ButtonLoading, LoadingSpinner } = useAnimatedComponents()
   const [inlineMessageField, setInlineMessageField] = useState<InlineMessageProps>()
   const [{ preventScreenCapture }, inlineMessages] = useServices([TOKENS.CONFIG, TOKENS.INLINE_ERRORS])
   usePreventScreenCapture(preventScreenCapture)
-
-  useEffect(() => {
-    setInlineMessageField(undefined)
-  }, [PIN])
 
   const clearAlertModal = useCallback(() => {
     setAlertModalVisible(false)
@@ -109,7 +105,7 @@ const PINVerify: React.FC<PINVerifyProps> = ({ setAuthenticated, usage = PINEntr
   const style = StyleSheet.create({
     screenContainer: {
       flex: 1,
-      padding: 20,
+      padding: Spacing.md,
       backgroundColor: ColorPalette.brand.primaryBackground,
       justifyContent: 'space-between',
     },
@@ -131,7 +127,7 @@ const PINVerify: React.FC<PINVerifyProps> = ({ setAuthenticated, usage = PINEntr
     },
     changeBiometricsHeader: {
       marginTop: 0,
-      marginBottom: 40,
+      marginBottom: Spacing.xl,
     },
     loadingContainer: {
       justifyContent: 'center',
@@ -141,11 +137,11 @@ const PINVerify: React.FC<PINVerifyProps> = ({ setAuthenticated, usage = PINEntr
   })
 
   return (
-    <ScreenWrapper keyboardActive>
+    <ScreenWrapper padded={false} keyboardActive>
       <View style={style.screenContainer}>
         <View>
           {usage === PINEntryUsage.ChangeBiometrics && (
-            <ThemedText variant="headingTwo" style={style.changeBiometricsHeader}>
+            <ThemedText variant="headingThree" style={style.changeBiometricsHeader}>
               {t('PINEnter.ChangeBiometricsHeader')}
             </ThemedText>
           )}
@@ -161,6 +157,7 @@ const PINVerify: React.FC<PINVerifyProps> = ({ setAuthenticated, usage = PINEntr
           </ThemedText>
           <PINInput
             onPINChanged={async (userPinInput: string) => {
+              setInlineMessageField(undefined)
               setPIN(userPinInput)
               if (userPinInput.length === minPINLength) {
                 Keyboard.dismiss()

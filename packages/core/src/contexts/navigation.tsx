@@ -1,9 +1,10 @@
-import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native'
-import React, { createContext, useContext, ReactNode } from 'react'
+import { NavigationContainer } from '@react-navigation/native'
+import type { useNavigationContainerRef } from '@react-navigation/native'
+import React from 'react'
 import { useTheme } from './theme'
 
 export interface NavContainerProps extends React.PropsWithChildren {
-  navigationRef: React.RefObject<NavigationContainerRef<any>> | null
+  navigationRef: ReturnType<typeof useNavigationContainerRef> | null
 }
 
 // Create context for navigation ref

@@ -1,5 +1,5 @@
-import { CredentialPreviewAttribute } from '@credo-ts/core'
-import { useCredentialById } from '@credo-ts/react-hooks'
+import { useCredentialById } from '@bifold/react-hooks'
+import { DidCommCredentialPreviewAttribute } from '@credo-ts/didcomm'
 import { BrandingOverlay, MetaOverlay } from '@bifold/oca'
 import { Attribute, CredentialOverlay } from '@bifold/oca/build/legacy'
 import { useIsFocused } from '@react-navigation/native'
@@ -10,7 +10,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import Button, { ButtonType } from '../components/buttons/Button'
 import ConnectionImage from '../components/misc/ConnectionImage'
-import CredentialCard from '../components/misc/CredentialCard'
 import CommonRemoveModal from '../components/modals/CommonRemoveModal'
 import Record from '../components/record/Record'
 import { EventTypes } from '../constants'
@@ -40,6 +39,7 @@ import { testIdWithKey } from '../utils/testable'
 import CredentialOfferAccept from './CredentialOfferAccept'
 import { BaseTourID } from '../types/tour'
 import { ThemedText } from '../components/texts/ThemedText'
+import CredentialCardGen from '../components/misc/CredentialCardGen'
 
 type CredentialOfferProps = {
   navigation: any
@@ -75,7 +75,7 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
   const [trustAuthResult, setTrustAuthResult] = useState<{ authorized: boolean; message?: string } | null>(null)
   const [overlay, setOverlay] = useState<CredentialOverlay<BrandingOverlay>>({ presentationFields: [] })
   const credential = useCredentialById(credentialId)
-  const credentialConnectionLabel = useCredentialConnectionLabel(credential)
+  const credentialConnectionLabel = useCredentialConnectionLabel(credential, overlay)
   const [store, dispatch] = useStore()
   const { start } = useTour()
   const screenIsFocused = useIsFocused()
@@ -178,7 +178,7 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
     }
 
     const updateCredentialPreview = async () => {
-      const { ...formatData } = await agent.credentials.getFormatData(credential.id)
+      const { ...formatData } = await agent.modules.didcomm.credentials.getFormatData(credential.id)
       const { offer, offerAttributes } = formatData
       const offerData = offer?.anoncreds ?? offer?.indy
 
@@ -212,7 +212,9 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
       }
 
       if (offerAttributes) {
-        credential.credentialAttributes = [...offerAttributes.map((item) => new CredentialPreviewAttribute(item))]
+        credential.credentialAttributes = [
+          ...offerAttributes.map((item) => new DidCommCredentialPreviewAttribute(item)),
+        ]
       }
     }
 
@@ -299,8 +301,7 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
         return // Wait for modal action
       }
 
-      setAcceptModalVisible(true)
-      await agent.credentials.acceptOffer({ credentialRecordId: credential.id })
+      await agent.modules.didcomm.credentials.acceptOffer({ credentialExchangeRecordId: credential.id })
       if (historyEventsLogger.logAttestationAccepted) {
         const type = HistoryCardType.CardAccepted
         await logHistoryRecord(type)
@@ -346,33 +347,17 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
 
   const handleDeclineTouched = useCallback(async () => {
     try {
-      if (!(agent && credential)) return
+      if (agent && credential) {
+        const connectionId = credential.connectionId ?? ''
+        const connection = await agent.modules.didcomm.connections.findById(connectionId)
 
-      // Trust Registry Check for Decline (as requested)
-      if (trustRegistryService && trustRegistryConfig?.enabled) {
-        const service = trustRegistryService as any
-        const credentialType = schemaId?.split(':')[2] || 'Credential'
-        try {
-          const auth = await service.checkIssuerAuthorization(issuerDid, credentialType)
-          const capability = auth.authorized ? t('TrustRegistry.CanIssue') : t('TrustRegistry.CanVerify')
-          const message = `${t('TrustRegistry.IssuerCapability')}: ${capability}\n\n${t('TrustRegistry.ProceedDecline')}`
+        await agent.modules.didcomm.credentials.declineOffer({ credentialExchangeRecordId: credential.id })
 
-          Alert.alert(
-            t('TrustRegistry.CheckStatus'),
-            message,
-            [
-              { text: t('Global.Back'), style: 'cancel' },
-              {
-                text: t('Global.Decline'), style: 'destructive', onPress: async () => {
-                  await agent.credentials.declineOffer(credential.id)
-                  navigation.getParent()?.navigate(TabStacks.HomeStack, { screen: Screens.Home })
-                }
-              }
-            ]
-          )
-          return
-        } catch (e) {
-          logger.error('Trust Registry check during decline failed', { error: e })
+        if (connection) {
+          await agent.modules.didcomm.credentials.sendProblemReport({
+            credentialExchangeRecordId: credential.id,
+            description: t('CredentialOffer.Declined'),
+          })
         }
       }
 
@@ -427,7 +412,7 @@ const CredentialOffer: React.FC<CredentialOfferProps> = ({ navigation, credentia
         </View>
         {!loading && credential && (
           <View style={{ marginHorizontal: 15, marginBottom: 16 }}>
-            <CredentialCard credential={credential} />
+            <CredentialCardGen credential={credential} />
           </View>
         )}
       </>

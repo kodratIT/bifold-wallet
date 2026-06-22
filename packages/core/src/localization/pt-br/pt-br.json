@@ -44,6 +44,7 @@
     "Requested": "Requested",
     "Updated": "Updated",
     "Close": "Fechar",
+    "CloseNotification": "Close notification (PT-BR)",
     "Remove": "Remover",
     "GotIt": "Got it (PT-BR)",
     "Send": "Enviar",
@@ -158,6 +159,8 @@
     "Message1048": "There was a problem with the proof request. (PT-BR)",
     "Title1049": "Unable to change PIN. (PT-BR)",
     "Message1049": "There was a problem while attempting to change your PIN. (PT-BR)",
+    "Title1050": "Unable to access biometrics (PR-BR)",
+    "Message1050": "There was a problem while attempting to access this device' biometrics (PT-BR)",
     "GenericError": {
       "Title": "Something went wrong (PT-BR)",
       "Message": "There was an unexpected error, please try again later. (PT-BR)"
@@ -304,7 +307,8 @@
     "ForgotPINLink": "Forgot your PIN? (PT-BR)",
     "ForgotPINModalTitle": "Forgot your PIN? (PT-BR)",
     "ForgotPINModalDescription": "For security purposes, you're unable to recover or reset your PIN. You will need to reinstall your wallet and add your credentials again. (PT-BR)",
-    "Loading": "Logging in (PT-BR)"
+    "Loading": "Logging in (PT-BR)",
+    "DeveloperMenuTrigger": "App information (PT-BR)"
   },
   "AttemptLockout": {
     "Title": "Your wallet is temporarily locked (PT-BR)",
@@ -596,7 +600,9 @@
     "ErrorTextboxEmpty": "Textbox Empty (PT-BR)",
     "ErrorTextboxEmptyDescription": "Please add a URL intended for digital wallets and try again. (PT-BR)",
     "ErrorInvalidUrl": "URL not recognized (PT-BR)",
-    "ErrorInvalidUrlDescription": "Check if the URL is intended for digital wallets and if it was copied correctly, then try again. (PT-BR)"
+    "ErrorInvalidUrlDescription": "Check if the URL is intended for digital wallets and if it was copied correctly, then try again. (PT-BR)",
+    "PasteUrlInput": "URL input (PT-BR)",
+    "ScanDisabled": "Submit disabled, enter a URL first (PT-BR)"
   },
   "Connection": {
     "JustAMoment": "Aguarde um momento enquanto fazemos uma conexão segura...",
@@ -683,6 +689,8 @@
     "RequestProcessing": "Só um momento...",
     "OfferDelay": "Atrasar oferta",
     "ChangeCredential": "Escolher credencial",
+    "SelectCredential": "Select credential (PT-BR)",
+    "PredicateInput": "Enter value for {{label}} (PT-BR)",
     "GetThisCredential": "Obter esta credencial",
     "RejectThisProof?": "Rejeitar esta Requisição de Prova?",
     "DeclineThisProof?": "Recusar esta Requisição de Prova?",
@@ -733,7 +741,10 @@
     "CredentialForProofIsRevoked": "revoked credential (PT-BR)",
     "ProofRequestStateError": "The proof request received is in: {{state}}, decline this proof and try again. (PT-BR)",
     "ProofRequestErrorMessage": "Something went wrong with the proof request. (PT-BR)",
-    "PleaseAddress": " Please address them before continuing. (PT-BR)"
+    "PleaseAddress": " Please address them before continuing. (PT-BR)",
+    "DetailsHeader": "Information Requested (PT-BR)",
+    "OID4VCTitle": "Information Request (PT-BR)",
+    "UseDifferentCard": "Use different card (PT-BR)"
   },
   "UnsatisfiedProofRequest": {
     "Title": "Information Request (PT-BR)",
@@ -763,18 +774,25 @@
     "ConfigureMediator": "Configurar Mediator",
     "ChangeMediator": "Change mediator (PT-BR)",
     "ChangeMediatorDescription": "Changing the mediator will restart the app. Do you want to continue? (PT-BR)",
-    "GenericErrorMessages": "Generic error messages (PT-BR)"
+    "GenericErrorMessages": "Generic error messages (PT-BR)",
+    "VersionInfo": "Version information (PT-BR)"
   },
   "AutoLockTimes": {
     "FiveMinutes": "Five Minutes (PT-BR)",
     "ThreeMinutes": "Three Minutes (PT-BR)",
     "OneMinute": "One Minute (PT-BR)",
-    "Never": "Never (PT-BR)"
+    "Never": "Never (PT-BR)",
+    "Preview": "{{autoLockTime}} min (PT-BR)"
   },
   "TabStack": {
     "Home": "Notificações",
     "Scan": "Scanear",
     "Credentials": "Credenciais"
+  },
+  "TabStackAccessibility": {
+    "Home": "Notifications tab {{notifications}} notifications (PT-BR)",
+    "Scan": "Scan tab (PT-BR)",
+    "Credentials": "Credentials tab (PT-BR)"
   },
   "RootStack": {
     "Contacts": "Contatos",
@@ -948,5 +966,15 @@
   },
   "FullScreenErrorModal": {
     "PrimaryCTA": "Go back to home (PT-BR)"
+  },
+  "OpenIDNotification": {
+    "CredentialRefresh": {
+      "Title": "Update to {{cardName}} available (PT-BR)",
+      "CTA": "View offer (PT-BR)"
+    },
+    "CredentialExpired": {
+      "Title": "{{cardName}} has expired (PT-BR)",
+      "CTA": "View offer (PT-BR)"
+    }
   }
 }

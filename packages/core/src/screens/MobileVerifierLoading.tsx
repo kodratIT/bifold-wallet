@@ -1,5 +1,5 @@
 import { isPresentationFailed, isPresentationReceived } from '@bifold/verifier'
-import { useAgent, useProofById } from '@credo-ts/react-hooks'
+import { useAgent, useProofById } from '@bifold/react-hooks'
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -59,7 +59,7 @@ const MobileVerifierLoading: React.FC<MobileVerifierLoadingProps> = ({ navigatio
   const onDismissModalTouched = useCallback(() => {
     if (proofRecord && (isPresentationReceived(proofRecord) || isPresentationFailed(proofRecord))) {
       if (goalCode?.endsWith('verify.once')) {
-        agent.connections.deleteById(connectionId)
+        agent.modules.connections.deleteById(connectionId)
       }
     }
 
