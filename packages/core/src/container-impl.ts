@@ -95,6 +95,7 @@ export const defaultConfig: Config = {
   },
   showGenericErrors: false,
   enableFullScreenErrorModal: false,
+  enableHardwareBackedHolderBinding: true,
   enableAttestation: false,
 }
 
@@ -176,6 +177,7 @@ export class MainContainer implements Container {
     this._container.registerInstance(TOKENS.UTIL_PROOF_TEMPLATE, getProofRequestTemplates)
     this._container.registerInstance(TOKENS.UTIL_ATTESTATION_MONITOR, { useValue: undefined })
     this._container.registerInstance(TOKENS.UTIL_APP_VERSION_MONITOR, { useValue: undefined })
+    this._container.registerInstance(TOKENS.UTIL_CREDENTIAL_PROVISIONING_MONITOR, { useValue: undefined })
     this._container.registerInstance(TOKENS.NOTIFICATIONS, {
       useNotifications,
     })
@@ -302,7 +304,6 @@ export class MainContainer implements Container {
     this._container.registerInstance(TOKENS.FN_ATTESTATION_GET_JWT, () => {})
 
     return this
-
   }
 
   public resolve<K extends keyof TokenMapping>(token: K): TokenMapping[K] {

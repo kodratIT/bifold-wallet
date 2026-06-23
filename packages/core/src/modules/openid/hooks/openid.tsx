@@ -32,6 +32,7 @@ export const useOpenID = ({
   const { agent } = useAgent()
   const [logger] = useServices([TOKENS.UTIL_LOGGER])
   const { t } = useTranslation()
+  const [{ enableHardwareBackedHolderBinding }] = useServices([TOKENS.CONFIG])
 
   const resolveOpenIDCredential = useCallback(
     async (uri: string) => {
@@ -72,6 +73,7 @@ export const useOpenID = ({
           agent,
           resolvedCredentialOffer,
           tokenResponse: tokenResponse,
+          enableHardwareBackedHolderBinding,
         })
         logger?.info(`[OpenID] Credential received: ${credential.id}`)
 
@@ -79,6 +81,7 @@ export const useOpenID = ({
           setRefreshCredentialMetadata(credential, {
             tokenEndpoint: tokenEndpoint,
             refreshToken: refreshToken,
+            authorizationServer: tokenResponse.authorizationServer,
             issuerMetadataCache: {
               credential_issuer: credentialIssuer,
               credential_endpoint: credentialEndpoint,
@@ -88,6 +91,14 @@ export const useOpenID = ({
             },
             credentialIssuer: credentialIssuer,
             credentialConfigurationId: configID,
+            tokenBinding: tokenResponse.dpop ? 'DPoP' : 'Bearer',
+            dpop: tokenResponse.dpop
+              ? {
+                  alg: tokenResponse.dpop.alg,
+                  jwk: tokenResponse.dpop.jwk.toJson(),
+                  nonce: tokenResponse.dpop.nonce,
+                }
+              : undefined,
             lastCheckedAt: Date.now(),
             lastCheckResult: RefreshStatus.Valid,
             attemptCount: 0,
@@ -112,7 +123,7 @@ export const useOpenID = ({
         DeviceEventEmitter.emit(EventTypes.OPENID_CONNECTION_ERROR, error)
       }
     },
-    [agent, logger, t]
+    [agent, enableHardwareBackedHolderBinding, logger, t]
   )
 
   const resolveOpenIDPresentationRequest = useCallback(

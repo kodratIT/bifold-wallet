@@ -1,8 +1,8 @@
 /* eslint-disable import/no-cycle */
 import type { OnboardingStyleSheet } from './screens/Onboarding'
 
-import { Agent } from '@credo-ts/core'
 import AgentProvider from '@bifold/react-hooks'
+import { Agent } from '@credo-ts/core'
 
 import createApp from './App'
 import * as components from './components'
@@ -54,6 +54,7 @@ import { useDeveloperMode } from './hooks/developer-mode'
 import usePreventScreenCapture from './hooks/screen-capture'
 import useBifoldAgentSetup from './hooks/useBifoldAgentSetup'
 import { OpenIDCredentialRecordProvider } from './modules/openid/context/OpenIDCredentialRecordProvider'
+import { RefreshOrchestrator } from './modules/openid/refresh/refreshOrchestrator'
 import { DefaultScreenLayoutOptions } from './navigators/defaultLayoutOptions'
 import { DefaultScreenOptionsDictionary, useDefaultStackOptions } from './navigators/defaultStackOptions'
 import AttemptLockout from './screens/AttemptLockout'
@@ -62,11 +63,13 @@ import Developer from './screens/Developer'
 import Onboarding from './screens/Onboarding'
 import OnboardingPages from './screens/OnboardingPages'
 import Preface from './screens/Preface'
+import RenameWallet from './screens/RenameWallet'
 import Scan from './screens/Scan'
 import Splash from './screens/Splash'
 import Terms from './screens/Terms'
 import UpdateAvailable from './screens/UpdateAvailable'
 import { AbstractBifoldLogger } from './services/AbstractBifoldLogger'
+import { AgentBridge } from './services/AgentBridge'
 import { bifoldLoggerInstance } from './services/bifoldLogger'
 import { isBiometricsActive, loadLoginAttempt } from './services/keychain'
 import { BifoldLogger } from './services/logger'
@@ -75,8 +78,6 @@ import { DeepPartial, ThemeBuilder } from './theme-builder'
 import * as types from './types'
 import { CredentialListFooterProps } from './types/credential-list-footer'
 import { QrCodeScanError } from './types/error'
-import { RefreshOrchestrator } from './modules/openid/refresh/refreshOrchestrator'
-import { AgentBridge } from './services/AgentBridge'
 
 export { animatedComponents } from './animated-components'
 export { EventTypes, LocalStorageKeys } from './constants'
@@ -93,6 +94,7 @@ export { createStyles } from './screens/OnboardingPages'
 export * from './services/storage'
 export { bifoldTheme, ColorPalette, Assets as ImageAssets } from './theme'
 export * from './types/attestation'
+export * from './types/auto-credential'
 export { BifoldError } from './types/error'
 export { Screens, Stacks, TabStacks } from './types/navigators'
 export * from './types/version-check'
@@ -100,16 +102,23 @@ export { createLinkSecretIfRequired, getAgentModules } from './utils/agent'
 export { getCredentialIdentifiers, isValidAnonCredsCredential } from './utils/credential'
 export {
   connectFromScanOrDeepLink,
+  createConnectionInvitation,
   formatTime,
   getConnectionName,
   removeExistingInvitationsById,
   useCredentialConnectionLabel,
 } from './utils/helpers'
+export { FileCache } from './utils/fileCache'
+export type { CacheDataFile } from './utils/fileCache'
 export { getIndyLedgers, IndyLedger, readIndyLedgersFromFile, writeIndyLedgersToFile } from './utils/ledger'
 export { statusBarStyleForColor, StatusBarStyles } from './utils/luminance'
 export { migrateToAskar } from './utils/migration'
 export { buildFieldsFromAnonCredsCredential } from './utils/oca'
+export { parsedSchema } from './utils/schema'
 export { testIdForAccessabilityLabel, testIdWithKey } from './utils/testable'
+
+export { default as OpenIDCredentialDetails } from './modules/openid/screens/OpenIDCredentialDetails'
+export { default as CredentialDetails } from './screens/CredentialDetails'
 
 export type { AnimatedComponents } from './animated-components'
 export type { ReducerAction } from './contexts/reducers/store'
@@ -170,13 +179,14 @@ export { BaseTourID } from './types/tour'
 export type { ScanCameraProps } from './components/misc/ScanCamera'
 export type { DismissiblePopupModalProps } from './components/modals/DismissiblePopupModal'
 export type { BannerSectionProps } from './components/views/Banner'
-export type { IRefreshOrchestrator } from './modules/openid/refresh/types'
 export { OpenIDCredentialRefreshFlowType } from './modules/openid/refresh/types'
+export type { IRefreshOrchestrator } from './modules/openid/refresh/types'
 
 export {
   AbstractBifoldLogger,
   ActivityProvider,
   Agent,
+  AgentBridge,
   AgentProvider,
   AttachTourStep,
   AttemptLockout,
@@ -235,6 +245,8 @@ export {
   QRRenderer,
   QRScannerTorch,
   Record,
+  RefreshOrchestrator,
+  RenameWallet,
   SafeAreaModal,
   Scan,
   ScanCamera,
@@ -259,7 +271,26 @@ export {
   usePreventScreenCapture,
   useTour,
   walletTimeout,
-  RefreshOrchestrator,
-  AgentBridge,
 }
 export type { BannerMessage, DeepPartial, IButton }
+
+// Reusable screens for embedding in consumer-side nav graphs that don't register
+// Bifold's ConnectionStack / ContactStack hierarchy verbatim.
+export { default as Connection } from './screens/Connection'
+export { default as CredentialOffer } from './screens/CredentialOffer'
+export { default as ProofRequest } from './screens/ProofRequest'
+
+// Loading view used by consumer-side connection-loading screens while a proof
+// or credential-offer notification is awaited.
+export { default as LoadingPlaceholder, LoadingPlaceholderWorkflowType } from './components/views/LoadingPlaceholder'
+
+// Hooks that let consumers detect when a notification (offer / proof) has
+// arrived for a freshly received out-of-band invitation.
+export { useConnectionByOutOfBandId, useOutOfBandByConnectionId, useOutOfBandById } from './hooks/connections'
+export { useNotifications } from './hooks/notifications'
+export type { NotificationItemType, NotificationReturnType, NotificationsInputProps } from './hooks/notifications'
+
+// URL classifiers consumer-side scan dispatchers use to recognize and reject
+// OpenID / mediator URIs before parsing them as DIDComm OOB invitations.
+export { isMediatorInvitation } from './utils/mediatorhelpers'
+export { isDidCommInvitation, isOpenIdCredentialOffer, isOpenIdPresentationRequest } from './utils/parsers'

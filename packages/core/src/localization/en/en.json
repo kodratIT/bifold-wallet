@@ -45,6 +45,7 @@
     "Requested": "Requested",
     "Updated": "Updated",
     "Close": "Close",
+    "CloseNotification": "Close notification",
     "Remove": "Remove",
     "GotIt": "Got it",
     "Send": "Send",
@@ -336,7 +337,8 @@
     "ForgotPINLink": "Forgot your PIN?",
     "ForgotPINModalTitle": "Forgot your PIN?",
     "ForgotPINModalDescription": "Forgot your PIN? You'll need to reinstall and setup your wallet again.",
-    "Loading": "Logging in"
+    "Loading": "Logging in",
+    "DeveloperMenuTrigger": "App information"
   },
   "AttemptLockout": {
     "Title": "Your wallet is temporarily locked",
@@ -632,7 +634,9 @@
     "ErrorTextboxEmpty": "Textbox Empty",
     "ErrorTextboxEmptyDescription": "Please add a URL intended for digital wallets and try again.",
     "ErrorInvalidUrl": "URL not recognized",
-    "ErrorInvalidUrlDescription": "Check if the URL is intended for digital wallets and if it was copied correctly, then try again."
+    "ErrorInvalidUrlDescription": "Check if the URL is intended for digital wallets and if it was copied correctly, then try again.",
+    "PasteUrlInput": "URL input",
+    "ScanDisabled": "Submit disabled, enter a URL first"
   },
   "Connection": {
     "JustAMoment": "Just a moment while we make a secure connection...",
@@ -718,6 +722,8 @@
     "RequestProcessing": "Just a moment...",
     "OfferDelay": "Offer delay",
     "ChangeCredential": "Change credential",
+    "SelectCredential": "Select credential",
+    "PredicateInput": "Enter value for {{label}}",
     "GetThisCredential": "Get this credential",
     "RejectThisProof?": "Reject this Proof Request?",
     "DeclineThisProof?": "Decline this Proof Request?",
@@ -811,7 +817,8 @@
     "ConfigureMediator": "Configure Mediator",
     "ChangeMediator": "Change Mediator",
     "ChangeMediatorDescription": "Changing the mediator will restart the app. Do you want to continue?",
-    "GenericErrorMessages": "Generic error messages"
+    "GenericErrorMessages": "Generic error messages",
+    "VersionInfo": "Version information"
   },
   "AutoLockTimes": {
     "FiveMinutes": "Five Minutes",
@@ -1017,5 +1024,15 @@
   },
   "FullScreenErrorModal": {
     "PrimaryCTA": "Go back to home"
+  },
+  "OpenIDNotification": {
+    "CredentialRefresh": {
+      "Title": "Update to {{cardName}} available",
+      "CTA": "View offer"
+    },
+    "CredentialExpired": {
+      "Title": "{{cardName}} has expired",
+      "CTA": "View offer"
+    }
   }
 }

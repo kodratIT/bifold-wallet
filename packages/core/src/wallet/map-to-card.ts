@@ -151,7 +151,13 @@ export function mapAnonCredsToCard(
   }
 }
 
-export function mapW3CToCard(input: W3CInput, id: string): WalletCredentialCardData {
+export function mapW3CToCard(
+  input: W3CInput,
+  id: string,
+  opts: Pick<MapOpts, 'proofContext' | 'displayItems'> = {}
+): WalletCredentialCardData {
+  const { proofContext = false, displayItems } = opts
+
   // console.log(' ====> W3C Input:', input)
   const issuerName =
     typeof input.vc.issuer === 'string'
@@ -159,19 +165,22 @@ export function mapW3CToCard(input: W3CInput, id: string): WalletCredentialCardD
       : input.vc.issuer?.name || input.vc.issuer?.id || 'Unknown Contact'
 
   const subject = input.vc.credentialSubject ?? {}
-  const items: CardAttribute[] = Object.entries(subject).map(([key, raw]) => {
-    const label = input.labels?.[key] ?? startCase(key)
-    const format = input.formats?.[key]
-    const val = typeof raw === 'string' || typeof raw === 'number' ? raw : JSON.stringify(raw)
-    const value = isDataUrl(val) ? val : fmt(format, val)
-    return {
-      key,
-      label,
-      value,
-      format: isDataUrl(val) ? 'image' : (format ?? 'text'),
-      isPII: input.piiKeys?.includes(key) ?? false,
-    }
-  })
+  const items: CardAttribute[] =
+    proofContext && displayItems?.length
+      ? displayItems.map((it) => mapItemToCardAttr(it, input.labels, input.formats, input.piiKeys))
+      : Object.entries(subject).map(([key, raw]) => {
+          const label = input.labels?.[key] ?? startCase(key)
+          const format = input.formats?.[key]
+          const val = typeof raw === 'string' || typeof raw === 'number' ? raw : JSON.stringify(raw)
+          const value = isDataUrl(val) ? val : fmt(format, val)
+          return {
+            key,
+            label,
+            value,
+            format: isDataUrl(val) ? 'image' : (format ?? 'text'),
+            isPII: input.piiKeys?.includes(key) ?? false,
+          }
+        })
 
   const allPI = items.length > 0 && items.every((i) => !i.predicate?.present && (i.isPII ?? false))
 
@@ -192,7 +201,7 @@ export function mapW3CToCard(input: W3CInput, id: string): WalletCredentialCardD
     },
     items,
     brandingType: input.branding.type,
-    proofContext: false,
+    proofContext,
     revoked: false,
     notInWallet: false,
     allPI,
@@ -226,7 +235,7 @@ const resolveBundleForW3CCredential = async (
       credConnectionId: undefined,
       credName: credentialDisplay.display.name,
     },
-    attributes: buildFieldsFromW3cCredsCredential(credentialDisplay),
+    attributes: buildFieldsFromW3cCredsCredential(credentialDisplay, undefined, i18n.language),
     language: i18n.language,
   }
 
@@ -252,12 +261,19 @@ const resolveBundleForW3CCredential = async (
 const mapW3CCredToCard = (
   w3cCred: W3cCredentialRecord | W3cV2CredentialRecord | SdJwtVcRecord | MdocRecord,
   brandingOverlay: CredentialOverlay<BrandingOverlay>,
-  brandingOverlayTypeString: string
+  brandingOverlayTypeString: string,
+  opts: Pick<MapOpts, 'proofContext' | 'displayItems'> & {
+    credentialErrors?: CredentialErrors[]
+    credentialCardPlaceholderBackground?: string
+  } = {}
 ): WalletCredentialCardData => {
   const credentialDisplay = getCredentialForDisplay(w3cCred)
   const extraAttributeValue = credentialDisplay.display.primary_overlay_attribute
     ? getAttributeField(credentialDisplay, credentialDisplay.display.primary_overlay_attribute)?.field
     : undefined
+  const resolvedBundle = (brandingOverlay as any)?.bundle
+  const overlayBundle = resolvedBundle?.bundle ?? resolvedBundle
+  const flagged = overlayBundle?.flaggedAttributes ?? resolvedBundle?.flaggedAttributes ?? []
 
   const input = {
     vc: {
@@ -268,7 +284,7 @@ const mapW3CCredToCard = (
     },
     branding: {
       type: brandingOverlayTypeString,
-      primaryBg: brandingOverlay?.brandingOverlay?.primaryBackgroundColor,
+      primaryBg: brandingOverlay?.brandingOverlay?.primaryBackgroundColor ?? opts.credentialCardPlaceholderBackground,
       secondaryBg: brandingOverlay?.brandingOverlay?.secondaryBackgroundColor,
       logo1x1Uri: brandingOverlay?.brandingOverlay?.logo,
       backgroundSliceUri: brandingOverlay?.brandingOverlay?.backgroundImageSlice,
@@ -277,6 +293,8 @@ const mapW3CCredToCard = (
       watermark: brandingOverlay?.metaOverlay?.watermark,
     },
     labels: brandingOverlay?.bundle?.labelOverlay?.attributeLabels,
+    formats: Object.fromEntries(((overlayBundle?.attributes ?? []) as any[]).map((a: any) => [a.name, a.format])),
+    piiKeys: flagged.map((a: any) => a.name),
     primary_overlay_attribute: extraAttributeValue,
     helpActionUrl:
       (brandingOverlay as any)?.bundle?.bundle?.metadata?.issuerUrl?.en ??
@@ -284,7 +302,13 @@ const mapW3CCredToCard = (
       undefined,
   } as W3CInput
 
-  return mapW3CToCard(input, credentialDisplay.id)
+  const card = mapW3CToCard(input, credentialDisplay.id, opts)
+  const isRevoked = !!opts.credentialErrors?.includes(CredentialErrors.Revoked)
+
+  return {
+    ...card,
+    status: isRevoked && !opts.proofContext ? 'error' : card.status,
+  }
 }
 
 /**
@@ -328,7 +352,12 @@ export async function mapCredentialTypeToCard({
     credential instanceof MdocRecord
   ) {
     const bo = brandingOverlay ?? (await resolveBundleForW3CCredential(credential, bundleResolver))
-    return mapW3CCredToCard(credential, bo, brandingTypeString)
+    return mapW3CCredToCard(credential, bo, brandingTypeString, {
+      proofContext: !!proof,
+      displayItems: proof ? displayItems : undefined,
+      credentialErrors,
+      credentialCardPlaceholderBackground: colorPalette.brand?.credentialCardPlaceholderBackground,
+    })
   }
 
   //Anoncreds case

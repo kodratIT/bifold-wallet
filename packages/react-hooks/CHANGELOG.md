@@ -1,5 +1,37 @@
 # Changelog
 
+## 3.0.16
+
+## 3.0.15
+
+## 3.0.14
+
+## 3.0.13
+
+## 3.0.12
+
+## 3.0.11
+
+### Patch Changes
+
+- e99b6d9: Allow missing agent in agent provider and add new useOptionalAgent hook
+
+## 3.0.10
+
+## 3.0.9
+
+## 3.0.8
+
+## 3.0.7
+
+## 3.0.6
+
+## 3.0.5
+
+## 3.0.4
+
+## 3.0.3
+
 ## 3.0.2
 
 ## 3.0.1
