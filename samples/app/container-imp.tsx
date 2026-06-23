@@ -11,7 +11,6 @@ import {
 import { CustomBiometry, CustomOnboarding, CustomPinSetupFlow, CustomSplash, CustomTerms, TermsVersion } from '@bifold/ui'
 import { DependencyContainer } from 'tsyringe'
 import { getTrustRegistryConfig, isTrustRegistryConfigured } from './config/trustRegistry'
-import BackupStack from './navigators/BackupStack'
 
 export class AppContainer implements Container {
   private _container: DependencyContainer
@@ -32,9 +31,6 @@ export class AppContainer implements Container {
 
     // Register Backup Service
     this.container.registerSingleton(BackupService)
-
-    // Register Backup Stack
-    this.container.registerInstance(TOKENS.CUSTOM_NAV_STACK_1, BackupStack)
 
     // Override onboarding and splash screens with custom UI package designs
     this.container.registerInstance(TOKENS.SCREEN_BIOMETRY, CustomBiometry)
