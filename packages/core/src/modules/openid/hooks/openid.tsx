@@ -98,7 +98,11 @@ export const useOpenID = ({
         return credential
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : String(err)
-        logger?.error(`[OpenID] Credential offer failed: ${errorMessage}`, err instanceof Error ? err : undefined)
+        if (err instanceof Error) {
+          logger?.error(`[OpenID] Credential offer failed: ${errorMessage}`, err)
+        } else {
+          logger?.error(`[OpenID] Credential offer failed: ${errorMessage}`)
+        }
         const error = new BifoldError(
           t('Error.Title1024'),
           errorMessage,
