@@ -25,6 +25,7 @@ const exclusionList = (additionalExclusions = []) => {
 const packageDirs = [
   path.resolve(__dirname, '../../packages/core'),
   path.resolve(__dirname, '../../packages/oca'),
+  path.resolve(__dirname, '../../packages/openid4vp'),
   path.resolve(__dirname, '../../packages/react-hooks'),
   path.resolve(__dirname, '../../packages/trust-registry'),
   path.resolve(__dirname, '../../packages/ui'),
@@ -32,17 +33,31 @@ const packageDirs = [
   path.resolve(__dirname, '../../packages/backup'),
 ]
 
-const watchFolders = [...packageDirs]
+const dependencyDirs = [
+  path.resolve(__dirname, '../../node_modules/@openid4vc/oauth2'),
+  path.resolve(__dirname, '../../node_modules/@openid4vc/openid4vp'),
+  path.resolve(__dirname, '../../node_modules/@openid4vc/utils'),
+  path.resolve(__dirname, '../../node_modules/jose'),
+]
+
+const watchFolders = [...packageDirs, ...dependencyDirs]
 
 const extraExclusionList = []
 const extraNodeModules = {
   '@bifold/backup': path.resolve(__dirname, '../../packages/backup'),
+  '@bifold/openid4vp': path.resolve(__dirname, '../../packages/openid4vp'),
   '@bifold/trust-registry': path.resolve(__dirname, '../../packages/trust-registry'),
   '@bifold/ui': path.resolve(__dirname, '../../packages/ui'),
 }
 const localPackageEntryPoints = {
   '@bifold/core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
   '@bifold/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts'),
+}
+const exactPackageEntryPoints = {
+  '@openid4vc/oauth2': path.resolve(__dirname, '../../node_modules/@openid4vc/oauth2/dist/index.mjs'),
+  '@openid4vc/openid4vp': path.resolve(__dirname, '../../node_modules/@openid4vc/openid4vp/dist/index.mjs'),
+  '@openid4vc/utils': path.resolve(__dirname, '../../node_modules/@openid4vc/utils/dist/index.mjs'),
+  jose: path.resolve(__dirname, '../../node_modules/jose/dist/browser/index.js'),
 }
 
 const fallbackResolveRequest = (context, moduleName, platform) => {
@@ -103,6 +118,13 @@ const config = mergeConfig(defaultConfig, {
         return {
           type: 'sourceFile',
           filePath: localPackageEntryPoints[moduleName],
+        }
+      }
+
+      if (moduleName in exactPackageEntryPoints) {
+        return {
+          type: 'sourceFile',
+          filePath: exactPackageEntryPoints[moduleName],
         }
       }
 

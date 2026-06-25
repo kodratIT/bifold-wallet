@@ -13,6 +13,10 @@ module.exports = {
     'react-i18next': '<rootDir>/__mocks__/react-i18next.ts',
     '^uuid$': require.resolve('uuid'),
     '^@bifold/oca$': '<rootDir>/../oca/src/index.ts',
+    '^@bifold/oca/build/legacy$': '<rootDir>/../oca/src/legacy/index.ts',
+    '^@bifold/oca/build/legacy/(.*)$': '<rootDir>/../oca/src/legacy/$1.ts',
+    '^@bifold/oca/build/types/(.*)$': '<rootDir>/../oca/src/types/$1.ts',
+    '^@bifold/openid4vp$': '<rootDir>/../openid4vp/src/index.ts',
     '^@bifold/verifier$': '<rootDir>/../verifier/src/index.ts',
   },
   transform: {

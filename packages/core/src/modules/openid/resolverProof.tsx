@@ -3,12 +3,18 @@ import {
   ClaimFormat,
   CredentialMultiInstanceUseMode,
   type DcqlCredentialsForRequest,
-  type DcqlQueryResult,
   type DcqlValidCredential,
   type DifPexCredentialsForRequest,
   type JsonObject,
   type MdocNameSpaces,
 } from '@credo-ts/core'
+import {
+  acceptAuthorizationRequest,
+  resolveAuthorizationRequest,
+  type DcqlQueryResult,
+  type DidDocument,
+  type SelectedDcqlCredentials,
+} from '@bifold/openid4vp'
 import { ParseInvitationResult } from '../../utils/parsers'
 import { OpenId4VPRequestRecord } from './types'
 import { getHostNameFromUrl } from './utils/utils'
@@ -22,6 +28,19 @@ type SelectedProofCredentials = Record<
     claimFormat: string
   }
 >
+
+type JsonSerializableDidDocument = {
+  toJSON: () => DidDocument
+}
+
+const hasJsonSerializer = (didDocument: Partial<JsonSerializableDidDocument> | DidDocument): didDocument is JsonSerializableDidDocument =>
+  typeof (didDocument as JsonSerializableDidDocument).toJSON === 'function'
+
+const resolveDidDocumentWithAgent = async (agent: BifoldAgent, did: string): Promise<DidDocument> => {
+  const didDocument = (await agent.dids.resolveDidDocument(did)) as Partial<JsonSerializableDidDocument> | DidDocument
+
+  return hasJsonSerializer(didDocument) ? didDocument.toJSON() : (didDocument as DidDocument)
+}
 
 function handleTextResponse(text: string): ParseInvitationResult {
   // If the text starts with 'ey' we assume it's a JWT and thus an OpenID authorization request
@@ -133,7 +152,15 @@ export const getCredentialsForProofRequest = async ({
   try {
     agent.config.logger.info(`$$Receiving openid authorization request ${request}`)
 
-    const resolved = await agent.modules.openid4vc.holder.resolveOpenId4VpAuthorizationRequest(request)
+    let resolved = await resolveAuthorizationRequest({
+      didDocumentResolver: (did) => resolveDidDocumentWithAgent(agent, did),
+      request,
+    })
+
+    if (!resolved.presentationExchange && !resolved.dcql && resolved.pex) {
+      agent.config.logger.info('Resolved OpenID4VP request contains PEX data. Falling back to Credo PEX credential matching.')
+      resolved = await agent.modules.openid4vc.holder.resolveOpenId4VpAuthorizationRequest(request)
+    }
 
     if (!resolved.presentationExchange && !resolved.dcql) {
       throw new Error('Unsupported authorization request: missing presentation exchange or dcql parameters.')
@@ -144,7 +171,7 @@ export const getCredentialsForProofRequest = async ({
       verifierHostName: resolved.authorizationRequestPayload.response_uri
         ? getHostNameFromUrl(String(resolved.authorizationRequestPayload.response_uri))
         : undefined,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
       type: 'OpenId4VPRequestRecord',
     }
     return requestRecord
@@ -218,10 +245,9 @@ const getDcqlCredentialForRequest = (
 }
 
 const getDcqlCredentialsForRequest = (
-  agent: Agent,
   queryResult: DcqlQueryResult,
   selectedProofCredentials: SelectedProofCredentials
-): DcqlCredentialsForRequest => {
+): SelectedDcqlCredentials => {
   if (!queryResult.can_be_satisfied) {
     throw new Error('Cannot select the credentials for the dcql query presentation if the request cannot be satisfied')
   }
@@ -229,7 +255,15 @@ const getDcqlCredentialsForRequest = (
   // This is the same user-selection map as for PEX.
   // For DCQL, the map key is the credential query id instead of the input descriptor id.
   if (Object.keys(selectedProofCredentials).length === 0) {
-    return agent.openid4vc.holder.selectCredentialsForDcqlRequest(queryResult)
+    const credentialMatches = queryResult.credential_matches ?? {}
+
+    return Object.fromEntries(
+      Object.entries(credentialMatches).flatMap(([credentialQueryId, match]) => {
+        const validCredentials = match.success ? Array.from(match.valid_credentials ?? []) : []
+
+        return validCredentials[0] ? [[credentialQueryId, [validCredentials[0]]]] : []
+      })
+    ) as SelectedDcqlCredentials
   }
 
   return Object.fromEntries(
@@ -240,7 +274,7 @@ const getDcqlCredentialsForRequest = (
         throw new Error(`No matching DCQL credentials found for credential query id ${credentialQueryId}`)
       }
 
-      const validCredentials = Array.from(match.valid_credentials) as DcqlValidCredential[]
+      const validCredentials = Array.from(match.valid_credentials ?? []) as DcqlValidCredential[]
       const validCredential = validCredentials.find((credential) => credential.record.id === selectedCredential.id)
 
       if (!validCredential) {
@@ -251,7 +285,7 @@ const getDcqlCredentialsForRequest = (
 
       return [credentialQueryId, [getDcqlCredentialForRequest(validCredential)]]
     })
-  )
+  ) as SelectedDcqlCredentials
 }
 
 /**
@@ -266,7 +300,6 @@ const getDcqlCredentialsForRequest = (
  * presentation exchange or DCQL and submits the authorization response.
  */
 export const shareProof = async ({
-  agent,
   requestRecord,
   selectedProofCredentials,
 }: {
@@ -275,45 +308,58 @@ export const shareProof = async ({
   selectedProofCredentials: SelectedProofCredentials
 }) => {
   try {
-    const presentationExchange = requestRecord.presentationExchange
-      ? {
-          credentials: getPexCredentialsForRequest(
-            requestRecord.presentationExchange.credentialsForRequest,
-            selectedProofCredentials
-          ),
-        }
+    const selectedCredentials = requestRecord.presentationExchange
+      ? getPexCredentialsForRequest(
+          requestRecord.presentationExchange.credentialsForRequest as DifPexCredentialsForRequest,
+          selectedProofCredentials
+        )
       : undefined
 
     const dcql =
-      !presentationExchange && requestRecord.dcql
-        ? {
-            credentials: getDcqlCredentialsForRequest(agent, requestRecord.dcql.queryResult, selectedProofCredentials),
-          }
+      !selectedCredentials && requestRecord.dcql?.queryResult
+        ? getDcqlCredentialsForRequest(requestRecord.dcql.queryResult, selectedProofCredentials)
         : undefined
 
-    if (!presentationExchange && !dcql) {
+    if (!selectedCredentials && !dcql) {
       throw new Error('Unsupported authorization request: missing presentation exchange or dcql parameters.')
     }
 
-    const result = await agent.openid4vc.holder.acceptOpenId4VpAuthorizationRequest({
+    const result = await acceptAuthorizationRequest({
       authorizationRequestPayload: requestRecord.authorizationRequestPayload,
-      presentationExchange,
-      dcql,
-      origin: requestRecord.origin,
+      selectedCredentials: (selectedCredentials ?? dcql) as SelectedDcqlCredentials,
     })
+    const serverResponse = result.serverResponse as
+      | {
+          status?: number
+          body?: unknown
+        }
+      | Record<string, unknown>
+      | string
+      | undefined
+    const responseBody =
+      serverResponse && typeof serverResponse === 'object' && 'body' in serverResponse
+        ? serverResponse.body
+        : serverResponse
 
     // if redirect_uri is provided, open it in the browser
     // Even if the response returned an error, we must open this uri
     if (
-      result.serverResponse &&
-      typeof result.serverResponse.body === 'object' &&
-      typeof result.serverResponse.body?.redirect_uri === 'string'
+      responseBody &&
+      typeof responseBody === 'object' &&
+      typeof (responseBody as { redirect_uri?: unknown }).redirect_uri === 'string'
     ) {
-      await Linking.openURL(result.serverResponse.body.redirect_uri)
+      await Linking.openURL((responseBody as { redirect_uri: string }).redirect_uri)
     }
 
-    if (result.serverResponse && (result.serverResponse.status < 200 || result.serverResponse.status > 299)) {
-      throw new Error(`Error while accepting authorization request. ${result.serverResponse.body as string}`)
+    if (
+      !result.ok ||
+      (serverResponse &&
+        typeof serverResponse === 'object' &&
+        'status' in serverResponse &&
+        typeof serverResponse.status === 'number' &&
+        (serverResponse.status < 200 || serverResponse.status > 299))
+    ) {
+      throw new Error(`Error while accepting authorization request. ${String(responseBody)}`)
     }
 
     return result

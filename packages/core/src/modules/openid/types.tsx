@@ -1,8 +1,8 @@
 import {
   OpenId4VciCredentialIssuerMetadataDisplay,
   OpenId4VciDpopRequestOptions,
-  OpenId4VpResolvedAuthorizationRequest,
 } from '@credo-ts/openid4vc'
+import { ResolvedAuthorizationRequest } from '@bifold/openid4vp'
 import { CredentialMetadata } from './display'
 import { ClaimFormat } from '@credo-ts/core'
 
@@ -91,7 +91,7 @@ export interface W3cCredentialDisplay {
   attributeOrder?: string[]
 }
 
-export interface OpenId4VPRequestRecord extends OpenId4VpResolvedAuthorizationRequest {
+export interface OpenId4VPRequestRecord extends ResolvedAuthorizationRequest {
   verifierHostName: string | undefined
   createdAt: string | Date
   type: 'OpenId4VPRequestRecord'

@@ -1,4 +1,5 @@
 import { Linking } from 'react-native'
+import { acceptAuthorizationRequest, resolveAuthorizationRequest } from '@bifold/openid4vp'
 import {
   fetchInvitationDataUrl,
   getCredentialsForProofRequest,
@@ -11,6 +12,14 @@ jest.mock('react-native', () => ({
   },
 }))
 
+jest.mock('@bifold/openid4vp', () => ({
+  acceptAuthorizationRequest: jest.fn(),
+  resolveAuthorizationRequest: jest.fn(),
+}))
+
+const mockResolveAuthorizationRequest = resolveAuthorizationRequest as jest.Mock
+const mockAcceptAuthorizationRequest = acceptAuthorizationRequest as jest.Mock
+
 describe('getCredentialsForProofRequest', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -19,7 +28,7 @@ describe('getCredentialsForProofRequest', () => {
 
   test('forwards a raw authorization request string unchanged', async () => {
     const request = 'eyJhbGciOiJFZERTQSJ9.eyJyZXNwb25zZV91cmkiOiJodHRwczovL3ZlcmlmaWVyLmV4YW1wbGUuY29tL2NhbGxiYWNrIn0.signature'
-    const resolveOpenId4VpAuthorizationRequest = jest.fn().mockResolvedValue({
+    mockResolveAuthorizationRequest.mockResolvedValue({
       presentationExchange: {
         definition: { id: 'definition-id', input_descriptors: [] },
         credentialsForRequest: undefined,
@@ -40,12 +49,8 @@ describe('getCredentialsForProofRequest', () => {
           error: jest.fn(),
         },
       },
-      modules: {
-        openid4vc: {
-          holder: {
-            resolveOpenId4VpAuthorizationRequest,
-          },
-        },
+      dids: {
+        resolveDidDocument: jest.fn(),
       },
     }
 
@@ -54,7 +59,65 @@ describe('getCredentialsForProofRequest', () => {
       request,
     })
 
-    expect(resolveOpenId4VpAuthorizationRequest).toHaveBeenCalledWith(request)
+    expect(mockResolveAuthorizationRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        didDocumentResolver: expect.any(Function),
+        request,
+      })
+    )
+  })
+
+  test('injects a Credo agent DID Document resolver for did:web and did:webvh verifier auth', async () => {
+    mockResolveAuthorizationRequest.mockResolvedValue({
+      presentationExchange: {
+        definition: { id: 'definition-id', input_descriptors: [] },
+        credentialsForRequest: undefined,
+      },
+      authorizationRequestPayload: {
+        response_uri: 'https://verifier.example.com/callback',
+      },
+      verifier: {
+        clientIdPrefix: 'decentralized_identifier',
+        effectiveClientId: 'did:web:verifier.example.com',
+      },
+    })
+    const didDocumentJson = {
+      id: 'did:web:verifier.example.com',
+      verificationMethod: [
+        {
+          id: 'did:web:verifier.example.com#key-1',
+          publicKeyJwk: {
+            crv: 'P-256',
+            kty: 'EC',
+            x: 'x',
+            y: 'y',
+          },
+        },
+      ],
+    }
+    const agent = {
+      config: {
+        logger: {
+          info: jest.fn(),
+          error: jest.fn(),
+        },
+      },
+      dids: {
+        resolveDidDocument: jest.fn().mockResolvedValue({
+          toJSON: () => didDocumentJson,
+        }),
+      },
+    }
+
+    await getCredentialsForProofRequest({
+      agent: agent as any,
+      request: 'eyJhbGciOiJFUzI1NiJ9.payload.signature',
+    })
+
+    const didDocumentResolver = mockResolveAuthorizationRequest.mock.calls[0][0].didDocumentResolver
+
+    await expect(didDocumentResolver('did:web:verifier.example.com')).resolves.toEqual(didDocumentJson)
+    expect(agent.dids.resolveDidDocument).toHaveBeenCalledWith('did:web:verifier.example.com')
   })
 
   test('parses a fetched didcomm invitation from json', async () => {
@@ -122,7 +185,7 @@ describe('getCredentialsForProofRequest', () => {
   })
 
   test('returns a request record with verifier hostname extracted from response_uri', async () => {
-    const resolveOpenId4VpAuthorizationRequest = jest.fn().mockResolvedValue({
+    mockResolveAuthorizationRequest.mockResolvedValue({
       presentationExchange: {
         definition: { id: 'definition-id', input_descriptors: [] },
         credentialsForRequest: undefined,
@@ -143,12 +206,8 @@ describe('getCredentialsForProofRequest', () => {
           error: jest.fn(),
         },
       },
-      modules: {
-        openid4vc: {
-          holder: {
-            resolveOpenId4VpAuthorizationRequest,
-          },
-        },
+      dids: {
+        resolveDidDocument: jest.fn(),
       },
     }
 
@@ -162,7 +221,7 @@ describe('getCredentialsForProofRequest', () => {
   })
 
   test('logs and rethrows when the authorization request has neither pex nor dcql payload', async () => {
-    const resolveOpenId4VpAuthorizationRequest = jest.fn().mockResolvedValue({
+    mockResolveAuthorizationRequest.mockResolvedValue({
       presentationExchange: undefined,
       dcql: undefined,
       authorizationRequestPayload: {},
@@ -177,12 +236,8 @@ describe('getCredentialsForProofRequest', () => {
     }
     const agent = {
       config: { logger },
-      modules: {
-        openid4vc: {
-          holder: {
-            resolveOpenId4VpAuthorizationRequest,
-          },
-        },
+      dids: {
+        resolveDidDocument: jest.fn(),
       },
     }
 
@@ -201,7 +256,8 @@ describe('getCredentialsForProofRequest', () => {
   test('shares a pex proof with the selected credential and opens redirect_uri when returned', async () => {
     const credentialA = { id: 'cred-a' }
     const credentialB = { id: 'cred-b' }
-    const acceptOpenId4VpAuthorizationRequest = jest.fn().mockResolvedValue({
+    mockAcceptAuthorizationRequest.mockResolvedValue({
+      ok: true,
       serverResponse: {
         status: 200,
         body: {
@@ -209,13 +265,7 @@ describe('getCredentialsForProofRequest', () => {
         },
       },
     })
-    const agent = {
-      openid4vc: {
-        holder: {
-          acceptOpenId4VpAuthorizationRequest,
-        },
-      },
-    }
+    const agent = {}
     const requestRecord = {
       authorizationRequestPayload: { client_id: 'verifier' },
       origin: 'https://verifier.example.com',
@@ -247,41 +297,27 @@ describe('getCredentialsForProofRequest', () => {
       },
     })
 
-    expect(acceptOpenId4VpAuthorizationRequest).toHaveBeenCalledWith({
+    expect(mockAcceptAuthorizationRequest).toHaveBeenCalledWith({
       authorizationRequestPayload: { client_id: 'verifier' },
-      presentationExchange: {
-        credentials: {
-          'descriptor-1': [{ credentialRecord: credentialB }],
-        },
+      selectedCredentials: {
+        'descriptor-1': [{ credentialRecord: credentialB }],
       },
-      dcql: undefined,
-      origin: 'https://verifier.example.com',
     })
     expect(Linking.openURL).toHaveBeenCalledWith('https://wallet.example/complete')
   })
 
-  test('falls back to credo dcql selection when no credential is preselected', async () => {
-    const selectCredentialsForDcqlRequest = jest.fn().mockReturnValue({
-      queryA: [
-        {
-          credentialRecord: { id: 'cred-a' },
-          claimFormat: 'dcql',
-        },
-      ],
-    })
-    const acceptOpenId4VpAuthorizationRequest = jest.fn().mockResolvedValue({
+  test('selects first matching dcql credential when no credential is preselected', async () => {
+    mockAcceptAuthorizationRequest.mockResolvedValue({
+      ok: true,
       serverResponse: {
         status: 200,
         body: 'ok',
       },
     })
-    const agent = {
-      openid4vc: {
-        holder: {
-          selectCredentialsForDcqlRequest,
-          acceptOpenId4VpAuthorizationRequest,
-        },
-      },
+    const agent = {}
+    const validCredential = {
+      credentialRecord: { id: 'cred-a' },
+      claimFormat: 'dcql',
     }
     const requestRecord = {
       authorizationRequestPayload: { client_id: 'verifier' },
@@ -289,6 +325,12 @@ describe('getCredentialsForProofRequest', () => {
       dcql: {
         queryResult: {
           can_be_satisfied: true,
+          credential_matches: {
+            queryA: {
+              success: true,
+              valid_credentials: [validCredential],
+            },
+          },
         },
       },
     }
@@ -299,21 +341,11 @@ describe('getCredentialsForProofRequest', () => {
       selectedProofCredentials: {},
     })
 
-    expect(selectCredentialsForDcqlRequest).toHaveBeenCalledWith(requestRecord.dcql.queryResult)
-    expect(acceptOpenId4VpAuthorizationRequest).toHaveBeenCalledWith({
+    expect(mockAcceptAuthorizationRequest).toHaveBeenCalledWith({
       authorizationRequestPayload: { client_id: 'verifier' },
-      presentationExchange: undefined,
-      dcql: {
-        credentials: {
-          queryA: [
-            {
-              credentialRecord: { id: 'cred-a' },
-              claimFormat: 'dcql',
-            },
-          ],
-        },
+      selectedCredentials: {
+        queryA: [validCredential],
       },
-      origin: 'https://verifier.example.com',
     })
   })
 
@@ -335,7 +367,8 @@ describe('getCredentialsForProofRequest', () => {
   })
 
   test('wraps submission errors from the verifier response', async () => {
-    const acceptOpenId4VpAuthorizationRequest = jest.fn().mockResolvedValue({
+    mockAcceptAuthorizationRequest.mockResolvedValue({
+      ok: true,
       serverResponse: {
         status: 400,
         body: 'Verifier rejected proof',
@@ -344,13 +377,7 @@ describe('getCredentialsForProofRequest', () => {
 
     await expect(
       shareProof({
-        agent: {
-          openid4vc: {
-            holder: {
-              acceptOpenId4VpAuthorizationRequest,
-            },
-          },
-        } as any,
+        agent: {} as any,
         requestRecord: {
           authorizationRequestPayload: { client_id: 'verifier' },
           origin: 'https://verifier.example.com',
@@ -378,5 +405,83 @@ describe('getCredentialsForProofRequest', () => {
         },
       })
     ).rejects.toThrow('Error accepting proof request. Error while accepting authorization request. Verifier rejected proof')
+  })
+
+  test('completes a simulated openid invitation resolve and accept sequence', async () => {
+    const credential = { id: 'cred-a' }
+    mockResolveAuthorizationRequest.mockResolvedValue({
+      presentationExchange: {
+        credentialsForRequest: {
+          areRequirementsSatisfied: true,
+          requirements: [
+            {
+              submissionEntry: [
+                {
+                  inputDescriptorId: 'descriptor-1',
+                  verifiableCredentials: [{ credentialRecord: credential }],
+                },
+              ],
+            },
+          ],
+        },
+      },
+      authorizationRequestPayload: {
+        response_uri: 'https://verifier.example.com/callback',
+      },
+    })
+    mockAcceptAuthorizationRequest.mockResolvedValue({
+      ok: true,
+      serverResponse: {
+        accepted: true,
+      },
+    })
+    const agent = {
+      config: {
+        logger: {
+          info: jest.fn(),
+          error: jest.fn(),
+        },
+      },
+      dids: {
+        resolveDidDocument: jest.fn(),
+      },
+    }
+
+    const requestRecord = await getCredentialsForProofRequest({
+      agent: agent as any,
+      request:
+        'openid://?client_id=did%3Aexample%3Averifier&request_uri=https%3A%2F%2Fverifier.example.com%2Frequest.jwt',
+    })
+
+    await expect(
+      shareProof({
+        agent: {} as any,
+        requestRecord: requestRecord as any,
+        selectedProofCredentials: {
+          'descriptor-1': {
+            claimFormat: 'jwt_vc_json',
+            id: 'cred-a',
+          },
+        },
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+    })
+
+    expect(mockResolveAuthorizationRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        didDocumentResolver: expect.any(Function),
+        request:
+          'openid://?client_id=did%3Aexample%3Averifier&request_uri=https%3A%2F%2Fverifier.example.com%2Frequest.jwt',
+      })
+    )
+    expect(mockAcceptAuthorizationRequest).toHaveBeenCalledWith({
+      authorizationRequestPayload: {
+        response_uri: 'https://verifier.example.com/callback',
+      },
+      selectedCredentials: {
+        'descriptor-1': [{ credentialRecord: credential }],
+      },
+    })
   })
 })

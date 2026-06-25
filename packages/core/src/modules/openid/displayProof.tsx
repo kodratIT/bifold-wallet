@@ -1,9 +1,9 @@
 import {
   ClaimFormat,
-  type DcqlQueryResult,
   type DcqlValidCredential,
   type DifPexCredentialsForRequest,
 } from '@credo-ts/core'
+import { type DcqlQueryResult } from '@bifold/openid4vp'
 
 import { filterAndMapSdJwtKeys, getCredentialForDisplay } from './display'
 import { OpenIDCredentialRecord } from './credentialRecord'
@@ -51,12 +51,12 @@ const getDcqlRequestedAttributes = (credentialQuery: DcqlQueryResult['credential
   if (credentialQuery.format === 'mso_mdoc') {
     return (
       credentialQuery.claims?.map((claim) =>
-        'path' in claim ? formatDcqlClaimPath(claim.path) : [claim.namespace, claim.claim_name].join('.')
+        claim.path ? formatDcqlClaimPath(claim.path) : [claim.namespace, claim.claim_name].join('.')
       ) ?? []
     )
   }
 
-  return credentialQuery.claims?.map((claim) => formatDcqlClaimPath(claim.path)) ?? []
+  return credentialQuery.claims?.map((claim) => formatDcqlClaimPath(claim.path ?? [])) ?? []
 }
 
 const getDcqlCredentialName = (credentialQuery: DcqlQueryResult['credentials'][number]): string => {
@@ -68,7 +68,7 @@ const getDcqlCredentialName = (credentialQuery: DcqlQueryResult['credentials'][n
     (credentialQuery.format === 'vc+sd-jwt' && credentialQuery.meta && 'vct_values' in credentialQuery.meta) ||
     credentialQuery.format === 'dc+sd-jwt'
   ) {
-    return credentialQuery.meta && 'vct_values' in credentialQuery.meta && credentialQuery.meta.vct_values?.[0]
+    return credentialQuery.meta?.vct_values?.[0]
       ? credentialQuery.meta.vct_values[0].replace('https://', '')
       : credentialQuery.id
   }
@@ -98,7 +98,9 @@ export function formatDcqlCredentialsForRequest(queryResult: DcqlQueryResult): F
       }
 
       const match = queryResult.credential_matches[credentialId]
-      const validCredentials: DcqlValidCredential[] = match?.success ? Array.from(match.valid_credentials) : []
+      const validCredentials = (
+        match?.success ? Array.from(match.valid_credentials ?? []) : []
+      ) as DcqlValidCredential[]
 
       if (validCredentials.length === 0) {
         return {
@@ -206,10 +208,10 @@ export function formatDifPexCredentialsForRequest(
 
 export function formatOpenIdProofRequest(record: OpenId4VPRequestRecord): FormattedSubmission | undefined {
   if (record.presentationExchange) {
-    return formatDifPexCredentialsForRequest(record.presentationExchange.credentialsForRequest)
+    return formatDifPexCredentialsForRequest(record.presentationExchange.credentialsForRequest as DifPexCredentialsForRequest)
   }
 
-  if (record.dcql) {
+  if (record.dcql?.queryResult) {
     return formatDcqlCredentialsForRequest(record.dcql.queryResult)
   }
 

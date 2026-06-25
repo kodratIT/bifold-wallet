@@ -55,6 +55,12 @@ subprojects {
             }
         }
 
+        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
+
         project.plugins.withId("com.android.library") {
             project.android {
                 if (project.android.hasProperty("externalNativeBuild")) {

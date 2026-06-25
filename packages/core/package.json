@@ -246,6 +246,7 @@
     ]
   },
   "dependencies": {
+    "@bifold/openid4vp": "workspace:^",
     "@openwallet-foundation/askar-react-native": "0.6.0",
     "@openwallet-foundation/askar-shared": "0.6.0",
     "@types/base-64": "^1.0.2"

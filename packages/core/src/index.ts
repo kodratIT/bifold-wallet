@@ -1,4 +1,5 @@
 /* eslint-disable import/no-cycle */
+import './utils/base64-polyfill'
 import type { OnboardingStyleSheet } from './screens/Onboarding'
 
 import AgentProvider from '@bifold/react-hooks'

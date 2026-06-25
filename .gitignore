@@ -116,6 +116,12 @@ dist
 # TernJS port file
 .tern-port
 
+# Tool artifacts
+.agents/
+.omc/
+_bmad/
+_bmad-output/
+
 # macOS
 .DS_Store
 
