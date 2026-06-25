@@ -214,11 +214,12 @@ export const customCredentialBindingResolver = async ({
     }
   }
 
-  // Fallback: plain jwk for sd-jwt/mdoc only
+  // Fallback: plain jwk for sd-jwt/mdoc/JWT VC JSON only
   if (
     supportsJwk &&
     (credentialFormat === OpenId4VciCredentialFormatProfile.SdJwtVc ||
-      credentialFormat === OpenId4VciCredentialFormatProfile.MsoMdoc)
+      credentialFormat === OpenId4VciCredentialFormatProfile.MsoMdoc ||
+      credentialFormat === OpenId4VciCredentialFormatProfile.JwtVcJson)
   ) {
     return {
       method: 'jwk',
@@ -227,7 +228,7 @@ export const customCredentialBindingResolver = async ({
   }
 
   throw new Error(
-    `No supported binding method could be found. Supported methods are did:key and did:jwk, or plain jwk for sd-jwt/mdoc. Issuer supports ${
+    `No supported binding method could be found. Supported methods are did:key and did:jwk, or plain jwk for sd-jwt/mdoc/JWT VC JSON. Issuer supports ${
       supportsJwk ? 'jwk, ' : ''
     }${supportedDidMethods?.join(', ') ?? 'Unknown'}`
   )
