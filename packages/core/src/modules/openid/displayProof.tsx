@@ -9,16 +9,6 @@ import { filterAndMapSdJwtKeys, getCredentialForDisplay } from './display'
 import { OpenIDCredentialRecord } from './credentialRecord'
 import { FormattedSubmission, FormattedSubmissionEntry, OpenId4VPRequestRecord } from './types'
 
-const asRecord = (value: unknown): Record<string, unknown> =>
-  value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
-
-const flattenMdocDisclosedPayload = (value: unknown): Record<string, unknown> =>
-  Object.fromEntries(
-    Object.values(asRecord(value)).flatMap((entry) =>
-      entry && typeof entry === 'object' && !Array.isArray(entry) ? Object.entries(entry) : []
-    )
-  )
-
 const getDcqlClaimFormat = (record: OpenIDCredentialRecord): ClaimFormat => {
   switch (record.type) {
     case 'MdocRecord':
@@ -30,33 +20,42 @@ const getDcqlClaimFormat = (record: OpenIDCredentialRecord): ClaimFormat => {
   }
 }
 
-const getDcqlDisclosedPayload = (validCredential: DcqlValidCredential): Record<string, unknown> => {
-  const output = validCredential.claims.valid_claim_sets[0].output
-
-  if (validCredential.record.type === 'MdocRecord') {
-    return flattenMdocDisclosedPayload(output)
+const dcqlPathToSegments = (path: Array<string | number | null>): string[] => {
+  if (path.length === 1 && typeof path[0] === 'string') {
+    return path[0]
+      .replace(/^\$\./, '')
+      .replace(/^\$/, '')
+      .replace(/\[['"]?([^'"\]]+)['"]?\]/g, '.$1')
+      .split('.')
+      .filter(Boolean)
   }
 
-  if (validCredential.record.type === 'SdJwtVcRecord') {
-    return filterAndMapSdJwtKeys(asRecord(output)).visibleProperties
-  }
-
-  return asRecord(output)
+  return path.filter((item): item is string | number => item !== null && item !== '$').map(String)
 }
 
-const formatDcqlClaimPath = (path: Array<string | number | null>): string =>
-  path.filter((item) => item !== null).join('.')
+const formatDcqlDisplayClaimPath = (path: Array<string | number | null>): string => {
+  const segments = dcqlPathToSegments(path)
+  const credentialSubjectIndex = segments.indexOf('credentialSubject')
+
+  if (credentialSubjectIndex >= 0 && segments[credentialSubjectIndex + 1]) {
+    return segments.slice(credentialSubjectIndex + 1).join('.')
+  }
+
+  return segments.join('.')
+}
 
 const getDcqlRequestedAttributes = (credentialQuery: DcqlQueryResult['credentials'][number]): string[] => {
   if (credentialQuery.format === 'mso_mdoc') {
     return (
-      credentialQuery.claims?.map((claim) =>
-        claim.path ? formatDcqlClaimPath(claim.path) : [claim.namespace, claim.claim_name].join('.')
-      ) ?? []
+      credentialQuery.claims?.map((claim) => {
+        if (claim.claim_name) return claim.claim_name
+        const path = dcqlPathToSegments(claim.path ?? [])
+        return path[path.length - 1] ?? ''
+      }) ?? []
     )
   }
 
-  return credentialQuery.claims?.map((claim) => formatDcqlClaimPath(claim.path ?? [])) ?? []
+  return credentialQuery.claims?.map((claim) => formatDcqlDisplayClaimPath(claim.path ?? [])) ?? []
 }
 
 const getDcqlCredentialName = (credentialQuery: DcqlQueryResult['credentials'][number]): string => {
@@ -128,13 +127,12 @@ export function formatDcqlCredentialsForRequest(queryResult: DcqlQueryResult): F
         isSatisfied: validCredentials.length >= 1,
         credentials: validCredentials.map((validCredential) => {
           const { display, metadata } = getCredentialForDisplay(validCredential.record)
-          const disclosedPayload = getDcqlDisclosedPayload(validCredential)
 
           return {
             id: validCredential.record.id,
             credentialName: display.name,
             issuerName: display.issuer.name,
-            requestedAttributes: [...Object.keys(disclosedPayload)],
+            requestedAttributes: getDcqlRequestedAttributes(credentialQuery),
             metadata,
             backgroundColor: display.backgroundColor,
             textColor: display.textColor,

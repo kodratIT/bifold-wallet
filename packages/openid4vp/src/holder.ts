@@ -91,16 +91,19 @@ export async function resolveAuthorizationRequest({
 
   validateAuthorizationRequestPayload(resolved.authorizationRequestPayload)
 
+  const resolvedAuthorizationRequestPayload = resolved.authorizationRequestPayload as Record<string, unknown>
+  const dcqlQuery = resolved.dcql?.query ?? resolvedAuthorizationRequestPayload.dcql_query ?? authorizationRequestPayload.dcql_query
   const dcqlResult =
-    resolved.dcql?.query && walletCredentials.length > 0
-      ? (dependencies.evaluateDcqlQuery ?? evaluateDcqlQuery)(resolved.dcql.query as DcqlQuery, walletCredentials)
+    dcqlQuery && walletCredentials.length > 0
+      ? (dependencies.evaluateDcqlQuery ?? evaluateDcqlQuery)(dcqlQuery as DcqlQuery, walletCredentials)
       : undefined
 
   return {
     ...resolved,
-    dcql: resolved.dcql
+    dcql: resolved.dcql || dcqlQuery
       ? {
           ...resolved.dcql,
+          query: dcqlQuery,
           queryResult: dcqlResult,
         }
       : undefined,

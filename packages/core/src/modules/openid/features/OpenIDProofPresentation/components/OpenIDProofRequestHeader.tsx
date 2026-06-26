@@ -38,7 +38,7 @@ const OpenIDProofRequestHeader: React.FC<OpenIDProofRequestHeaderProps> = ({
     <View style={styles.headerTextContainer}>
       <Text style={styles.headerText} testID={testIdWithKey('HeaderText')}>
         <Text style={TextTheme.normal}>{t('ProofRequest.ReceiveProofTitle')}</Text>
-        <Text style={TextTheme.title}> ${verifierName}</Text>
+        <Text style={TextTheme.title}>{verifierName}</Text>
       </Text>
       <Text style={TextTheme.normal}>{reason}</Text>
     </View>

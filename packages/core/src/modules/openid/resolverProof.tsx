@@ -152,14 +152,61 @@ export const getCredentialsForProofRequest = async ({
   try {
     agent.config.logger.info(`$$Receiving openid authorization request ${request}`)
 
+    // Step 1: Fetch credentials and Resolve via bifold wrapper 
+    const [w3cCredentials, w3cV2Credentials, sdJwtVcCredentials, mdocCredentials] = await Promise.all([
+      agent.w3cCredentials.getAll(),
+      agent.w3cV2Credentials.getAll(),
+      agent.sdJwtVc.getAll(),
+      agent.mdoc.getAll(),
+    ])
+
+    const walletCredentials = [
+      ...w3cCredentials,
+      ...w3cV2Credentials,
+      ...sdJwtVcCredentials,
+      ...mdocCredentials,
+    ].filter(Boolean)
+
     let resolved = await resolveAuthorizationRequest({
       didDocumentResolver: (did) => resolveDidDocumentWithAgent(agent, did),
       request,
+      walletCredentials: walletCredentials as unknown as Array<Record<string, unknown>>,
     })
 
-    if (!resolved.presentationExchange && !resolved.dcql && resolved.pex) {
-      agent.config.logger.info('Resolved OpenID4VP request contains PEX data. Falling back to Credo PEX credential matching.')
-      resolved = await agent.modules.openid4vc.holder.resolveOpenId4VpAuthorizationRequest(request)
+    // Step 2: If the bifold wrapper returned pex/dcql but NOT presentationExchange or dcql.queryResult,
+    // fall back to Credo resolver which handles PEX credential matching and DCQL evaluation internally.
+    // The upstream @openid4vc/openid4vp returns PEX data under 'pex' not 'presentationExchange',
+    // and DCQL without credential matching. Credo's resolver fills both gaps.
+    const hasCredoFallback = !!(agent as { modules?: { openid4vc?: { holder?: { resolveOpenId4VpAuthorizationRequest?: unknown } } } }).modules?.openid4vc?.holder?.resolveOpenId4VpAuthorizationRequest
+    const needsCredoFallback =
+      hasCredoFallback &&
+      ((resolved.pex && !resolved.presentationExchange) ||
+        (resolved.dcql && !resolved.dcql?.queryResult) ||
+        (!resolved.presentationExchange && !resolved.dcql))
+
+    if (needsCredoFallback) {
+      agent.config.logger.info(
+        resolved.pex
+          ? 'Resolved OpenID4VP request contains PEX data. Falling back to Credo PEX credential matching.'
+          : 'Resolved OpenID4VP request needs DCQL evaluation. Falling back to Credo resolver.'
+      )
+      try {
+        // Pass the original request string (URI like openid://?client_id=...&request_uri=...).
+        // Credo's resolver will re-parse the URI, fetch the JWT from request_uri,
+        // and run its internal PEX/DCQL credential matching via presentationExchangeService/dcqlService.
+        // This gives us the properly populated `presentationExchange` and `dcql.queryResult`.
+        const credoResult = await agent.modules.openid4vc.holder.resolveOpenId4VpAuthorizationRequest(request)
+        resolved = {
+          ...resolved,
+          presentationExchange: credoResult.presentationExchange,
+          dcql: credoResult.dcql as typeof resolved.dcql,
+        }
+      } catch (credoErr) {
+        agent.config.logger.warn(
+          `Credo resolver fallback failed (${(credoErr as Error).message}). ` +
+          'Proceeding with bifold-resolved data — presentation may be partial.'
+        )
+      }
     }
 
     if (!resolved.presentationExchange && !resolved.dcql) {
@@ -174,6 +221,7 @@ export const getCredentialsForProofRequest = async ({
       createdAt: new Date().toISOString(),
       type: 'OpenId4VPRequestRecord',
     }
+
     return requestRecord
   } catch (err) {
     agent.config.logger.error(`Parsing presentation request:  ${(err as Error)?.message ?? err}`)

@@ -3,7 +3,7 @@ import type { DcqlCredentialMatch, DcqlPresentation, DcqlQueryResult } from './t
 export type DcqlCredentialFormat = 'vc+sd-jwt' | 'mso_mdoc' | 'jwt_vc_json' | 'ldp_vc'
 
 export interface DcqlClaimQuery {
-  path?: string[]
+  path?: Array<string | number | null>
   namespace?: string
   claim_name?: string
 }
@@ -70,7 +70,12 @@ export function evaluateDcqlQuery(
         credentialQueryId,
         {
           success: credentialMatches.length > 0,
-          valid_credentials: credentialMatches.map((match) => match.credential),
+          valid_credentials: credentialMatches.map((match) => ({
+            record: match.credential,
+            claims: {
+              valid_claim_sets: [{ output: getCredentialPayload(match.credential as WalletCredential) }],
+            },
+          })),
         },
       ])
     ),
@@ -103,11 +108,22 @@ function matchesFormat(
   credential: WalletCredential
 ): boolean {
   const requiredFormats = Array.isArray(requiredFormat) ? requiredFormat : [requiredFormat]
+  const credentialRecord = asRecord(credential)
+  const credentialPayload = getCredentialPayload(credential)
   const credentialFormat = String(
-    credential.format ?? credential.credentialFormat ?? credential.type ?? credential.recordType ?? ''
+    credentialRecord.format ??
+      credentialRecord.credentialFormat ??
+      credentialRecord.type ??
+      credentialRecord.recordType ??
+      credentialPayload.format ??
+      credentialPayload.credentialFormat ??
+      credentialPayload.type ??
+      credentialPayload.recordType ??
+      ''
   )
   const constructorName = String((credential as { constructor?: { name?: string } }).constructor?.name ?? '')
-  const candidates = [credentialFormat, constructorName].map((value) => value.toLowerCase())
+  const payloadConstructorName = String((credentialPayload as { constructor?: { name?: string } }).constructor?.name ?? '')
+  const candidates = [credentialFormat, constructorName, payloadConstructorName].map((value) => value.toLowerCase())
 
   return requiredFormats.some((format) =>
     formatAliases(format).some((alias) => candidates.some((candidate) => candidate.includes(alias)))
@@ -125,7 +141,7 @@ function matchesClaims(claims: DcqlClaimQuery[] | undefined, credential: WalletC
     }
 
     if (claim.path && claim.path.length > 0) {
-      return claim.path.some((path) => getJsonPathValue(credential, path) !== undefined)
+      return getJsonPathValue(credential, claim.path) !== undefined
     }
 
     return true
@@ -137,27 +153,81 @@ function getMdocClaimValue(
   namespace: string,
   claimName: string
 ): unknown {
-  const namespaces = (credential.namespaces ?? credential.claims ?? credential.credential) as
-    | Record<string, Record<string, unknown>>
-    | undefined
+  const credentialRecord = asRecord(credential)
+  const credentialPayload = getCredentialPayload(credential)
+  const namespaces = (credentialRecord.namespaces ??
+    credentialRecord.claims ??
+    credentialRecord.credential ??
+    credentialPayload.namespaces ??
+    credentialPayload.claims ??
+    credentialPayload.credential) as Record<string, Record<string, unknown>> | undefined
 
   return namespaces?.[namespace]?.[claimName]
 }
 
-function getJsonPathValue(credential: WalletCredential, path: string): unknown {
-  const normalizedPath = path
+function getJsonPathValue(credential: WalletCredential, path: Array<string | number | null>): unknown {
+  const credentialPayload = getCredentialPayload(credential)
+  const segments = normalizeDcqlPath(path)
+
+  const valueFromPayload = getValueAtPath(credentialPayload, segments)
+  if (valueFromPayload !== undefined) {
+    return valueFromPayload
+  }
+
+  const credentialSubject = asRecord(credentialPayload).credentialSubject
+  if (credentialSubject && !segments.includes('credentialSubject')) {
+    return getValueAtPath(credentialSubject, segments)
+  }
+
+  return undefined
+}
+
+function normalizeDcqlPath(path: Array<string | number | null>): Array<string | number> {
+  if (path.length === 1 && typeof path[0] === 'string') {
+    return pathStringToSegments(path[0])
+  }
+
+  return path.filter((segment): segment is string | number => segment !== null && segment !== '$' && segment !== '')
+}
+
+function pathStringToSegments(path: string): Array<string | number> {
+  return path
     .replace(/^\$\./, '')
     .replace(/^\$/, '')
     .replace(/\[['"]?([^'"\]]+)['"]?\]/g, '.$1')
-  const segments = normalizedPath.split('.').filter(Boolean)
+    .split('.')
+    .filter(Boolean)
+}
 
+function getValueAtPath(value: unknown, segments: Array<string | number>): unknown {
   return segments.reduce<unknown>((current, segment) => {
     if (current && typeof current === 'object' && segment in current) {
-      return (current as Record<string, unknown>)[segment]
+      return (current as Record<string | number, unknown>)[segment]
     }
 
     return undefined
-  }, credential)
+  }, value)
+}
+
+function getCredentialPayload(credential: WalletCredential): Record<string, unknown> {
+  const credentialRecord = asRecord(credential)
+  const firstCredential = asRecord(credentialRecord.firstCredential)
+  const firstCredentialJsonCredential = asRecord(firstCredential.jsonCredential)
+  if (Object.keys(firstCredentialJsonCredential).length > 0) {
+    return firstCredentialJsonCredential
+  }
+
+  const firstCredentialCredential = asRecord(firstCredential.credential)
+  if (Object.keys(firstCredentialCredential).length > 0) {
+    return firstCredentialCredential
+  }
+
+  const credentialPayload = asRecord(credentialRecord.credential)
+  if (Object.keys(credentialPayload).length > 0) {
+    return credentialPayload
+  }
+
+  return credentialRecord
 }
 
 function presentationFromCredential(credential: WalletCredential | DcqlPresentation): DcqlPresentation {
@@ -165,13 +235,19 @@ function presentationFromCredential(credential: WalletCredential | DcqlPresentat
     return credential
   }
 
+  const credentialRecord = asRecord(credential)
+
   return (
-    credential.presentation ??
-    credential.vpToken ??
-    credential.credential ??
-    credential.raw ??
+    credentialRecord.presentation ??
+    credentialRecord.vpToken ??
+    credentialRecord.credential ??
+    credentialRecord.raw ??
     credential
   ) as DcqlPresentation
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
 }
 
 function normalizeCredentialSetOptions(options: string[][] | string[]): string[][] {

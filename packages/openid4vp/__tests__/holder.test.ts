@@ -64,6 +64,30 @@ describe('holder service', () => {
     })
   })
 
+  it('evaluates DCQL from authorization request payload when upstream result omits dcql query', async () => {
+    const resolveOpenid4vpAuthorizationRequest = jest.fn().mockResolvedValue({
+      authorizationRequestPayload: validAuthorizationRequestPayload,
+      client: {},
+      jar: undefined,
+      version: 100,
+    })
+
+    const resolved = await resolveAuthorizationRequest({
+      dependencies: {
+        resolveOpenid4vpAuthorizationRequest,
+      },
+      request: 'header.payload.signature',
+      responseMode: {
+        type: 'direct_post',
+      },
+      walletCredentials: walletCredentialsFixture,
+    })
+
+    expect(resolved.dcql?.query).toBe(dcqlQueryFixture)
+    expect(resolved.dcql?.queryResult?.can_be_satisfied).toBe(true)
+    expect(resolved.dcqlResult?.can_be_satisfied).toBe(true)
+  })
+
   it('passes DID Document resolver adapters into upstream verifyJwt callbacks', async () => {
     const fixture = await createDidWebJwtFixture({
       did: 'did:webvh:QmVerifier:verifier.example.com',

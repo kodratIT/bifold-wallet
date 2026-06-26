@@ -96,6 +96,71 @@ describe('DCQL evaluator', () => {
     })
   })
 
+  it('matches jwt vc json credentials with root, segment, string, and relative claim paths', () => {
+    const queryForPath = (path: Array<string | number | null>) => ({
+      credentials: [
+        {
+          claims: [{ path }],
+          format: 'jwt_vc_json' as const,
+          id: 'UniversityDegree',
+        },
+      ],
+    })
+    const rawCredential = {
+      credentialSubject: {
+        degree: 'Bachelor of Science',
+      },
+      format: 'jwt_vc_json',
+      id: 'degree-raw',
+      presentation: 'degree-raw-presentation',
+    }
+    const recordCredential = {
+      firstCredential: {
+        jsonCredential: {
+          credentialSubject: {
+            degree: 'Bachelor of Science',
+          },
+          type: ['VerifiableCredential', 'UniversityDegree'],
+        },
+      },
+      id: 'degree-record',
+      type: 'W3cCredentialRecord',
+    }
+
+    for (const path of [
+      ['$', 'credentialSubject', 'degree'],
+      ['credentialSubject', 'degree'],
+      ['$.credentialSubject.degree'],
+      ['degree'],
+    ]) {
+      const rawResult = evaluateDcqlQuery(queryForPath(path), [rawCredential])
+      const recordResult = evaluateDcqlQuery(queryForPath(path), [recordCredential])
+
+      expect(rawResult.can_be_satisfied).toBe(true)
+      expect(recordResult.can_be_satisfied).toBe(true)
+      expect(rawResult.matches.UniversityDegree).toHaveLength(1)
+      expect(recordResult.matches.UniversityDegree).toHaveLength(1)
+      expect(recordResult.credential_matches.UniversityDegree.valid_credentials?.[0]).toMatchObject({
+        record: recordCredential,
+        claims: {
+          valid_claim_sets: [
+            {
+              output: {
+                credentialSubject: {
+                  degree: 'Bachelor of Science',
+                },
+              },
+            },
+          ],
+        },
+      })
+    }
+
+    const missingResult = evaluateDcqlQuery(queryForPath(['$', 'credentialSubject', 'missing']), [rawCredential])
+    expect(missingResult.can_be_satisfied).toBe(false)
+    expect(missingResult.matches.UniversityDegree).toHaveLength(0)
+  })
+
   it('builds vp_token values keyed by credential query id', () => {
     expect(
       buildDcqlVpToken({

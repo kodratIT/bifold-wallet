@@ -304,6 +304,54 @@ describe('formatDcqlCredentialsForRequest', () => {
     })
   })
 
+  test('normalizes jwt vc json credentialSubject paths for requested attributes', () => {
+    mockGetCredentialForDisplay.mockReturnValueOnce({
+      display: {
+        name: 'UniversityDegree',
+        issuer: { name: 'University' },
+      },
+      metadata: { type: 'UniversityDegree' },
+    })
+
+    const result = formatDcqlCredentialsForRequest({
+      can_be_satisfied: true,
+      credentials: [
+        {
+          id: 'UniversityDegree',
+          format: 'jwt_vc_json',
+          claims: [{ path: ['$', 'credentialSubject', 'degree'] }],
+        },
+      ],
+      credential_matches: {
+        UniversityDegree: {
+          success: true,
+          valid_credentials: [
+            {
+              record: {
+                id: 'degree-credential',
+                type: 'W3cCredentialRecord',
+                firstCredential: { claimFormat: ClaimFormat.JwtVc },
+              },
+              claims: {
+                valid_claim_sets: [
+                  {
+                    output: {
+                      credentialSubject: {
+                        degree: 'Bachelor of Science',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    } as any)
+
+    expect(result.entries[0]?.credentials[0]?.requestedAttributes).toEqual(['degree'])
+  })
+
   test('creates an unsatisfied placeholder entry when no valid dcql credentials exist', () => {
     const result = formatDcqlCredentialsForRequest({
       can_be_satisfied: false,
