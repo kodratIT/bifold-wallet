@@ -5,6 +5,8 @@ import {
 import { ResolvedAuthorizationRequest } from '@bifold/openid4vp'
 import { CredentialMetadata } from './display'
 import { ClaimFormat } from '@credo-ts/core'
+import type { DifPexCredentialsForRequest } from '@credo-ts/core'
+import type { DcqlQueryResult } from '@bifold/openid4vp'
 
 export type CredentialForDisplayId = `w3c-credential-${string}` | `sd-jwt-vc-${string}` | `mdoc-${string}`
 export interface OpenId4VcCredentialMetadata {
@@ -91,10 +93,56 @@ export interface W3cCredentialDisplay {
   attributeOrder?: string[]
 }
 
-export interface OpenId4VPRequestRecord extends ResolvedAuthorizationRequest {
+export interface OpenId4VPRequestRecord {
   verifierHostName: string | undefined
   createdAt: string | Date
   type: 'OpenId4VPRequestRecord'
+  /**
+   * Verifier info extracted from the resolved request.
+   */
+  verifier?: {
+    verifierHostName?: string
+    clientId?: string
+    clientIdScheme?: string
+  }
+  /**
+   * Presentation Exchange data from Credo resolver (if available).
+   * More complete than the base 'pex' field which only has raw definition.
+   */
+  presentationExchange?: {
+    credentialsForRequest: DifPexCredentialsForRequest
+    definition?: unknown
+  }
+  /**
+   * DCQL query result from Credo resolver (if available).
+   * Contains credential matches with valid_credentials.
+   */
+  dcql?: {
+    queryResult: DcqlQueryResult
+  }
+  /**
+   * The raw authorization request payload
+   */
+  authorizationRequestPayload: Record<string, unknown>
+  /**
+   * Original fields from bifold/openid4vp resolver (when using fallback path)
+   */
+  version?: number
+  jar?: {
+    header?: Record<string, unknown>
+    payload?: Record<string, unknown>
+    signer?: unknown
+  }
+  client?: {
+    prefix?: string
+    effective?: string
+  }
+  dcqlResult?: DcqlQueryResult
+  vpFormatsSupported?: unknown
+  pex?: {
+    presentation_definition?: unknown
+  }
+  origin?: string
 }
 
 export type FormattedSelectedCredentialEntry = {
