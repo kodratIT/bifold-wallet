@@ -10,7 +10,6 @@ import { DeliveryStackParams, Screens } from '../types/navigators'
 import { testIdWithKey } from '../utils/testable'
 
 import { useDefaultStackOptions } from './defaultStackOptions'
-import OpenIDProofPresentation from '../modules/openid/screens/OpenIDProofPresentation'
 import { TOKENS, useServices } from '../container-api'
 import OpenIDCredentialOffer from '../modules/openid/screens/OpenIDCredentialOffer'
 import OpenIDProofCredentialSelect from '../modules/openid/screens/OpenIDProofChangeCredential'
@@ -21,7 +20,10 @@ const DeliveryStack: React.FC = () => {
   const { t } = useTranslation()
   const theme = useTheme()
   const defaultStackOptions = useDefaultStackOptions(theme)
-  const [ScreenOptionsDictionary] = useServices([TOKENS.OBJECT_SCREEN_CONFIG])
+  const [OpenIDProofPresentation, ScreenOptionsDictionary] = useServices([
+    TOKENS.SCREEN_OPENID_PROOF_PRESENTATION,
+    TOKENS.OBJECT_SCREEN_CONFIG,
+  ])
 
   return (
     <Stack.Navigator

@@ -45,6 +45,7 @@ import Splash from './screens/Splash'
 import ScreenTerms, { TermsVersion } from './screens/Terms'
 import ToggleBiometry from './screens/ToggleBiometry'
 import UpdateAvailable from './screens/UpdateAvailable'
+import OpenIDProofPresentation from './modules/openid/screens/OpenIDProofPresentation'
 import { AgentBridge } from './services/AgentBridge'
 import { bifoldLoggerInstance } from './services/bifoldLogger'
 import { loadLoginAttempt } from './services/keychain'
@@ -162,6 +163,7 @@ export class MainContainer implements Container {
     this._container.registerInstance(TOKENS.SCREEN_ONBOARDING, Onboarding)
     this._container.registerInstance(TOKENS.SCREEN_PIN_CREATE, PINCreate)
     this._container.registerInstance(TOKENS.SCREEN_PIN_EXPLAINER, PINExplainer)
+    this._container.registerInstance(TOKENS.SCREEN_OPENID_PROOF_PRESENTATION, OpenIDProofPresentation)
     this._container.registerInstance(TOKENS.HOOK_USE_AGENT_SETUP, useBifoldAgentSetup)
     this._container.registerInstance(TOKENS.STACK_ONBOARDING, OnboardingStack)
     this._container.registerInstance(TOKENS.COMP_BUTTON, Button)

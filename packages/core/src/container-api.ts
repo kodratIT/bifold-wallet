@@ -70,6 +70,7 @@ export const SCREEN_TOKENS = {
   SCREEN_TOGGLE_BIOMETRY: 'screen.toggle-biometry',
   SCREEN_PIN_CREATE: 'screen.pin-create',
   SCREEN_PIN_EXPLAINER: 'screen.pin-explainer',
+  SCREEN_OPENID_PROOF_PRESENTATION: 'screen.openid-proof-presentation',
 } as const
 
 export const NAV_TOKENS = {
@@ -295,6 +296,7 @@ export type TokenMapping = {
   }>
   [TOKENS.FN_ATTESTATION_GET_CHALLENGE]: FN_ATTESTATION_GET_CHALLENGE
   [TOKENS.FN_ATTESTATION_GET_JWT]: FN_ATTESTATION_GET_JWT
+  [TOKENS.SCREEN_OPENID_PROOF_PRESENTATION]: React.FC
 }
 
 export interface Container {

@@ -20,6 +20,7 @@ type SelectedProofCredentials = Record<
   {
     id: string
     claimFormat: string
+    claimIndexes?: number[]
   }
 >
 
@@ -241,7 +242,13 @@ const getDcqlCredentialsForRequest = (
       }
 
       const validCredentials = Array.from(match.valid_credentials) as DcqlValidCredential[]
-      const validCredential = validCredentials.find((credential) => credential.record.id === selectedCredential.id)
+
+      // Filter by claimIndexes if provided — enables selective disclosure
+      const filtered = selectedCredential.claimIndexes?.length
+        ? validCredentials.filter((_, idx) => selectedCredential.claimIndexes!.includes(idx))
+        : validCredentials
+
+      const validCredential = filtered.find((credential) => credential.record.id === selectedCredential.id) ?? filtered[0]
 
       if (!validCredential) {
         throw new Error(

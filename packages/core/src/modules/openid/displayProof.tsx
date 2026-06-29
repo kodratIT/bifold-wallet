@@ -215,3 +215,28 @@ export function formatOpenIdProofRequest(record: OpenId4VPRequestRecord): Format
 
   return undefined
 }
+
+/**
+ * Extracts requested vs optional claims from a DCQL query result for selective disclosure UI.
+ * Returns a Map of credentialId → { requested: string[], optional: string[] }.
+ *
+ * - `requested`: claim paths/keys explicitly requested by the verifier
+ * - `optional`: visible claims in the credential NOT requested by the verifier (can be toggled)
+ */
+export function extractDcqlClaimInfo(queryResult: DcqlQueryResult): Map<string, { requested: string[]; optional: string[] }> {
+  const result = new Map<string, { requested: string[]; optional: string[] }>()
+
+  for (const credentialQuery of queryResult.credentials) {
+    const requested = getDcqlRequestedAttributes(credentialQuery)
+
+    const match = queryResult.credential_matches[credentialQuery.id]
+    const validCredentials: DcqlValidCredential[] = match?.success ? Array.from(match.valid_credentials) : []
+
+    const allVisible = validCredentials.length > 0 ? Object.keys(getDcqlDisclosedPayload(validCredentials[0])) : []
+    const optional = allVisible.filter((key) => !requested.includes(key))
+
+    result.set(credentialQuery.id, { requested, optional })
+  }
+
+  return result
+}
