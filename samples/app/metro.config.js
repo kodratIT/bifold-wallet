@@ -106,6 +106,14 @@ const config = mergeConfig(defaultConfig, {
         }
       }
 
+      if (moduleName.startsWith('@bifold/core/src/')) {
+        const normalizedName = moduleName.replace(
+          '@bifold/core/src/',
+          path.resolve(__dirname, '../../packages/core/src') + '/'
+        )
+        return fallbackResolveRequest(context, normalizedName, platform)
+      }
+
       return fallbackResolveRequest(context, moduleName, platform)
     },
     blockList: exclusionList(extraExclusionList.map((m) => new RegExp(`^${escape(m)}[/\\\\].*$`))),
