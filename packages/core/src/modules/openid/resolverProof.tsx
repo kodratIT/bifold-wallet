@@ -21,6 +21,7 @@ type SelectedProofCredentials = Record<
     id: string
     claimFormat: string
     claimIndexes?: number[]
+    disclosedClaims?: string[]
   }
 >
 
@@ -180,30 +181,45 @@ const getPexCredentialsForRequest = (
 }
 
 const getDcqlCredentialForRequest = (
-  validCredential: DcqlValidCredential
+  validCredential: DcqlValidCredential,
+  disclosedClaims?: string[]
 ): DcqlCredentialsForRequest[string][number] => {
   const useMode = CredentialMultiInstanceUseMode.NewOrFirst
+
+  const filterPayload = (payload: any) => {
+    console.log('[DCQL-FILTER] Original Payload Keys:', Object.keys(payload))
+    console.log('[DCQL-FILTER] Disclosed Claims (UI):', disclosedClaims)
+    if (!disclosedClaims) return payload
+    const rootKeys = disclosedClaims.map(path => path.split('.')[0])
+    const filtered = Object.fromEntries(
+      Object.entries(payload).filter(([key]) => rootKeys.includes(key))
+    )
+    console.log('[DCQL-FILTER] Filtered Payload Keys:', Object.keys(filtered))
+    return filtered
+  }
+
+  console.log('[DCQL-FILTER] Record Type:', validCredential.record.type)
 
   switch (validCredential.record.type) {
     case 'MdocRecord':
       return {
         claimFormat: ClaimFormat.MsoMdoc,
         credentialRecord: validCredential.record,
-        disclosedPayload: validCredential.claims.valid_claim_sets[0].output as MdocNameSpaces,
+        disclosedPayload: filterPayload(validCredential.claims.valid_claim_sets[0].output) as MdocNameSpaces,
         useMode,
       }
     case 'SdJwtVcRecord':
       return {
         claimFormat: ClaimFormat.SdJwtDc,
         credentialRecord: validCredential.record,
-        disclosedPayload: validCredential.claims.valid_claim_sets[0].output as JsonObject,
+        disclosedPayload: filterPayload(validCredential.claims.valid_claim_sets[0].output) as JsonObject,
         useMode,
       }
     case 'W3cCredentialRecord':
       return {
         claimFormat: validCredential.record.firstCredential.claimFormat as ClaimFormat.JwtVc | ClaimFormat.LdpVc,
         credentialRecord: validCredential.record,
-        disclosedPayload: validCredential.record.firstCredential.jsonCredential as JsonObject,
+        disclosedPayload: filterPayload(validCredential.record.firstCredential.jsonCredential) as JsonObject,
         useMode,
       }
     case 'W3cV2CredentialRecord':
@@ -212,7 +228,7 @@ const getDcqlCredentialForRequest = (
           | ClaimFormat.JwtW3cVc
           | ClaimFormat.SdJwtW3cVc,
         credentialRecord: validCredential.record,
-        disclosedPayload: validCredential.claims.valid_claim_sets[0].output as JsonObject,
+        disclosedPayload: filterPayload(validCredential.claims.valid_claim_sets[0].output) as JsonObject,
         useMode,
       }
   }
@@ -256,7 +272,7 @@ const getDcqlCredentialsForRequest = (
         )
       }
 
-      return [credentialQueryId, [getDcqlCredentialForRequest(validCredential)]]
+      return [credentialQueryId, [getDcqlCredentialForRequest(validCredential, selectedCredential.disclosedClaims)]]
     })
   )
 }

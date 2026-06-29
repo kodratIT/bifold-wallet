@@ -43,6 +43,7 @@ const extraNodeModules = {
 const localPackageEntryPoints = {
   '@bifold/core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
   '@bifold/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts'),
+  '@bifold/react-hooks': path.resolve(__dirname, '../../packages/react-hooks/src/index.ts'),
 }
 
 const fallbackResolveRequest = (context, moduleName, platform) => {

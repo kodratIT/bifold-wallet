@@ -191,3 +191,35 @@ lib/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Obsidian vault
+obsidian/
+
+# BMAD planning artifacts
+_bmad/
+_bmad-output/
+
+# OM Config
+.omc/
+
+# PI
+.pi/
+
+# Kiro specs
+.kiro/specs/
+
+# GitHub
+.github/
+
+# Agents skills
+.agents/skills/
+
+# VS Code
+.vscode/
+
+# Design artifacts
+design-artifacts/
