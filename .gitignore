@@ -221,5 +221,6 @@ _bmad-output/
 # VS Code
 .vscode/
 
+.yarn
 # Design artifacts
 design-artifacts/
