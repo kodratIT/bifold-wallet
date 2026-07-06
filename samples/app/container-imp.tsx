@@ -11,7 +11,7 @@ import {
 import { CustomBiometry, CustomOnboarding, CustomPinSetupFlow, CustomSplash, CustomTerms, TermsVersion } from '@bifold/ui'
 import { DependencyContainer } from 'tsyringe'
 import { getTrustRegistryConfig, isTrustRegistryConfigured } from './config/trustRegistry'
-import CustomOpenIDProofPresentation from './screens/CustomOpenIDProofPresentation'
+import { CustomOpenIDProofPresentation } from '@bifold/custom-ui'
 
 export class AppContainer implements Container {
   private _container: DependencyContainer

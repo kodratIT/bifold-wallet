@@ -30,16 +30,52 @@ export function evaluateDcqlQuery(
   query: DcqlQuery,
   walletCredentials: WalletCredential[]
 ): DcqlQueryResult {
+  console.log('[DEBUG-DCQL] evaluateDcqlQuery — wallet credentials count:', walletCredentials.length)
+  console.log('[DEBUG-DCQL] query credentials:', query.credentials.map((c) => ({ id: c.id, format: c.format, claims: c.claims })))
+  for (let i = 0; i < walletCredentials.length; i++) {
+    const cred = walletCredentials[i]
+    if (cred && typeof cred === 'object') {
+      const record = cred as Record<string, unknown>
+      const payload = getCredentialPayload(cred)
+      console.log(`[DEBUG-DCQL] wallet[${i}] — record.type: ${String(record.type ?? 'N/A')}, record.format: ${String(record.format ?? 'N/A')}, record.credentialFormat: ${String(record.credentialFormat ?? 'N/A')}, record.id: ${String(record.id ?? 'N/A')}`)
+      console.log(`[DEBUG-DCQL] wallet[${i}] — payload keys: ${Object.keys(payload).join(', ') || 'none'}`)
+      if ('firstCredential' in record) {
+        const fc = record.firstCredential
+        if (fc && typeof fc === 'object') {
+          const fcRecord = fc as Record<string, unknown>
+          console.log(`[DEBUG-DCQL] wallet[${i}] — firstCredential.claimFormat: ${String(fcRecord.claimFormat ?? 'N/A')}, firstCredential.type: ${String(fcRecord.type ?? 'N/A')}`)
+          if ('jsonCredential' in fcRecord) {
+            const jc = fcRecord.jsonCredential
+            if (jc && typeof jc === 'object') {
+              const jcRecord = jc as Record<string, unknown>
+              console.log(`[DEBUG-DCQL] wallet[${i}] — jsonCredential keys: ${Object.keys(jcRecord).join(', ')}`)
+            }
+          }
+        }
+      }
+    }
+  }
+  console.log('[DEBUG-DCQL] Starting credential matching for', query.credentials.length, 'credential queries...')
   const matches = query.credentials.reduce<Record<string, DcqlCredentialMatch[]>>(
-    (result, credentialQuery) => ({
-      ...result,
-      [credentialQuery.id]: walletCredentials
-        .filter((credential) => matchesCredentialQuery(credentialQuery, credential))
-        .map((credential) => ({
+    (result, credentialQuery) => {
+      const matchingCredentials = walletCredentials.filter((credential) => {
+        const formatOk = matchesFormat(credentialQuery.format, credential)
+        const claimsOk = matchesClaims(credentialQuery.claims, credential)
+        if (!formatOk || !claimsOk) {
+          const record = credential as Record<string, unknown>
+          console.log(`[DEBUG-DCQL] SKIP credential ${String(record.id ?? '?')} for query ${credentialQuery.id}: format=${formatOk}, claims=${claimsOk}`)
+        }
+        return formatOk && claimsOk
+      })
+      console.log(`[DEBUG-DCQL] Query ${credentialQuery.id}: ${matchingCredentials.length} of ${walletCredentials.length} credentials matched`)
+      return {
+        ...result,
+        [credentialQuery.id]: matchingCredentials.map((credential) => ({
           credential,
           presentation: presentationFromCredential(credential),
         })),
-    }),
+      }
+    },
     {}
   )
   const credentialSets = query.credential_sets?.map((credentialSet) => {

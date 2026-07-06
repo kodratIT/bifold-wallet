@@ -2195,6 +2195,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.29.2":
+  version: 7.29.7
+  resolution: "@babel/runtime@npm:7.29.7"
+  checksum: 10c0/ca11572f7146b21e0bde6a9ed4bb6a89eafbee5f0944c7eb54d0d8a2dac962c33638a1d611e14faa71dfbb92b4b5f9236232208568a6b7d5c6f3f39ddb91771e
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:~7.23.9":
   version: 7.23.9
   resolution: "@babel/runtime@npm:7.23.9"
@@ -2670,6 +2677,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bifold/custom-ui@workspace:packages/custom-ui":
+  version: 0.0.0-use.local
+  resolution: "@bifold/custom-ui@workspace:packages/custom-ui"
+  dependencies:
+    "@bifold/core": "workspace:*"
+    "@bifold/react-hooks": "workspace:*"
+    "@credo-ts/core": "npm:0.6.3"
+    "@react-navigation/stack": "npm:*"
+    "@types/lodash.startcase": "npm:*"
+    "@types/react": "npm:19.1.0"
+    lodash.startcase: "npm:*"
+    react: "npm:19.1.0"
+    react-i18next: "npm:*"
+    react-native: "npm:0.81.5"
+    react-native-vector-icons: "npm:*"
+    typescript: "npm:~5.9.2"
+  languageName: unknown
+  linkType: soft
+
 "@bifold/oca@npm:3.0.16, @bifold/oca@workspace:packages/oca":
   version: 0.0.0-use.local
   resolution: "@bifold/oca@workspace:packages/oca"
@@ -2728,7 +2754,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bifold/react-hooks@npm:3.0.16, @bifold/react-hooks@workspace:packages/react-hooks":
+"@bifold/react-hooks@npm:3.0.16, @bifold/react-hooks@workspace:*, @bifold/react-hooks@workspace:packages/react-hooks":
   version: 0.0.0-use.local
   resolution: "@bifold/react-hooks@workspace:packages/react-hooks"
   dependencies:
@@ -5873,6 +5899,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-navigation/elements@npm:^2.9.29":
+  version: 2.9.29
+  resolution: "@react-navigation/elements@npm:2.9.29"
+  dependencies:
+    color: "npm:^4.2.3"
+    use-latest-callback: "npm:^0.2.4"
+    use-sync-external-store: "npm:^1.5.0"
+  peerDependencies:
+    "@react-native-masked-view/masked-view": ">= 0.2.0"
+    "@react-navigation/native": ^7.3.7
+    react: ">= 18.2.0"
+    react-native: "*"
+    react-native-safe-area-context: ">= 4.0.0"
+  peerDependenciesMeta:
+    "@react-native-masked-view/masked-view":
+      optional: true
+  checksum: 10c0/5fa7ab7d390b772e2f1db208592a45d090e40c375259588e73c3f58be403b714c0569e8426d650a1839f0ec9b60aea2077eaaa165fc6fce86b0034bd0a34a3bc
+  languageName: node
+  linkType: hard
+
 "@react-navigation/native@npm:~6.0.16":
   version: 6.0.16
   resolution: "@react-navigation/native@npm:6.0.16"
@@ -5894,6 +5940,24 @@ __metadata:
   dependencies:
     nanoid: "npm:^3.1.23"
   checksum: 10c0/5b58014cf29bb71c7dc01201e271d55f0ecfe6d38d064179eeff0fc0b5cb739d4d9906eb133f100d25fc674c72c24aa65d5f6bfc3d036d79f7c5d1936391c605
+  languageName: node
+  linkType: hard
+
+"@react-navigation/stack@npm:*":
+  version: 7.10.10
+  resolution: "@react-navigation/stack@npm:7.10.10"
+  dependencies:
+    "@react-navigation/elements": "npm:^2.9.29"
+    color: "npm:^4.2.3"
+    use-latest-callback: "npm:^0.2.4"
+  peerDependencies:
+    "@react-navigation/native": ^7.3.7
+    react: ">= 18.2.0"
+    react-native: "*"
+    react-native-gesture-handler: ">= 2.0.0"
+    react-native-safe-area-context: ">= 4.0.0"
+    react-native-screens: ">= 4.0.0"
+  checksum: 10c0/aed44c6372f0b7b44913b449bc09517283f841530d2cbd06715e856fcca881b5124f38f63d0b0ab172f17465fd1e1d1790821dfea22b6b4d39cab4ea796fb7b3
   languageName: node
   linkType: hard
 
@@ -6679,7 +6743,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash.startcase@npm:~4.4.9":
+"@types/lodash.startcase@npm:*, @types/lodash.startcase@npm:~4.4.9":
   version: 4.4.9
   resolution: "@types/lodash.startcase@npm:4.4.9"
   dependencies:
@@ -13707,7 +13771,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash.startcase@npm:^4.4.0, lodash.startcase@npm:~4.4.0":
+"lodash.startcase@npm:*, lodash.startcase@npm:^4.4.0, lodash.startcase@npm:~4.4.0":
   version: 4.4.0
   resolution: "lodash.startcase@npm:4.4.0"
   checksum: 10c0/bd82aa87a45de8080e1c5ee61128c7aee77bf7f1d86f4ff94f4a6d7438fc9e15e5f03374b947be577a93804c8ad6241f0251beaf1452bf716064eeb657b3a9f0
@@ -15811,6 +15875,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-i18next@npm:*":
+  version: 17.0.8
+  resolution: "react-i18next@npm:17.0.8"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.2"
+    html-parse-stringify: "npm:^3.0.1"
+    use-sync-external-store: "npm:^1.6.0"
+  peerDependencies:
+    i18next: ">= 26.2.0"
+    react: ">= 16.8.0"
+    typescript: ^5 || ^6
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+    typescript:
+      optional: true
+  checksum: 10c0/4d13d396208927ed3c80eb62db011a98dae16d93fc951bb4cb220fc5a3a5dd2f0046244fdbd197f627f595230d6fa05cc5d1c6f52b6241acd63ff818dff63acb
+  languageName: node
+  linkType: hard
+
 "react-i18next@npm:~11.17.1":
   version: 11.17.4
   resolution: "react-i18next@npm:11.17.4"
@@ -16411,6 +16497,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-vector-icons@npm:*, react-native-vector-icons@npm:~10.3.0":
+  version: 10.3.0
+  resolution: "react-native-vector-icons@npm:10.3.0"
+  dependencies:
+    prop-types: "npm:^15.7.2"
+    yargs: "npm:^16.1.1"
+  bin:
+    fa-upgrade.sh: bin/fa-upgrade.sh
+    fa5-upgrade: bin/fa5-upgrade.sh
+    fa6-upgrade: bin/fa6-upgrade.sh
+    generate-icon: bin/generate-icon.js
+  checksum: 10c0/247804affcf74906062ed088d755c3d4632e3f2b62c38226ccb05e2a8dc42414c2378040a4acb474704bed09cd06cb285770c765ffff67fb2d3b896cd46e76ca
+  languageName: node
+  linkType: hard
+
 "react-native-vector-icons@npm:~10.0.3":
   version: 10.0.3
   resolution: "react-native-vector-icons@npm:10.0.3"
@@ -16423,21 +16524,6 @@ __metadata:
     fa6-upgrade: bin/fa6-upgrade.sh
     generate-icon: bin/generate-icon.js
   checksum: 10c0/f7741e03cba701ac577779784db64ef581d5056a14698ac34de0bea731ff0d2bbe4b1c5ede441caa1b8748b18e57ee96b4d8dd75d53ef1b240995d1ffdc6419d
-  languageName: node
-  linkType: hard
-
-"react-native-vector-icons@npm:~10.3.0":
-  version: 10.3.0
-  resolution: "react-native-vector-icons@npm:10.3.0"
-  dependencies:
-    prop-types: "npm:^15.7.2"
-    yargs: "npm:^16.1.1"
-  bin:
-    fa-upgrade.sh: bin/fa-upgrade.sh
-    fa5-upgrade: bin/fa5-upgrade.sh
-    fa6-upgrade: bin/fa6-upgrade.sh
-    generate-icon: bin/generate-icon.js
-  checksum: 10c0/247804affcf74906062ed088d755c3d4632e3f2b62c38226ccb05e2a8dc42414c2378040a4acb474704bed09cd06cb285770c765ffff67fb2d3b896cd46e76ca
   languageName: node
   linkType: hard
 
@@ -18816,7 +18902,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-latest-callback@npm:^0.2.1":
+"use-latest-callback@npm:^0.2.1, use-latest-callback@npm:^0.2.4":
   version: 0.2.6
   resolution: "use-latest-callback@npm:0.2.6"
   peerDependencies:
@@ -18834,7 +18920,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-sync-external-store@npm:^1.2.2, use-sync-external-store@npm:^1.6.0":
+"use-sync-external-store@npm:^1.2.2, use-sync-external-store@npm:^1.5.0, use-sync-external-store@npm:^1.6.0":
   version: 1.6.0
   resolution: "use-sync-external-store@npm:1.6.0"
   peerDependencies:

@@ -96,13 +96,21 @@ export interface OpenId4VPRequestRecord extends OpenId4VpResolvedAuthorizationRe
   createdAt: string | Date
   type: 'OpenId4VPRequestRecord'
 }
+export type ClaimSetGroup = {
+  id: string | number
+  label: string
+  claimKeys: string[]
+}
+
 
 export type FormattedSelectedCredentialEntry = {
   id: string
   credentialName: string
   issuerName?: string
   requestedAttributes?: string[]
+  optionalAttributes?: string[]
   metadata?: CredentialMetadata
+  claimSets?: ClaimSetGroup[]
   backgroundColor?: string
   backgroundImage?: DisplayImage
   textColor?: string
@@ -181,5 +189,6 @@ export interface SelectedCredentialsFormat {
   [inputDescriptorId: string]: {
     id: string
     claimFormat: string
+    disclosedClaims?: string[]
   }
 }

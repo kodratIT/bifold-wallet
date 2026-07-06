@@ -782,6 +782,7 @@
     "ProofRequestErrorMessage": "Something went wrong with the proof request.",
     "PleaseAddress": " Please address them before continuing.",
     "DetailsHeader": "Information Requested",
+    "OptionalHint": "Optional — only share what you choose",
     "OID4VCTitle": "Information Request",
     "UseDifferentCard": "Use different card"
   },

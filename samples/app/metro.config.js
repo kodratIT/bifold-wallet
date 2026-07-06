@@ -30,6 +30,7 @@ const packageDirs = [
   path.resolve(__dirname, '../../packages/ui'),
   path.resolve(__dirname, '../../packages/verifier'),
   path.resolve(__dirname, '../../packages/backup'),
+  path.resolve(__dirname, '../../packages/custom-ui'),
 ]
 
 const watchFolders = [...packageDirs]
@@ -39,6 +40,7 @@ const extraNodeModules = {
   '@bifold/backup': path.resolve(__dirname, '../../packages/backup'),
   '@bifold/trust-registry': path.resolve(__dirname, '../../packages/trust-registry'),
   '@bifold/ui': path.resolve(__dirname, '../../packages/ui'),
+  '@bifold/custom-ui': path.resolve(__dirname, '../../packages/custom-ui'),
 }
 const localPackageEntryPoints = {
   '@bifold/core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
