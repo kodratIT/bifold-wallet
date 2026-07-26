@@ -107,11 +107,12 @@ const Chat: React.FC<ChatProps> = ({ route }) => {
   }, [])
 
   return (
-    <SafeAreaView edges={['bottom', 'left', 'right']} style={{ flex: 1 }}>
+    <SafeAreaView edges={['bottom', 'left', 'right']} style={{ flex: 1, paddingTop: 20 }}>
       <GiftedChat<ExtendedChatMessage>
         messages={chatMessages}
         isAvatarVisibleForEveryMessage={true}
         renderAvatar={() => null}
+        isAlignedTop
         messageIdGenerator={(msg) => msg?._id.toString() || '0'}
         renderMessage={(props) => <ChatMessage messageProps={props} />}
         renderInputToolbar={(props) => renderInputToolbar(props, theme)}

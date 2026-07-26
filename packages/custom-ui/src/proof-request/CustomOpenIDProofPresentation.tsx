@@ -62,6 +62,7 @@ const CustomOpenIDProofPresentation: React.FC<Props> = ({
     selectedClaims,
     handleClaimToggle,
     getDisclosedClaims,
+    initializeSelection,
     resetSelection,
   } = useClaimSelection()
 
@@ -107,6 +108,25 @@ const CustomOpenIDProofPresentation: React.FC<Props> = ({
       )
     )
   }, [satisfiedSubmission, credentials])
+
+  // Initialize selection: pre-check all required claims on first load
+  useEffect(() => {
+    if (!submission || !selectedSubmission || credentials.length === 0) return
+    const requiredKeys: string[] = []
+    for (const [inputDescriptorId, credSimplified] of Object.entries(selectedSubmission)) {
+      const corrSub = submission.entries.find((s) => s.inputDescriptorId === inputDescriptorId)
+      const credSub = corrSub?.credentials.find((s) => s.id === credSimplified.id)
+      const reqAttrs = credSub?.requestedAttributes ?? []
+      const optAttrs = credSub?.optionalAttributes ?? []
+      const extraOptSet = new Set(optAttrs ?? [])
+      for (const key of reqAttrs) {
+        if (!isAttributeOptional(key) && !extraOptSet.has(key)) {
+          requiredKeys.push(key)
+        }
+      }
+    }
+    initializeSelection(requiredKeys)
+  }, [submission, selectedSubmission, credentials, isAttributeOptional, initializeSelection])
 
   // --- Handlers ---
   const toggleDecline = () => setDeclineModalVisible((p) => !p)

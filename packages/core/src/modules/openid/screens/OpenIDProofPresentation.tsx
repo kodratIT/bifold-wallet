@@ -47,7 +47,6 @@ const OpenIDProofPresentation: React.FC<OpenIDProofPresentationProps> = ({
   const [credentialsRequested, setCredentialsRequested] = useState<Array<OpenIDCredentialRecord>>([])
   const [satistfiedCredentialsSubmission, setSatistfiedCredentialsSubmission] = useState<SatisfiedCredentialsFormat>()
   const [selectedCredentialsSubmission, setSelectedCredentialsSubmission] = useState<SelectedCredentialsFormat>()
-  const [checkedOptionalClaims, setCheckedOptionalClaims] = useState<Record<string, string[]>>({})
 
   const { getCredentialById } = useOpenIDCredentials()
 
@@ -112,38 +111,15 @@ const OpenIDProofPresentation: React.FC<OpenIDProofPresentationProps> = ({
     return { verifierName: credential?.verifierHostName }
   }, [credential])
 
-  const handleClaimsToggle = useCallback((inputDescriptorId: string, disclosedClaims: string[]) => {
-    setCheckedOptionalClaims(prev => ({
-      ...prev,
-      [inputDescriptorId]: disclosedClaims,
-    }))
-  }, [])
-
   const handleAcceptTouched = async () => {
     try {
       if (!agent || !selectedCredentialsSubmission) {
         return
       }
-
-      // Merge essential + checked optional claims per inputDescriptorId
-      // Only set disclosedClaims when there are claims to filter (prevents empty array = zero payload)
-      const fullCredentials = Object.fromEntries(
-        Object.entries(selectedCredentialsSubmission).map(([id, info]) => {
-          const entry = submission?.entries?.find(e => e.inputDescriptorId === id)
-          const essential = entry?.credentials?.[0]?.requestedAttributes ?? []
-          const checkedOptional = checkedOptionalClaims[id] ?? []
-          const merged = [...essential, ...checkedOptional]
-          return [id, {
-            ...info,
-            ...(merged.length > 0 ? { disclosedClaims: merged } : {}),
-          }]
-        })
-      )
-
       await shareProof({
         agent,
         requestRecord: credential,
-        selectedProofCredentials: fullCredentials,
+        selectedProofCredentials: selectedCredentialsSubmission,
       })
       setAcceptModalVisible(true)
     } catch (err: unknown) {
@@ -229,7 +205,6 @@ const OpenIDProofPresentation: React.FC<OpenIDProofPresentationProps> = ({
         selectedCredentialsSubmission={selectedCredentialsSubmission}
         submission={submission}
         verifierName={verifierName}
-        onClaimsToggle={handleClaimsToggle}
       />
       <ProofRequestAccept visible={acceptModalVisible} proofId={''} confirmationOnly={true} />
       <CommonRemoveModal

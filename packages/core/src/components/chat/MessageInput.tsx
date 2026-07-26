@@ -22,14 +22,14 @@ export const renderInputToolbar = (props: any, theme: any) => (
 export const renderComposer = (props: any, theme: any, placeholder: string, disabled?: boolean) => (
   <Composer
     {...props}
-    placeholder={placeholder}
-    placeholderTextColor={theme.placeholderText}
     // the placeholder is read by accessibility features when multiline is enabled so a label is not necessary (results in double announcing if used)
     textInputProps={{
       ...props.textInputProps,
       accessibilityLabel: '',
-      maxFontSizeMultiplier: 1.2,
       editable: !disabled,
+      maxFontSizeMultiplier: 1.2,
+      placeholder,
+      placeholderTextColor: theme.placeholderText,
       style: theme.inputText,
     }}
   />

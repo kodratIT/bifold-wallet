@@ -31,7 +31,7 @@ import {
   DidCommModule,
 } from '@credo-ts/didcomm'
 
-import { IndyVdrAnonCredsRegistry, IndyVdrModule, IndyVdrPoolConfig } from '@credo-ts/indy-vdr'
+import { IndyVdrAnonCredsRegistry, IndyVdrModule, IndyVdrPoolConfig, IndyVdrSovDidResolver } from '@credo-ts/indy-vdr'
 import { WebVhAnonCredsRegistry, WebVhDidResolver } from '@credo-ts/webvh'
 import { useAgent } from '@bifold/react-hooks'
 import { OpenId4VcModule } from '@credo-ts/openid4vc'
@@ -155,6 +155,7 @@ export function getAgentModules({
         new JwkDidResolver(),
         new KeyDidResolver(),
         new PeerDidResolver(),
+        new IndyVdrSovDidResolver(),
       ],
     }),
   }

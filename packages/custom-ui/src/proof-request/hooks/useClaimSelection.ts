@@ -10,6 +10,7 @@ export interface UseClaimSelectionReturn {
   selectedClaims: Record<string, boolean>
   handleClaimToggle: (claimName: string, value: boolean) => void
   getDisclosedClaims: (allKeys: string[]) => string[]
+  initializeSelection: (requiredKeys: string[]) => void
   resetSelection: () => void
   isAnyClaimChecked: boolean
   isClaimChecked: (claimKey: string) => boolean
@@ -20,6 +21,12 @@ export function useClaimSelection(): UseClaimSelectionReturn {
 
   const handleClaimToggle = useCallback((claimName: string, value: boolean) => {
     setSelectedClaims((prev) => ({ ...prev, [claimName]: value }))
+  }, [])
+
+  const initializeSelection = useCallback((requiredKeys: string[]) => {
+    setSelectedClaims(
+      Object.fromEntries(requiredKeys.map((key) => [key, true]))
+    )
   }, [])
 
   const resetSelection = useCallback(() => {
@@ -49,6 +56,7 @@ export function useClaimSelection(): UseClaimSelectionReturn {
     selectedClaims,
     handleClaimToggle,
     getDisclosedClaims,
+    initializeSelection,
     resetSelection,
     isAnyClaimChecked,
     isClaimChecked,

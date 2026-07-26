@@ -1,7 +1,7 @@
 import React from 'react'
 import { StyleSheet, View, ScrollView } from 'react-native'
 
-import { FormattedSubmission, OpenId4VPRequestRecord, SelectedCredentialsFormat } from '../../types'
+import { FormattedSubmission, OpenId4VPRequestRecord } from '../../types'
 import OpenIDProofPresentationFooter from './components/OpenIDProofRequestFooter'
 import OpenIDProofRequestHeader from './components/OpenIDProofRequestHeader'
 import OpenIDProofRequestBody from './components/OpenIDProofRequestBody'
@@ -18,7 +18,13 @@ interface OpenIdProofRequestDisplayProps {
   selectedCredentialsSubmission?: SelectedCredentialsFormat
   submission?: FormattedSubmission
   verifierName: any
-  onClaimsToggle?: (inputDescriptorId: string, disclosedClaims: string[]) => void
+}
+
+interface SelectedCredentialsFormat {
+  [inputDescriptorId: string]: {
+    id: string
+    claimFormat: string
+  }
 }
 
 const OpenIdProofRequestDisplay: React.FC<OpenIdProofRequestDisplayProps> = ({
@@ -31,8 +37,7 @@ const OpenIdProofRequestDisplay: React.FC<OpenIdProofRequestDisplayProps> = ({
   onPressDismiss,
   selectedCredentialsSubmission,
   submission,
-  verifierName,
-  onClaimsToggle,
+  verifierName
 }) => {
 
   const styles = StyleSheet.create({
@@ -57,7 +62,6 @@ const OpenIdProofRequestDisplay: React.FC<OpenIdProofRequestDisplayProps> = ({
             selectedCredentialsSubmission={selectedCredentialsSubmission}
             submission={submission}
             verifierName={verifierName}
-            onClaimsToggle={onClaimsToggle}
           />
         </View>
       </ScrollView>

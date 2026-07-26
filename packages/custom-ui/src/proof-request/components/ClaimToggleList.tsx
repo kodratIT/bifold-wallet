@@ -162,19 +162,29 @@ const ClaimToggleList: React.FC<ClaimToggleListProps> = ({
                 {displayValue}
               </ThemedText>
             </View>
-            <TouchableOpacity
-              onPress={() => onToggleClaim(item.key, !isChecked)}
-              style={styles.checkbox}
-              hitSlop={hitSlop}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: isChecked }}
-            >
-              <Icon
-                name={isChecked ? 'check-circle' : 'radio-button-unchecked'}
-                size={26}
-                color={isChecked ? ColorPalette.brand.primary : TextTheme.normal.color ?? '#888'}
-              />
-            </TouchableOpacity>
+            {item.isRequired ? (
+              <View style={styles.checkbox}>
+                <Icon
+                  name="check-circle"
+                  size={26}
+                  color={ColorPalette.brand.primary}
+                />
+              </View>
+            ) : (
+              <TouchableOpacity
+                onPress={() => onToggleClaim(item.key, !isChecked)}
+                style={styles.checkbox}
+                hitSlop={hitSlop}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: isChecked }}
+              >
+                <Icon
+                  name={isChecked ? 'check-circle' : 'radio-button-unchecked'}
+                  size={26}
+                  color={isChecked ? ColorPalette.brand.primary : TextTheme.normal.color ?? '#888'}
+                />
+              </TouchableOpacity>
+            )}
           </View>
         )
       })}
