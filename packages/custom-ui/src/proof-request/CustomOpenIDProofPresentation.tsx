@@ -12,6 +12,7 @@ import ProofRequestAccept from '@bifold/core/src/screens/ProofRequestAccept'
 import { useTheme } from '@bifold/core/src/contexts/theme'
 import { formatOpenIdProofRequest } from '@bifold/core/src/modules/openid/displayProof'
 import { shareProof } from '@bifold/core/src/modules/openid/resolverProof'
+import { handleDcqlShare } from '@bifold/core/src/modules/openid/screens/OpenIDProofPresentation'
 import { useOpenIDCredentials } from '@bifold/core/src/modules/openid/context/OpenIDCredentialRecordProvider'
 import { OpenIDCredentialRecord } from '@bifold/core/src/modules/openid/credentialRecord'
 import { BifoldError } from '@bifold/core/src/types/error'
@@ -61,7 +62,6 @@ const CustomOpenIDProofPresentation: React.FC<Props> = ({
   const {
     selectedClaims,
     handleClaimToggle,
-    getDisclosedClaims,
     initializeSelection,
     resetSelection,
   } = useClaimSelection()
@@ -69,6 +69,7 @@ const CustomOpenIDProofPresentation: React.FC<Props> = ({
   // --- Derived data ---
   const submission = useMemo(() => (credential ? formatOpenIdProofRequest(credential) : undefined), [credential])
   const verifierName = useMemo(() => credential?.verifierHostName ?? '', [credential])
+  const isDcql = useMemo(() => !!credential?.dcql, [credential])
 
   // --- Effects ---
   useEffect(() => {
@@ -80,6 +81,20 @@ const CustomOpenIDProofPresentation: React.FC<Props> = ({
       ])
     )
     setSatisfiedSubmission(creds)
+
+    // [DEBUG] Log formatted proof request from verifier
+    console.log(
+      `[CustomOpenIDProofPresentation] Verifier credential request:\n${JSON.stringify(submission.entries, null, 2)}`
+    )
+    if (credential?.dcql?.queryResult) {
+      console.log(
+        `[CustomOpenIDProofPresentation] Raw DCQL queryResult.credentials:\n${JSON.stringify(credential.dcql.queryResult.credentials, null, 2)}`
+      )
+    } else if (credential?.presentationExchange) {
+      console.log(
+        `[CustomOpenIDProofPresentation] Raw PEX credentialsForRequest:\n${JSON.stringify(credential.presentationExchange.credentialsForRequest, null, 2)}`
+      )
+    }
   }, [submission])
 
   useEffect(() => {
@@ -136,19 +151,14 @@ const CustomOpenIDProofPresentation: React.FC<Props> = ({
       if (!agent || !selectedSubmission) return
       setButtonsVisible(false)
 
-      const allKeys: string[] = submission?.entries.flatMap((entry) => {
-        const selected = selectedSubmission[entry.inputDescriptorId]
-        const credSub = entry.credentials.find((c) => c.id === selected?.id)
-        return [...(credSub?.requestedAttributes ?? []), ...(credSub?.optionalAttributes ?? [])]
-      }) ?? []
-
-      const disclosedClaims = getDisclosedClaims(allKeys)
-
-      const payload = Object.fromEntries(
-        Object.entries(selectedSubmission).map(([id, cred]) => [id, { ...cred, disclosedClaims }])
-      )
-
-      await shareProof({ agent, requestRecord: credential, selectedProofCredentials: payload })
+      if (isDcql && credential?.dcql) {
+        // DCQL: use handleDcqlShare (filters claims properly, same as core UI)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await handleDcqlShare(agent, credential as any, selectedSubmission, selectedClaims)
+      } else {
+        // PEX: use shareProof (standard credential-level presentation)
+        await shareProof({ agent, requestRecord: credential, selectedProofCredentials: selectedSubmission })
+      }
       setAcceptModalVisible(true)
     } catch (err: unknown) {
       setButtonsVisible(true)

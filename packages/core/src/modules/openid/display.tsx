@@ -283,7 +283,7 @@ export function filterAndMapSdJwtKeys(sdJwtVcPayload: Record<string, unknown>) {
   }
   // TODO: We should map these claims to nice format and names
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { _sd_alg, _sd_hash, iss, vct, cnf, iat, exp, nbf, ...visibleProperties } = sdJwtVcPayload as SdJwtVcPayload
+  const { _sd_alg, _sd_hash, iss, sub, vct, cnf, iat, exp, nbf, status, jti, ...visibleProperties } = sdJwtVcPayload as SdJwtVcPayload & Record<string, unknown>
 
   const holder = (cnf.kid ?? cnf.jwk) ? safeCalculateJwkThumbprint(cnf.jwk as Jwk) : undefined
   const credentialMetadata: CredentialMetadata = {

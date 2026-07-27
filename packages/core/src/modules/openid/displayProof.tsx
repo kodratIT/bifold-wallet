@@ -9,16 +9,6 @@ import { filterAndMapSdJwtKeys, getCredentialForDisplay } from './display'
 import { OpenIDCredentialRecord } from './credentialRecord'
 import { FormattedSubmission, FormattedSubmissionEntry, OpenId4VPRequestRecord } from './types'
 
-const asRecord = (value: unknown): Record<string, unknown> =>
-  value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
-
-const flattenMdocDisclosedPayload = (value: unknown): Record<string, unknown> =>
-  Object.fromEntries(
-    Object.values(asRecord(value)).flatMap((entry) =>
-      entry && typeof entry === 'object' && !Array.isArray(entry) ? Object.entries(entry) : []
-    )
-  )
-
 const getDcqlClaimFormat = (record: OpenIDCredentialRecord): ClaimFormat => {
   switch (record.type) {
     case 'MdocRecord':
@@ -28,20 +18,6 @@ const getDcqlClaimFormat = (record: OpenIDCredentialRecord): ClaimFormat => {
     default:
       return record.firstCredential.claimFormat
   }
-}
-
-const getDcqlDisclosedPayload = (validCredential: DcqlValidCredential): Record<string, unknown> => {
-  const output = validCredential.claims.valid_claim_sets[0].output
-
-  if (validCredential.record.type === 'MdocRecord') {
-    return flattenMdocDisclosedPayload(output)
-  }
-
-  if (validCredential.record.type === 'SdJwtVcRecord') {
-    return filterAndMapSdJwtKeys(asRecord(output)).visibleProperties
-  }
-
-  return asRecord(output)
 }
 
 const formatDcqlClaimPath = (path: Array<string | number | null>): string =>
@@ -126,13 +102,11 @@ export function formatDcqlCredentialsForRequest(queryResult: DcqlQueryResult): F
         isSatisfied: validCredentials.length >= 1,
         credentials: validCredentials.map((validCredential) => {
           const { display, metadata } = getCredentialForDisplay(validCredential.record)
-          const disclosedPayload = getDcqlDisclosedPayload(validCredential)
-
           return {
             id: validCredential.record.id,
             credentialName: display.name,
             issuerName: display.issuer.name,
-            requestedAttributes: [...Object.keys(disclosedPayload)],
+            requestedAttributes: [...getDcqlRequestedAttributes(credentialQuery)],
             metadata,
             backgroundColor: display.backgroundColor,
             textColor: display.textColor,

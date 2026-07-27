@@ -147,6 +147,38 @@ export const getCredentialsForProofRequest = async ({
       createdAt: new Date(),
       type: 'OpenId4VPRequestRecord',
     }
+
+    // [DEBUG] Log the DCQL credential query from verifier
+    if (resolved.dcql?.queryResult) {
+      agent.config.logger.info(
+        `[DCQL] credential_query:\n${JSON.stringify(resolved.dcql.queryResult.credentials, null, 2)}`
+      )
+      if (resolved.dcql.queryResult.can_be_satisfied !== undefined) {
+        agent.config.logger.info(
+          `[DCQL] can_be_satisfied: ${resolved.dcql.queryResult.can_be_satisfied}`
+        )
+      }
+      if (resolved.dcql.queryResult.credential_matches) {
+        agent.config.logger.info(
+          `[DCQL] credential_matches:\n${JSON.stringify(
+            Object.fromEntries(
+              Object.entries(resolved.dcql.queryResult.credential_matches).map(([k, v]) => [
+                k,
+                { success: v.success, valid_credentials: v.success ? Array.from(v.valid_credentials).map((vc) => ({ id: vc.record.id, type: vc.record.type })) : [] },
+              ])
+            ),
+            null,
+            2
+          )}`
+        )
+      }
+    }
+    if (resolved.presentationExchange) {
+      agent.config.logger.info(
+        `[PEX] credentialsForRequest:\n${JSON.stringify(resolved.presentationExchange.credentialsForRequest, null, 2)}`
+      )
+    }
+
     return requestRecord
   } catch (err) {
     agent.config.logger.error(`Parsing presentation request:  ${(err as Error)?.message ?? err}`)
@@ -191,13 +223,21 @@ const getDcqlCredentialForRequest = (
         disclosedPayload: validCredential.claims.valid_claim_sets[0].output as MdocNameSpaces,
         useMode,
       }
-    case 'SdJwtVcRecord':
+    case 'SdJwtVcRecord': {
+      const sdJwtPayload = validCredential.claims.valid_claim_sets[0].output as JsonObject
+
+      // [DEBUG] Log SD-JWT disclosed payload before sending to verifier
+      console.log(
+        `[SdJwtVcRecord] Disclosed payload for credential ${validCredential.record.id}:\n${JSON.stringify(sdJwtPayload, null, 2)}`
+      )
+
       return {
         claimFormat: ClaimFormat.SdJwtDc,
         credentialRecord: validCredential.record,
-        disclosedPayload: validCredential.claims.valid_claim_sets[0].output as JsonObject,
+        disclosedPayload: sdJwtPayload,
         useMode,
       }
+    }
     case 'W3cCredentialRecord':
       return {
         claimFormat: validCredential.record.firstCredential.claimFormat as ClaimFormat.JwtVc | ClaimFormat.LdpVc,
@@ -294,6 +334,17 @@ export const shareProof = async ({
     if (!presentationExchange && !dcql) {
       throw new Error('Unsupported authorization request: missing presentation exchange or dcql parameters.')
     }
+
+    // [DEBUG] Log the full payload being submitted to the verifier
+    const submitPayload = {
+      authorizationRequestPayload: requestRecord.authorizationRequestPayload,
+      presentationExchange,
+      dcql,
+      origin: requestRecord.origin,
+    }
+    agent.config.logger.info(
+      `[shareProof] Submitting OpenID4VP authorization request payload:\n${JSON.stringify(submitPayload, null, 2)}`
+    )
 
     const result = await agent.openid4vc.holder.acceptOpenId4VpAuthorizationRequest({
       authorizationRequestPayload: requestRecord.authorizationRequestPayload,
