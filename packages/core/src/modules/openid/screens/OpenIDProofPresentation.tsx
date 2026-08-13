@@ -213,7 +213,11 @@ export const buildFilteredDcqlCredentials = (
       }
       filteredDisclosedPayload = filtered as MdocNameSpaces
     } else {
-      filteredDisclosedPayload = output as JsonObject
+      // Generic fallback: filter output by selected claims for any record type
+      const flatOutput = output as Record<string, unknown>
+      filteredDisclosedPayload = Object.fromEntries(
+        Object.entries(flatOutput).filter(([key]) => selectedClaims[key] === true),
+      ) as JsonObject
     }
     result[credentialQueryId] = [{
       claimFormat: getDcqlClaimFormat(validCredential),

@@ -1,5 +1,6 @@
 import { BifoldLogger, Container, TokenMapping, TOKENS } from '@bifold/core'
 import { BackupService } from '@bifold/backup'
+import React from 'react'
 import {
   TrustRegistryService,
   TrustBadgeWrapper,
@@ -14,6 +15,8 @@ import {
   CustomPinSetupFlow,
   CustomSplash,
   CustomTerms,
+  CustomOpenIDProofPresentation,
+  isCustomOpenIDProofPresentationRequest,
   TermsVersion,
 } from '@bifold/ui'
 import { DependencyContainer } from 'tsyringe'
@@ -45,7 +48,18 @@ export class AppContainer implements Container {
     this.container.registerInstance(TOKENS.SCREEN_PIN_CREATE, CustomPinSetupFlow)
     this.container.registerInstance(TOKENS.SCREEN_SPLASH, CustomSplash)
     this.container.registerInstance(TOKENS.SCREEN_TERMS, { screen: CustomTerms, version: TermsVersion })
-
+    const DefaultOpenIDProofPresentation = this.container.resolve<
+      React.ComponentType<React.ComponentProps<typeof CustomOpenIDProofPresentation>>
+    >(TOKENS.SCREEN_OPENID_PROOF_PRESENTATION)
+    const OpenIDProofPresentationRouter: React.FC<React.ComponentProps<typeof CustomOpenIDProofPresentation>> = (
+      props
+    ) => {
+      const Screen = isCustomOpenIDProofPresentationRequest(props.route.params.credential)
+        ? CustomOpenIDProofPresentation
+        : DefaultOpenIDProofPresentation
+      return <Screen {...props} />
+    }
+    this.container.registerInstance(TOKENS.SCREEN_OPENID_PROOF_PRESENTATION, OpenIDProofPresentationRouter)
 
     // Here you can register any component to override components in core package
     // Example: Replacing button in core with custom button
@@ -88,7 +102,7 @@ export class AppContainer implements Container {
         throw new Error(`Error generating hash for PIN ${String((error as Error)?.message ?? error)}`)
       }
     })
-    */ 
+    */
     return this
   }
 

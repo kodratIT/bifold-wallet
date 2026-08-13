@@ -63,7 +63,9 @@
     "react-native-vector-icons": ">=9.0.0"
   },
   "dependencies": {
-    "@bifold/core": "workspace:*"
+    "@bifold/core": "workspace:*",
+    "@bifold/react-hooks": "workspace:*",
+    "@credo-ts/core": "0.6.3"
   },
   "installConfig": {
     "hoistingLimits": "workspaces"

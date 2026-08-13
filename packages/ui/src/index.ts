@@ -3,6 +3,10 @@ export { default as CustomOnboarding, default as OnboardingScreen } from './scre
 export { default as CustomPinSetupFlow, default as PinSetupFlowScreen } from './screens/CustomPinSetupFlow'
 export { default as CustomSplash } from './screens/CustomSplash'
 export { default as CustomTerms, TermsVersion } from './screens/CustomTerms'
+export {
+  default as CustomOpenIDProofPresentation,
+  isCustomOpenIDProofPresentationRequest,
+} from './screens/CustomOpenIDProofPresentation'
 export type { SplashProps } from './screens/CustomSplash'
 export * from './components/biometry'
 export * from './components/onboarding'
