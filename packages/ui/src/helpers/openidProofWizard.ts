@@ -169,11 +169,32 @@ const getOptionalDcqlClaimKeys = (queryResult: DcqlQueryResult | undefined, cred
 /*  Extract attribute values from DCQL output                          */
 /* ------------------------------------------------------------------ */
 
+const isNumericSegment = (segment: string): boolean => /^\d+$/.test(segment)
+
 const getNestedValue = (value: unknown, path: string): unknown => {
-  return path.split('.').reduce<unknown>((acc, key) => {
-    if (!acc || typeof acc !== 'object' || Array.isArray(acc)) return undefined
-    return (acc as Record<string, unknown>)[key]
-  }, value)
+  const segments = path.split('.').filter(Boolean)
+  const resolve = (acc: unknown, rest: string[]): unknown => {
+    if (rest.length === 0) return acc
+    const [segment, ...tail] = rest
+    if (acc === null || acc === undefined) return undefined
+    if (Array.isArray(acc)) {
+      // DCQL array paths: a numeric segment indexes the array (address.0.street),
+      // a string segment over an array is a wildcard (address.city from a null path
+      // element) and maps the remaining path across all elements, keeping only the
+      // claim's own key so unselected sibling keys never end up in the payload.
+      if (isNumericSegment(segment)) return resolve(acc[Number(segment)], tail)
+      return acc
+        .map((element) => {
+          const elementValue = (element as Record<string, unknown> | null)?.[segment]
+          if (tail.length === 0) return elementValue
+          return resolve(elementValue, tail)
+        })
+        .filter((value) => value !== undefined)
+    }
+    if (typeof acc !== 'object') return undefined
+    return resolve((acc as Record<string, unknown>)[segment], tail)
+  }
+  return resolve(value, segments)
 }
 
 const setNestedValue = (target: Record<string, unknown>, path: string, value: unknown) => {
@@ -181,29 +202,43 @@ const setNestedValue = (target: Record<string, unknown>, path: string, value: un
   if (parts.length === 0) return
 
   let current = target
-  for (const part of parts.slice(0, -1)) {
+  for (let i = 0; i < parts.length - 1; i++) {
+    const part = parts[i]
+    const nextPart = parts[i + 1]
     const existing = current[part]
-    if (!existing || typeof existing !== 'object' || Array.isArray(existing)) {
-      current[part] = {}
+    if (isNumericSegment(nextPart)) {
+      // The following segment indexes an array (address.0.street).
+      if (Array.isArray(existing)) {
+        current = existing as unknown as Record<string, unknown>
+        continue
+      }
+      // Never destroy an existing object from another selected path.
+      if (existing !== undefined) return
+      const arr: unknown[] = []
+      current[part] = arr
+      current = arr as unknown as Record<string, unknown>
+      continue
     }
-    current = current[part] as Record<string, unknown>
+    // Plain object nesting; never keep an array under a string segment.
+    if (existing && typeof existing === 'object' && !Array.isArray(existing)) {
+      current = existing as Record<string, unknown>
+      continue
+    }
+    // Never destroy an existing array from an indexed path.
+    if (Array.isArray(existing)) return
+    const obj: Record<string, unknown> = {}
+    current[part] = obj
+    current = obj
   }
 
   current[parts[parts.length - 1]] = value
 }
 
-const pickSelectedClaims = (output: unknown, selectedClaims: Record<string, boolean>): JsonObject => {
+export const pickSelectedClaims = (output: unknown, selectedClaims: Record<string, boolean>): JsonObject => {
   const flatOutput = output as Record<string, unknown>
   const filtered: Record<string, unknown> = {}
-  const entries = Object.entries(selectedClaims)
 
-  // No selection data → include all output as fallback
-  if (entries.length === 0) {
-    console.warn('[pickSelectedClaims] selectedClaims empty, sending all output as fallback')
-    return flatOutput
-  }
-
-  for (const [claimPath, isSelected] of entries) {
+  for (const [claimPath, isSelected] of Object.entries(selectedClaims)) {
     if (!isSelected) continue
 
     if (Object.prototype.hasOwnProperty.call(flatOutput, claimPath)) {
@@ -215,12 +250,7 @@ const pickSelectedClaims = (output: unknown, selectedClaims: Record<string, bool
     if (nestedValue !== undefined) {
       setNestedValue(filtered, claimPath, nestedValue)
     }
-  }
-
-  // Fallback: if filtering yields empty result but output has claims, send all
-  if (Object.keys(filtered).length === 0 && Object.keys(flatOutput).length > 0) {
-    console.warn('[pickSelectedClaims] filtered result is empty but output has claims, sending all as safety fallback')
-    return flatOutput
+    // Unresolvable selected paths are omitted — never broaden the disclosure.
   }
 
   return filtered as JsonObject
