@@ -1,3 +1,5 @@
+ENV['RCT_NEW_ARCH_ENABLED'] = '0'
+
 require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 source 'https://cdn.cocoapods.org'
 require_relative '../node_modules/react-native/scripts/react_native_pods'
